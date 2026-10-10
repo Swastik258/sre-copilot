@@ -33,6 +33,33 @@ const WORKSPACES = [
   },
 ];
 
+const TEAMS = [
+  {
+    number: "01",
+    title: "Platform engineering",
+    description: "Give service teams a consistent path through infrastructure incidents.",
+    href: "/solutions/platform",
+  },
+  {
+    number: "02",
+    title: "SRE and on-call",
+    description: "Bring the relevant signals and next investigative steps together.",
+    href: "/solutions/sre",
+  },
+  {
+    number: "03",
+    title: "DevOps",
+    description: "Trace delivery failures across builds, deployments, and infrastructure.",
+    href: "/solutions/devops",
+  },
+  {
+    number: "04",
+    title: "Infrastructure teams",
+    description: "Review infrastructure changes alongside operational context.",
+    href: "/infra-code",
+  },
+];
+
 export default function LandingPage() {
   return (
     <div className="relative isolate min-h-screen overflow-hidden">
@@ -105,9 +132,9 @@ export default function LandingPage() {
           <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-300/70">Your toolkit</p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">One place to investigate</h2>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">One place to investigate</h2>
             </div>
-            <p className="max-w-md text-sm leading-6 text-slate-500">
+            <p className="max-w-md text-base leading-7 text-slate-400">
               Choose a workspace to explore. Integrations and investigation features are being built incrementally.
             </p>
           </div>
@@ -122,11 +149,11 @@ export default function LandingPage() {
                   <span className="grid size-10 place-items-center rounded-lg border border-blue-300/15 bg-blue-400/[0.07] font-mono text-xs font-semibold text-blue-200">
                     {workspace.mark}
                   </span>
-                  <span className="font-mono text-[10px] text-slate-600">{workspace.code}</span>
+                  <span className="font-mono text-xs text-slate-500">{workspace.code}</span>
                 </div>
-                <h3 className="mt-5 text-sm font-semibold text-slate-100">{workspace.title}</h3>
-                <p className="mt-1.5 min-h-10 text-xs leading-5 text-slate-500">{workspace.description}</p>
-                <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-blue-300/80 transition group-hover:text-blue-200">
+                <h3 className="mt-5 text-base font-semibold text-slate-100">{workspace.title}</h3>
+                <p className="mt-1.5 min-h-12 text-sm leading-6 text-slate-400">{workspace.description}</p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-300/80 transition group-hover:text-blue-200">
                   Open workspace <span aria-hidden="true">→</span>
                 </span>
               </Link>
@@ -134,11 +161,119 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <footer className="mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.07] pt-5 text-[11px] text-slate-600">
-          <span>SRE Copilot <span className="text-slate-700">·</span> Operations, with context.</span>
-          <span>Demo workspace · no live infrastructure connected</span>
-        </footer>
+        <section className="mt-20 border-t border-white/[0.08] pt-10">
+          <div className="grid gap-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] sm:items-end">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-300/70">Who it is for</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white">Teams on the response path</h2>
+            </div>
+            <p className="max-w-xl text-base leading-7 text-slate-400">
+              SRE Copilot is being shaped around the teams responsible for keeping services reliable. These are audience areas, not customer endorsements.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-x-10 sm:grid-cols-2">
+            {TEAMS.map((team) => (
+              <Link
+                key={team.number}
+                href={team.href}
+                className="group flex gap-4 border-b border-white/[0.08] py-5 transition-colors hover:border-blue-300/30"
+              >
+                <span className="pt-1 font-mono text-xs text-blue-300/70">{team.number}</span>
+                <span>
+                  <span className="block text-base font-semibold text-slate-100">{team.title}</span>
+                  <span className="mt-1 block text-sm leading-6 text-slate-400">{team.description}</span>
+                </span>
+                <span className="ml-auto pt-1 text-blue-300 opacity-0 transition group-hover:opacity-100" aria-hidden="true">→</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-20 border-t border-white/[0.08] pt-10">
+          <div className="flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-300/70">Current build</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white">A useful starting point</h2>
+            </div>
+            <Link href="/docs" className="text-sm font-medium text-blue-300 transition hover:text-blue-200">
+              Read the docs <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-8 border-y border-white/[0.08] py-7 md:grid-cols-3 md:gap-10">
+            <div>
+              <h3 className="text-base font-semibold text-slate-100">Live API status</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-400">The home page checks backend and database health every 15 seconds.</p>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-slate-100">Evidence preview</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-400">The diagnosis panel is an illustrative sample, not a live incident analysis.</p>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-slate-100">Clerk authentication</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-400">Sign-in and sign-up use Clerk modals; workspace routes are not yet protected.</p>
+            </div>
+          </div>
+        </section>
+
       </div>
+      <footer className="mt-16 bg-[#050608] text-paper-200">
+        <div className="mx-auto max-w-[1064px] px-6 pt-14">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">
+            <div className="col-span-2 sm:col-span-1">
+              <Link href="/" className="inline-flex items-center gap-2.5 text-sm font-semibold text-paper-50">
+                <span className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 bg-white/[0.04]">
+                  <span className="h-3.5 w-3.5 rounded-full border-2 border-signal-good border-t-transparent" />
+                </span>
+                SRE Copilot
+              </Link>
+              <p className="mt-8 text-sm text-paper-300">Follow the work</p>
+              <Link href="/support" className="mt-3 inline-block text-sm text-paper-400 transition hover:text-paper-100">
+                Get in touch
+              </Link>
+            </div>
+
+            <div>
+              <h2 className="text-sm font-medium text-paper-50">Product</h2>
+              <ul className="mt-6 space-y-2 text-sm text-paper-300">
+                <li><Link className="transition hover:text-paper-50" href="/assistant">AI Assistant</Link></li>
+                <li><Link className="transition hover:text-paper-50" href="/kubernetes">Kubernetes</Link></li>
+                <li><Link className="transition hover:text-paper-50" href="/logs">Logs</Link></li>
+                <li><Link className="transition hover:text-paper-50" href="/pricing">Pricing</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-sm font-medium text-paper-50">Workspaces</h2>
+              <ul className="mt-6 space-y-2 text-sm text-paper-300">
+                <li><Link className="transition hover:text-paper-50" href="/cicd">CI/CD</Link></li>
+                <li><Link className="transition hover:text-paper-50" href="/terraform">Terraform</Link></li>
+                <li><Link className="transition hover:text-paper-50" href="/infra-code">Infrastructure code</Link></li>
+                <li><Link className="transition hover:text-paper-50" href="/audit">Audit</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-sm font-medium text-paper-50">Resources</h2>
+              <ul className="mt-6 space-y-2 text-sm text-paper-300">
+                <li><Link className="transition hover:text-paper-50" href="/docs">Docs</Link></li>
+                <li><Link className="transition hover:text-paper-50" href="/blog">Blog</Link></li>
+                <li><Link className="transition hover:text-paper-50" href="/changelog">Changelog</Link></li>
+                <li><Link className="transition hover:text-paper-50" href="/support">Support</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-24 overflow-hidden" aria-hidden="true">
+            <div className="whitespace-nowrap text-[3.25rem] leading-[0.9] text-transparent [-webkit-text-stroke:1.5px_#1769d2] sm:text-[6rem] md:text-[8rem]">
+              SRE COPILOT
+            </div>
+          </div>
+          <div className="flex flex-wrap justify-between gap-3 border-t border-white/[0.08] py-5 text-[11px] text-paper-400">
+            <span>© 2026 SRE Copilot</span>
+            <span>Read-only by default · Evidence-linked answers</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

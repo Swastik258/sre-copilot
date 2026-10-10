@@ -9,17 +9,18 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.9.14",
     "next": "16.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20.16.11",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@tailwindcss/postcss": "^4.3.3",
     "autoprefixer": "^10.4.20",
-    "@eslint/js": "^9.0.0",
     "eslint": "^9.0.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^4.3.3",
