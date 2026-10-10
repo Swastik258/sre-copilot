@@ -1,0 +1,1 @@
+"""SRE Copilot backend application."""
