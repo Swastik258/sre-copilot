@@ -17,6 +17,18 @@ export default function Page() {
           </ul>
         </section>
 
+        <section aria-labelledby="design-heading" className="border-t border-white/[0.08] pt-8">
+          <h2 id="design-heading" className="text-xl font-semibold text-paper-50">Interface design</h2>
+          <p className="mt-3 text-base leading-7 text-paper-300">
+            The landing page and shared navigation use a cohesive dark navy palette with restrained blue accents, a subtle grid and ambient glow, clearer type hierarchy, and higher-contrast calls to action. Workspace cards and the diagnosis preview use consistent borders, rounded corners, and responsive layouts.
+          </p>
+          <ul className="mt-5 list-inside list-disc space-y-2 text-base leading-7 text-paper-300">
+            <li>The navigation uses larger, easy-to-scan links and touch targets, with an expandable mobile menu; Escape, outside clicks, and route changes close it.</li>
+            <li>Keyboard users receive a visible focus indicator, and reduced-motion preferences are respected.</li>
+            <li>The home page retains its live API health check and clearly labels the diagnosis panel as illustrative sample data.</li>
+          </ul>
+        </section>
+
         <section aria-labelledby="audiences-heading" className="border-t border-white/[0.08] pt-8">
           <h2 id="audiences-heading" className="text-xl font-semibold text-paper-50">Workspace areas</h2>
           <p className="mt-3 text-base leading-7 text-paper-300">
@@ -59,6 +71,12 @@ export default function Page() {
             Summary of the implementation work completed for this project so far.
           </p>
           <div className="mt-6 space-y-8">
+            <div>
+              <h3 className="text-base font-semibold text-paper-100">Modern interface refresh</h3>
+              <p className="mt-2 text-sm leading-6 text-paper-300">
+                Added the landing page grid, gradient headline, ambient lighting, and matching blue-accented workspace and diagnosis cards. Enlarged the shared navigation links, dropdowns, and touch targets, added a responsive mobile menu, and improved keyboard focus and reduced-motion behavior. The live health check and sample-data labels remain intact.
+              </p>
+            </div>
             <div>
               <h3 className="text-base font-semibold text-paper-100">Backend dependencies</h3>
               <p className="mt-2 text-sm leading-6 text-paper-300">
