@@ -96,7 +96,7 @@ export function TopNav() {
       ref={navRef}
       className="fixed inset-x-0 top-0 z-50 border-b border-hairline bg-ink-900/85 backdrop-blur-md"
     >
-      <nav className="mx-auto max-w-wide px-6">
+      <nav className="shell">
         <div className="flex h-[4.5rem] items-center justify-between">
           {/* Left */}
           <div className="flex min-w-0 items-center gap-8">

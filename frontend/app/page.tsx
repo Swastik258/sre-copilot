@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { HealthPill } from "@/components/HealthPill";
 import { StatusStrip } from "@/components/StatusStrip";
 import { SignatureRing } from "@/components/SignatureRing";
@@ -5,22 +6,27 @@ import { ToolsGrid } from "@/components/ToolsGrid";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Pricing } from "@/components/Pricing";
 import { FAQ } from "@/components/FAQ";
+import { DiagnosisPreview } from "@/components/DiagnosisPreview";
+import { CTASection, Eyebrow } from "@/components/ui";
 
 export default function LandingPage() {
   return (
     <>
       {/* ---------- Hero ---------- */}
-      <section className="border-b border-hairline bg-ink-900">
-        <div className="mx-auto max-w-wide px-6 pt-20 pb-24">
+      <section className="relative overflow-hidden border-b border-hairline">
+        <div aria-hidden className="grid-overlay" />
+        <div aria-hidden className="glow glow-amber -left-32 -top-40 h-96 w-96" />
+        <div aria-hidden className="glow glow-cool -right-24 top-10 h-80 w-80" />
+        <div className="shell relative py-20 pb-24">
           <div className="grid grid-cols-1 gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-20">
             {/* Left: copy */}
-            <div className="flex flex-col justify-center">
-              <span className="label-caps">Read-only by default</span>
+            <div className="flex animate-fade-up flex-col justify-center">
+              <Eyebrow>Read-only by default</Eyebrow>
 
-              <h1 className="mt-5 font-serif text-display tracking-tight text-paper-50 sm:text-display-lg">
-                Investigate infrastructure
+              <h1 className="mt-6 font-serif text-display tracking-tight sm:text-display-lg">
+                <span className="text-gradient">Investigate infrastructure</span>
                 <br />
-                <span className="text-paper-200">with evidence, not guesses.</span>
+                <span className="text-paper-300">with evidence, not guesses.</span>
               </h1>
 
               <p className="mt-6 max-w-prose text-dense-lg text-paper-300">
@@ -31,13 +37,13 @@ export default function LandingPage() {
               </p>
 
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <a href="/assistant" className="btn-accent">
+                <Link href="/assistant" className="btn-accent">
                   Start an investigation
                   <span aria-hidden>-&gt;</span>
-                </a>
-                <a href="/docs" className="btn-ghost">
-                  Read the docs
-                </a>
+                </Link>
+                <Link href="/kubernetes" className="btn-ghost">
+                  Try the live demo
+                </Link>
               </div>
 
               <div className="mt-8 flex items-center gap-3">
@@ -49,7 +55,7 @@ export default function LandingPage() {
             </div>
 
             {/* Right: preview */}
-            <div className="flex items-center">
+            <div className="flex animate-fade-in items-center">
               <DiagnosisPreview />
             </div>
           </div>
@@ -75,129 +81,19 @@ export default function LandingPage() {
       <FAQ />
 
       {/* ---------- Final CTA ---------- */}
-      <section className="border-t border-hairline bg-ink-950/40">
-        <div className="mx-auto max-w-wide px-6 py-24">
-          <div className="grid grid-cols-1 items-end gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-            <div>
-              <span className="label-caps">Get started</span>
-              <h2 className="mt-4 font-serif text-display tracking-tight text-paper-50">
-                Your infrastructure,
-                <br />
-                quietly watched.
-              </h2>
-            </div>
-            <div className="flex flex-col gap-6">
-              <p className="max-w-prose text-dense-lg text-paper-300">
-                Run it locally in demo mode with no keys, no cluster, and no
-                cloud account. Point it at a real Kubernetes context, GitHub
-                repository, or Terraform plan when you're ready. Nothing
-                runs against your infrastructure until you approve it.
-              </p>
-              <div className="flex flex-wrap items-center gap-3">
-                <a href="/assistant" className="btn-accent">
-                  Open the console
-                  <span aria-hidden>-&gt;</span>
-                </a>
-                <a href="/pricing" className="btn-ghost">
-                  See pricing
-                </a>
-              </div>
-              <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-400">
-                docker compose up --build · runs on macos, linux, windows
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ---------- Footer ---------- */}
-      <footer className="border-t border-hairline bg-ink-900">
-        <div className="mx-auto max-w-wide px-6 py-14">
-          <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
-            <FooterCol
-              title="Product"
-              links={[
-                { label: "AI Assistant", href: "/assistant" },
-                { label: "Kubernetes", href: "/kubernetes" },
-                { label: "Logs", href: "/logs" },
-                { label: "CI/CD", href: "/cicd" },
-                { label: "Terraform", href: "/terraform" },
-              ]}
-            />
-            <FooterCol
-              title="Solutions"
-              links={[
-                { label: "Platform teams", href: "/solutions/platform" },
-                { label: "SRE on-call", href: "/solutions/sre" },
-                { label: "DevOps", href: "/solutions/devops" },
-                { label: "Customers", href: "/customers" },
-              ]}
-            />
-            <FooterCol
-              title="Resources"
-              links={[
-                { label: "Docs", href: "/docs" },
-                { label: "Blog", href: "/blog" },
-                { label: "Changelog", href: "/changelog" },
-                { label: "Support", href: "/support" },
-              ]}
-            />
-            <FooterCol
-              title="Company"
-              links={[
-                { label: "Pricing", href: "/pricing" },
-                { label: "Security", href: "/security" },
-                { label: "Privacy", href: "/privacy" },
-                { label: "Terms", href: "/terms" },
-              ]}
-            />
-          </div>
-
-          <div className="mt-12 flex flex-col justify-between gap-4 border-t border-hairline pt-6 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-400">
-              <span className="grid size-5 place-items-center rounded border border-hairline-strong bg-ink-800 text-[9px] font-semibold text-amber-500">
-                SC
-              </span>
-              <span>SRE Copilot · v0.2</span>
-            </div>
-            <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-400">
-              <span className="dot dot-idle" />
-              <span>Read-only · demo environment</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <CTASection
+        title={
+          <>
+            Your infrastructure,
+            <br />
+            quietly watched.
+          </>
+        }
+        body="Run it locally in demo mode with no keys, no cluster, and no cloud account. Point it at a real Kubernetes context, GitHub repository, or Terraform plan when you're ready. Nothing runs against your infrastructure until you approve it."
+        primary={{ label: "Open the console", href: "/assistant" }}
+        secondary={{ label: "See pricing", href: "/pricing" }}
+        note="docker compose up --build · runs on macos, linux, windows"
+      />
     </>
   );
 }
-
-/* ---------- Small helpers ---------- */
-
-function FooterCol({
-  title,
-  links,
-}: {
-  title: string;
-  links: { label: string; href: string }[];
-}) {
-  return (
-    <div>
-      <div className="label-caps">{title}</div>
-      <ul className="mt-4 space-y-2.5">
-        {links.map((l) => (
-          <li key={l.href}>
-            <a
-              href={l.href}
-              className="text-dense text-paper-300 transition hover:text-paper-100"
-            >
-              {l.label}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-/* ---------- Imported at the bottom to avoid hoisting confusion ---------- */
-import { DiagnosisPreview } from "@/components/DiagnosisPreview";

@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Inter, Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { TopNav } from "@/components/TopNav";
+import { SiteFooter } from "@/components/SiteFooter";
 import { clerkEnabled } from "@/lib/auth";
 
 const sans = Inter({
@@ -39,6 +40,7 @@ export default function RootLayout({
     <>
       <TopNav />
       <main className="min-h-screen pt-16">{children}</main>
+      <SiteFooter />
     </>
   );
 

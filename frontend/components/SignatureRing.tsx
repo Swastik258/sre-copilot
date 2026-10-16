@@ -28,7 +28,7 @@ const STATES = [
 export function SignatureRing() {
   return (
     <section className="border-b border-hairline bg-ink-900">
-      <div className="mx-auto max-w-wide px-6 py-24">
+      <div className="shell py-24">
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
           {/* Left: copy */}
           <div>

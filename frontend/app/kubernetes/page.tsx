@@ -90,12 +90,16 @@ export default function KubernetesPage() {
   }, []);
 
   return (
-    <div className="bg-ink-900">
-      <div className="mx-auto max-w-wide px-6 py-12">
+    <div className="relative min-h-screen">
+      <div aria-hidden className="grid-overlay" />
+      <div className="shell relative py-12">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <span className="label-caps">Read-only cluster diagnostics</span>
             <h1 className="mt-3 font-serif text-display-sm text-paper-50">Kubernetes</h1>
+            <p className="mt-2 max-w-prose text-dense text-paper-400">
+              Select a pod to produce an evidence-backed diagnosis. Facts are cited; nothing is changed.
+            </p>
           </div>
           {demo && (
             <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-amber-200">

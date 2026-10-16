@@ -48,12 +48,13 @@ const TIERS = [
   },
 ];
 
-export function Pricing() {
+export function Pricing({ showHeader = true }: { showHeader?: boolean } = {}) {
   return (
     <section id="pricing" className="border-b border-hairline bg-ink-950/30">
-      <div className="mx-auto max-w-wide px-6 py-24">
+      <div className="shell py-24">
         {/* Header */}
-        <div className="mb-16 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+        {showHeader && (
+          <div className="mb-16 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
           <div>
             <span className="label-caps">Pricing</span>
             <h2 className="mt-4 font-serif text-display tracking-tight text-paper-50">
@@ -67,7 +68,8 @@ export function Pricing() {
             outbound writes, and a full audit trail. Paid tiers add
             connectors, seats, and shared workspace.
           </p>
-        </div>
+          </div>
+        )}
 
         {/* Tiers */}
         <div className="grid grid-cols-1 gap-px bg-hairline-strong lg:grid-cols-3">

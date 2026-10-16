@@ -42,7 +42,7 @@ export function StatusStrip() {
 
   return (
     <section className="border-y border-hairline bg-ink-950/40">
-      <div className="mx-auto max-w-wide px-6 py-5">
+      <div className="shell py-5">
         <div className="mb-3 flex items-center justify-between">
           <span className="label-caps">Configured integrations</span>
           <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-paper-400">

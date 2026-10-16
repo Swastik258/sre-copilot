@@ -1,115 +1,234 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { PageShell } from "@/components/PageShell";
+import { CTASection, Card, Icon } from "@/components/ui";
 
-export default function Page() {
+function Code({ children }: { children: ReactNode }) {
+  return <code className="font-mono text-amber-300">{children}</code>;
+}
+
+function DocSection({
+  id,
+  title,
+  children,
+}: {
+  id?: string;
+  title: string;
+  children: ReactNode;
+}) {
   return (
-    <PageShell title="Docs" subtitle="Product overview, current scope, and local setup.">
-      <div className="mt-10 max-w-4xl space-y-14">
-        <section aria-labelledby="overview-heading">
-          <h2 id="overview-heading" className="text-xl font-semibold text-paper-50">What is in the current build</h2>
-          <p className="mt-3 text-base leading-7 text-paper-300">
-            SRE Copilot is an early interface for investigating reliability issues across Kubernetes, logs, CI/CD, and infrastructure code. The homepage combines a live backend health check with a sample diagnosis preview and links into the workspace routes.
-          </p>
-          <ul className="mt-5 list-inside list-disc space-y-2 text-base leading-7 text-paper-300">
-            <li>The health indicator requests <code className="font-mono text-sm text-paper-100">/api/v1/health</code> from the backend every 15 seconds.</li>
-            <li>The diagnosis preview is illustrative sample data; it is not generated from a connected cluster.</li>
-            <li>Workspace and solution pages are currently route placeholders and do not run integrations.</li>
-          </ul>
-        </section>
+    <section id={id} className="border-b border-hairline py-10 first:pt-0 last:border-0">
+      <h2 className="font-serif text-2xl tracking-tight text-paper-50">{title}</h2>
+      <div className="mt-4 space-y-4 text-dense-lg leading-7 text-paper-300">{children}</div>
+    </section>
+  );
+}
 
-        <section aria-labelledby="design-heading" className="border-t border-white/[0.08] pt-8">
-          <h2 id="design-heading" className="text-xl font-semibold text-paper-50">Interface design</h2>
-          <p className="mt-3 text-base leading-7 text-paper-300">
-            The landing page and shared navigation use a cohesive dark navy palette with restrained blue accents, a subtle grid and ambient glow, clearer type hierarchy, and higher-contrast calls to action. Workspace cards and the diagnosis preview use consistent borders, rounded corners, and responsive layouts.
-          </p>
-          <ul className="mt-5 list-inside list-disc space-y-2 text-base leading-7 text-paper-300">
-            <li>The navigation uses larger, easy-to-scan links and touch targets, with an expandable mobile menu; Escape, outside clicks, and route changes close it.</li>
-            <li>Keyboard users receive a visible focus indicator, and reduced-motion preferences are respected.</li>
-            <li>The home page retains its live API health check and clearly labels the diagnosis panel as illustrative sample data.</li>
-          </ul>
-        </section>
+function Bullets({ items }: { items: ReactNode[] }) {
+  return (
+    <ul className="space-y-2.5">
+      {items.map((item, i) => (
+        <li key={i} className="flex gap-3 text-dense text-paper-300">
+          <span className="mt-2 size-1.5 shrink-0 rounded-full bg-amber-400" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
-        <section aria-labelledby="audiences-heading" className="border-t border-white/[0.08] pt-8">
-          <h2 id="audiences-heading" className="text-xl font-semibold text-paper-50">Workspace areas</h2>
-          <p className="mt-3 text-base leading-7 text-paper-300">
-            The navigation groups the app around platform teams, SRE and on-call, DevOps, customers, and resources. The audience descriptions are product direction, not a list of current customers.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-            <Link className="text-blue-300 hover:text-blue-200" href="/kubernetes">Kubernetes</Link>
-            <Link className="text-blue-300 hover:text-blue-200" href="/logs">Logs</Link>
-            <Link className="text-blue-300 hover:text-blue-200" href="/cicd">CI/CD</Link>
-            <Link className="text-blue-300 hover:text-blue-200" href="/terraform">Terraform</Link>
-            <Link className="text-blue-300 hover:text-blue-200" href="/infra-code">Infrastructure code</Link>
+export default function DocsPage() {
+  return (
+    <>
+      <PageShell
+        eyebrow="Docs"
+        title="Product overview, scope, and local setup"
+        subtitle="Written to match the repository, not to oversell it. Where a feature is not built yet, these docs say so."
+        actions={
+          <>
+            <Link href="/kubernetes" className="btn-accent">
+              Try the live demo
+              <Icon name="arrow" className="size-4" />
+            </Link>
+            <Link href="/changelog" className="btn-ghost">
+              View the changelog
+            </Link>
+          </>
+        }
+      >
+        <div className="shell py-16">
+          <div className="max-w-3xl">
+            <DocSection title="What is in the current build">
+              <p>
+                SRE Copilot is an early interface for investigating reliability issues
+                across Kubernetes, logs, CI/CD, and infrastructure code. The promise is
+                simple: diagnose failures with evidence, not guesses.
+              </p>
+              <Bullets
+                items={[
+                  <>
+                    <strong className="text-paper-100">Live:</strong> read-only Kubernetes
+                    diagnosis at <Link href="/kubernetes" className="link-editorial">/kubernetes</Link>{" "}
+                    — crash loops, OOM kills, image-pull failures, scheduling, and probe
+                    errors, each backed by cited evidence.
+                  </>,
+                  <>
+                    <strong className="text-paper-100">Live:</strong> a health check at{" "}
+                    <Code>/api/v1/health</Code> and an honest integration-status API at{" "}
+                    <Code>/api/v1/integrations</Code>.
+                  </>,
+                  <>
+                    <strong className="text-paper-100">Planned:</strong> the AI Assistant,
+                    Logs, CI/CD, Terraform, infrastructure code, audit UI, and settings —
+                    each labeled on its page with the milestone that ships it.
+                  </>,
+                ]}
+              />
+            </DocSection>
+
+            <DocSection title="Interface & design system">
+              <p>
+                The interface uses a single dark charcoal palette with one amber accent,
+                an editorial serif for headings, and a mono face for labels and evidence.
+                Glass surfaces, ambient glows, and a restrained grid give it depth without
+                noise.
+              </p>
+              <Bullets
+                items={[
+                  "One accent color is used for emphasis; status colors are reserved for health.",
+                  "Keyboard focus is always visible, and reduced-motion preferences are respected.",
+                  "Every demo-backed record is labeled, so fixtures are never mistaken for real data.",
+                ]}
+              />
+            </DocSection>
+
+            <DocSection title="Workspace areas">
+              <p>
+                The navigation groups the app around product surfaces, solutions for
+                platform, SRE and DevOps teams, customers, and resources. Audience
+                descriptions are product direction — the project does not claim current
+                customers.
+              </p>
+              <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                {[
+                  { label: "Kubernetes", href: "/kubernetes" },
+                  { label: "Logs", href: "/logs" },
+                  { label: "CI/CD", href: "/cicd" },
+                  { label: "Terraform", href: "/terraform" },
+                  { label: "Infrastructure code", href: "/infra-code" },
+                ].map((l) => (
+                  <Link key={l.href} href={l.href} className="link-editorial">
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+            </DocSection>
+
+            <DocSection title="Authentication & keys">
+              <p>
+                Clerk is optional. It powers the navigation sign-in and sign-up modals and
+                the signed-in user menu when <Code>NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</Code>{" "}
+                and <Code>CLERK_SECRET_KEY</Code> are present at build time. Without them
+                the app runs in demo mode with no third-party credentials.
+              </p>
+              <p>
+                The backend does not yet enforce authentication — see the{" "}
+                <Link href="/security" className="link-editorial">security notes</Link>{" "}
+                before exposing the API publicly. AI provider keys are read on the backend
+                only and are never sent to the browser.
+              </p>
+            </DocSection>
+
+            <DocSection title="Run locally">
+              <ol className="space-y-3">
+                {[
+                  <>
+                    Start the stack from the repo root with{" "}
+                    <Code>docker compose -f deploy/docker-compose.yml up --build</Code>.
+                  </>,
+                  <>
+                    Open the web app at <Code>http://localhost:3000</Code>.
+                  </>,
+                  <>
+                    The API is at <Code>http://localhost:8000</Code>; its interactive docs
+                    are at <Code>http://localhost:8000/docs</Code>.
+                  </>,
+                  <>
+                    For the Kubernetes demo, run the backend with{" "}
+                    <Code>KUBERNETES_ENABLED=true</Code> and{" "}
+                    <Code>KUBERNETES_DEMO_MODE=true</Code>.
+                  </>,
+                ].map((step, i) => (
+                  <li key={i} className="flex gap-3 text-dense text-paper-300">
+                    <span className="grid size-5 shrink-0 place-items-center rounded-full border border-hairline-strong bg-ink-800 font-mono text-[10px] text-paper-300">
+                      {i + 1}
+                    </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </DocSection>
+
+            <DocSection title="Project change history">
+              <p>
+                A short summary of the work completed so far. The full, current list lives
+                in the <Link href="/changelog" className="link-editorial">changelog</Link>.
+              </p>
+              <div className="space-y-6">
+                {[
+                  {
+                    t: "Milestone 2 — read-only Kubernetes diagnosis",
+                    d: "Normalized models, a structurally read-only client, deterministic rules, evidence-backed diagnoses, REST endpoints, and a functional console.",
+                  },
+                  {
+                    t: "Milestone 1 — foundation & evidence model",
+                    d: "Fixed latent migration and ORM bugs, added validated config, structured logging, redaction, typed schemas, an integration-status API, CI, and docs.",
+                  },
+                  {
+                    t: "Interface refresh",
+                    d: "Unified the design system on a charcoal + amber palette, added reusable UI primitives and a global footer, rebuilt every stub page with real content, and marked planned features honestly.",
+                  },
+                ].map((x) => (
+                  <div key={x.t}>
+                    <h3 className="font-serif text-lg text-paper-100">{x.t}</h3>
+                    <p className="mt-1.5 text-dense text-paper-300">{x.d}</p>
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+            <Card className="mt-8 p-6">
+              <h3 className="font-serif text-lg text-paper-50">Canonical reference</h3>
+              <p className="mt-2 text-dense text-paper-300">
+                The repository remains the source of truth. If anything on this page
+                contradicts the code, the code wins.
+              </p>
+              <a
+                href="https://github.com/Swastik258/sre-copilot"
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-amber-500"
+              >
+                View the repository
+                <Icon name="arrow" className="size-3.5" />
+              </a>
+            </Card>
           </div>
-        </section>
+        </div>
+      </PageShell>
 
-        <section aria-labelledby="auth-heading" className="border-t border-white/[0.08] pt-8">
-          <h2 id="auth-heading" className="text-xl font-semibold text-paper-50">Authentication</h2>
-          <p className="mt-3 text-base leading-7 text-paper-300">
-            Clerk powers the navigation sign-in and sign-up modals and the signed-in user menu. Configure <code className="font-mono text-sm text-paper-100">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code> and <code className="font-mono text-sm text-paper-100">CLERK_SECRET_KEY</code> in <code className="font-mono text-sm text-paper-100">frontend/.env.local</code>. Keep the secret key private and out of source control.
-          </p>
-          <p className="mt-3 text-base leading-7 text-paper-300">
-            Clerk middleware is enabled, but application routes are public until route protection is explicitly configured.
-          </p>
-        </section>
-
-        <section aria-labelledby="run-heading" className="border-t border-white/[0.08] pt-8">
-          <h2 id="run-heading" className="text-xl font-semibold text-paper-50">Run locally</h2>
-          <ol className="mt-4 list-inside list-decimal space-y-3 text-base leading-7 text-paper-300">
-            <li>From the repository root, start the stack with <code className="font-mono text-sm text-paper-100">docker compose -f deploy/docker-compose.yml up --build</code>.</li>
-            <li>Open the web app at <code className="font-mono text-sm text-paper-100">http://localhost:3000</code>.</li>
-            <li>The FastAPI health endpoint is <code className="font-mono text-sm text-paper-100">http://localhost:8000/api/v1/health</code>; its interactive API docs are at <code className="font-mono text-sm text-paper-100">http://localhost:8000/docs</code>.</li>
-          </ol>
-          <p className="mt-4 text-sm leading-6 text-paper-400">
-            The frontend Docs page is at <code className="font-mono">/docs</code>; the backend Swagger page is on port 8000.
-          </p>
-        </section>
-
-        <section aria-labelledby="history-heading" className="border-t border-white/[0.08] pt-8">
-          <h2 id="history-heading" className="text-xl font-semibold text-paper-50">Project change history</h2>
-          <p className="mt-3 text-base leading-7 text-paper-300">
-            Summary of the implementation work completed for this project so far.
-          </p>
-          <div className="mt-6 space-y-8">
-            <div>
-              <h3 className="text-base font-semibold text-paper-100">Modern interface refresh</h3>
-              <p className="mt-2 text-sm leading-6 text-paper-300">
-                Added the landing page grid, gradient headline, ambient lighting, and matching blue-accented workspace and diagnosis cards. Enlarged the shared navigation links, dropdowns, and touch targets, added a responsive mobile menu, and improved keyboard focus and reduced-motion behavior. The live health check and sample-data labels remain intact.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-paper-100">Backend dependencies</h3>
-              <p className="mt-2 text-sm leading-6 text-paper-300">
-                Added <code className="font-mono text-paper-100">backend/requirement.txt</code> with the six runtime dependencies declared by the backend package metadata: Alembic, FastAPI, Pydantic Settings, Psycopg, SQLAlchemy, and Uvicorn.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-paper-100">Frontend routes</h3>
-              <p className="mt-2 text-sm leading-6 text-paper-300">
-                Added placeholder pages for Platform teams, SRE on-call, DevOps, Customers, Case studies, Testimonials, Resources, Docs, Blog, Changelog, Support, and Pricing. The existing Solutions overview route was retained. These pages provide navigation destinations, not completed product features.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-paper-100">Visual styling and homepage</h3>
-              <p className="mt-2 text-sm leading-6 text-paper-300">
-                Updated the global stylesheet to Tailwind 4 syntax and connected the existing theme configuration. Restyled and enlarged the top navigation, added the multi-column homepage footer, increased workspace text sizing, and added team-audience and current-build sections. The team list describes intended users; it does not claim these organizations are customers.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-paper-100">Clerk authentication</h3>
-              <p className="mt-2 text-sm leading-6 text-paper-300">
-                Added ClerkProvider, the Next.js proxy middleware, local environment configuration, sign-in and sign-up modal buttons, and the signed-in user menu. Routes remain public until access rules are added.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-paper-100">Verification</h3>
-              <p className="mt-2 text-sm leading-6 text-paper-300">
-                Focused ESLint checks and production Next.js builds passed after the corresponding changes. The build reports a non-blocking module-type warning for the existing TypeScript Tailwind configuration.
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
-    </PageShell>
+      <CTASection
+        title={
+          <>
+            Read the docs,
+            <br />
+            then break something.
+          </>
+        }
+        body="Diagnose a labelled demo failure end to end — crash loop, OOM kill, image-pull error — without a cluster or a key."
+        primary={{ label: "Open Kubernetes diagnostics", href: "/kubernetes" }}
+        secondary={{ label: "See what's live", href: "/product" }}
+      />
+    </>
   );
 }

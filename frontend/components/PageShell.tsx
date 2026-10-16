@@ -1,19 +1,48 @@
+import type { ReactNode } from "react";
+import { Eyebrow } from "@/components/ui";
+
+/**
+ * Consistent page chrome: an ambient hero header followed by a content area.
+ * The site footer is rendered globally from the root layout.
+ */
 export function PageShell({
+  eyebrow,
   title,
   subtitle,
+  actions,
+  aside,
   children,
 }: {
+  eyebrow?: string;
   title: string;
   subtitle?: string;
-  children?: React.ReactNode;
+  actions?: ReactNode;
+  aside?: ReactNode;
+  children?: ReactNode;
 }) {
   return (
-    <div className="bg-hero min-h-screen">
-      <div className="mx-auto max-w-5xl px-6 py-20">
-        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-        {subtitle && <p className="mt-2 text-sm text-white/60">{subtitle}</p>}
-        {children}
-      </div>
+    <div className="relative">
+      <header className="relative overflow-hidden border-b border-hairline">
+        <div aria-hidden className="grid-overlay" />
+        <div aria-hidden className="glow glow-amber -left-24 -top-40 h-80 w-80" />
+        <div className="shell relative py-16 sm:py-20">
+          <div className="grid grid-cols-1 items-end gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="max-w-3xl">
+              {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+              <h1 className="mt-5 font-serif text-display tracking-tight text-paper-50">
+                {title}
+              </h1>
+              {subtitle && (
+                <p className="mt-5 max-w-prose text-dense-lg text-paper-300">{subtitle}</p>
+              )}
+              {actions && <div className="mt-8 flex flex-wrap items-center gap-3">{actions}</div>}
+            </div>
+            {aside && <div className="lg:pb-1">{aside}</div>}
+          </div>
+        </div>
+      </header>
+
+      {children}
     </div>
   );
 }

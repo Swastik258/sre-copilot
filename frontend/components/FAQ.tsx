@@ -40,7 +40,7 @@ export function FAQ() {
 
   return (
     <section id="faq" className="bg-ink-900">
-      <div className="mx-auto max-w-wide px-6 py-24">
+      <div className="shell py-24">
         {/* Header */}
         <div className="mb-14 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
           <div>
