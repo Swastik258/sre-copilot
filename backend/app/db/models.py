@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index, String, Text
@@ -17,7 +17,7 @@ def _uuid() -> str:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class User(Base):
@@ -30,9 +30,12 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
 
-    conversations: Mapped[list["Conversation"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    investigations: Mapped[list["Investigation"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    audit_events: Mapped[list["AuditEvent"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    conversations: Mapped[list[Conversation]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    investigations: Mapped[list[Investigation]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    audit_events: Mapped[list[AuditEvent]] = relationship(
+        back_populates="user",
+        passive_deletes=True,
+    )
 
 
 class Conversation(Base):
@@ -44,7 +47,7 @@ class Conversation(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
 
     user: Mapped[User] = relationship(back_populates="conversations")
-    messages: Mapped[list["Message"]] = relationship(back_populates="conversation", cascade="all, delete-orphan", order_by="Message.created_at")
+    messages: Mapped[list[Message]] = relationship(back_populates="conversation", cascade="all, delete-orphan", order_by="Message.created_at")
 
 
 class Message(Base):
@@ -84,6 +87,37 @@ class Investigation(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
 
     user: Mapped[User] = relationship(back_populates="investigations")
+    evidence_records: Mapped[list[Evidence]] = relationship(
+        back_populates="investigation",
+        cascade="all, delete-orphan",
+    )
+
+
+class Evidence(Base):
+    __tablename__ = "evidence"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    investigation_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("investigations.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    source_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    source_resource: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    environment: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    severity: Mapped[str] = mapped_column(String(16), default="info", nullable=False, index=True)
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    payload: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    provenance: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    related_ids: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    integrity: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    redacted: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    demo: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Timestamp of the underlying event (may be unknown).
+    event_timestamp: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
+    collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+
+    investigation: Mapped[Investigation | None] = relationship(back_populates="evidence_records")
 
 
 class AuditEvent(Base):
@@ -99,8 +133,11 @@ class AuditEvent(Base):
     request_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
 
+    user: Mapped[User | None] = relationship(back_populates="audit_events")
+
 
 Index("ix_messages_conversation_created", Message.conversation_id, Message.created_at)
 Index("ix_investigations_user_created", Investigation.user_id, Investigation.created_at)
 Index("ix_audit_events_created", AuditEvent.created_at)
 Index("ix_audit_events_request", AuditEvent.request_id)
+Index("ix_evidence_investigation_collected", Evidence.investigation_id, Evidence.collected_at)

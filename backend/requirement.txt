@@ -1,3 +1,7 @@
+# NOTE: pyproject.toml is the canonical dependency manifest.
+# This file is kept for tooling that expects a requirements file, and mirrors the
+# runtime dependencies only (dev/test tooling lives in pyproject's [dev] extra).
+
 alembic>=1.13,<2
 fastapi>=0.110,<1
 pydantic-settings>=2.2,<3

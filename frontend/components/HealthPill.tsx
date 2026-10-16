@@ -1,28 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { api, type Health } from "@/lib/api";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-type Health = { status: string; database: string };
+type State = "loading" | "ok" | "degraded" | "error";
 
 export function HealthPill() {
-  const [state, setState] = useState<"loading" | "ok" | "degraded" | "error">("loading");
+  const [state, setState] = useState<State>("loading");
   const [data, setData] = useState<Health | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch(`${API_BASE}/api/v1/health`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const body = (await res.json()) as Health;
-        if (!cancelled) {
-          setData(body);
-          setState(body.status === "ok" ? "ok" : "degraded");
-        }
-      } catch {
-        if (!cancelled) setState("error");
+        const body = await api.health();
+        if (cancelled) return;
+        setData(body);
+        setError(null);
+        setState(body.status === "ok" ? "ok" : "degraded");
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "API unreachable");
+        setState("error");
       }
     }
     load();
@@ -47,8 +47,19 @@ export function HealthPill() {
       className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${color}`}
       role="status"
       aria-live="polite"
+      title={error ?? undefined}
     >
-      <span className={`size-1.5 rounded-full ${state === "ok" ? "bg-emerald-300" : state === "degraded" ? "bg-amber-300" : state === "error" ? "bg-rose-300" : "bg-slate-400"}`} />
+      <span
+        className={`size-1.5 rounded-full ${
+          state === "ok"
+            ? "bg-emerald-300"
+            : state === "degraded"
+              ? "bg-amber-300"
+              : state === "error"
+                ? "bg-rose-300"
+                : "bg-slate-400"
+        }`}
+      />
       <span className="font-medium">API</span>
       <span className="text-current/75">
         {state === "loading"

@@ -9,6 +9,7 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import { useEffect, useRef, useState } from "react";
+import { clerkEnabled } from "@/lib/auth";
 
 type NavChild = { label: string; href: string; description?: string };
 type NavItem = { label: string; href: string; children?: NavChild[] };
@@ -190,29 +191,40 @@ export function TopNav() {
           </div>
 
           {/* Right */}
-          <Show when="signed-out">
-            <div className="flex shrink-0 items-center gap-4">
-              <SignInButton mode="modal">
-                <button
-                  type="button"
-                  className="hidden rounded-lg px-2 py-2 text-sm font-medium text-paper-300 transition hover:text-paper-100 sm:inline-block"
-                >
-                  Sign in
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button
-                  type="button"
-                  className="btn-accent !rounded-lg !px-4 !py-2.5 !text-sm !font-semibold"
-                >
-                  Open console
-                </button>
-              </SignUpButton>
-            </div>
-          </Show>
-          <Show when="signed-in">
-            <UserButton />
-          </Show>
+          {clerkEnabled ? (
+            <>
+              <Show when="signed-out">
+                <div className="flex shrink-0 items-center gap-4">
+                  <SignInButton mode="modal">
+                    <button
+                      type="button"
+                      className="hidden rounded-lg px-2 py-2 text-sm font-medium text-paper-300 transition hover:text-paper-100 sm:inline-block"
+                    >
+                      Sign in
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button
+                      type="button"
+                      className="btn-accent !rounded-lg !px-4 !py-2.5 !text-sm !font-semibold"
+                    >
+                      Open console
+                    </button>
+                  </SignUpButton>
+                </div>
+              </Show>
+              <Show when="signed-in">
+                <UserButton />
+              </Show>
+            </>
+          ) : (
+            <Link
+              href="/assistant"
+              className="btn-accent !rounded-lg !px-4 !py-2.5 !text-sm !font-semibold"
+            >
+              Open console
+            </Link>
+          )}
 
           <button
             type="button"

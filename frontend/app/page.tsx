@@ -158,11 +158,11 @@ export default function LandingPage() {
               <span className="grid size-5 place-items-center rounded border border-hairline-strong bg-ink-800 text-[9px] font-semibold text-amber-500">
                 SC
               </span>
-              <span>SRE Copilot · Milestone 1</span>
+              <span>SRE Copilot · v0.2</span>
             </div>
             <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-400">
-              <span className="dot dot-good" />
-              <span>All systems operational</span>
+              <span className="dot dot-idle" />
+              <span>Read-only · demo environment</span>
             </div>
           </div>
         </div>

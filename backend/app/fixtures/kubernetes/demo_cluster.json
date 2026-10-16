@@ -1,0 +1,131 @@
+{
+  "cluster": {"name": "demo-cluster", "source": "fixture", "demo": true, "context": "demo"},
+  "namespaces": [{"name": "prod"}, {"name": "staging"}, {"name": "kube-system"}],
+  "workloads": [
+    {"namespace": "prod", "name": "api", "kind": "deployment", "desired": 3, "ready": 1, "available": 1, "images": ["registry.example.com/api:1.4.2"]},
+    {"namespace": "prod", "name": "worker", "kind": "deployment", "desired": 2, "ready": 1, "available": 1, "images": ["registry.example.com/worker:2.1.0"]},
+    {"namespace": "prod", "name": "web", "kind": "deployment", "desired": 3, "ready": 3, "available": 3, "images": ["registry.example.com/web:3.0.1"]},
+    {"namespace": "staging", "name": "reporting", "kind": "deployment", "desired": 1, "ready": 0, "available": 0, "images": ["registry.example.com/reporting:0.9.0-rc1"]}
+  ],
+  "pods": [
+    {
+      "namespace": "prod",
+      "name": "api-7d9f8b6c4-x2k9p",
+      "phase": "Running",
+      "node_name": "node-a",
+      "labels": {"app": "api", "tier": "backend"},
+      "created_at": "2026-10-16T09:42:11Z",
+      "conditions": [
+        {"type": "Ready", "status": "False", "reason": "ContainersNotReady", "message": "containers with unready status: [api]"}
+      ],
+      "containers": [
+        {
+          "name": "api",
+          "image": "registry.example.com/api:1.4.2",
+          "ready": false,
+          "restart_count": 14,
+          "state": "waiting",
+          "reason": "CrashLoopBackOff",
+          "message": "back-off 5m0s restarting failed container=api pod=api-7d9f8b6c4-x2k9p_prod",
+          "last_reason": "Error",
+          "last_exit_code": 1
+        }
+      ]
+    },
+    {
+      "namespace": "prod",
+      "name": "worker-5f8c9d-oom1",
+      "phase": "Running",
+      "node_name": "node-b",
+      "labels": {"app": "worker", "tier": "backend"},
+      "created_at": "2026-10-16T08:10:00Z",
+      "conditions": [
+        {"type": "Ready", "status": "False", "reason": "ContainersNotReady", "message": "containers with unready status: [worker]"}
+      ],
+      "containers": [
+        {
+          "name": "worker",
+          "image": "registry.example.com/worker:2.1.0",
+          "ready": false,
+          "restart_count": 5,
+          "state": "waiting",
+          "reason": "CrashLoopBackOff",
+          "message": "back-off restarting failed container=worker",
+          "last_reason": "OOMKilled",
+          "last_exit_code": 137
+        }
+      ]
+    },
+    {
+      "namespace": "staging",
+      "name": "reporting-6c4b7d-i9p2",
+      "phase": "Pending",
+      "node_name": null,
+      "labels": {"app": "reporting"},
+      "created_at": "2026-10-16T09:55:00Z",
+      "conditions": [
+        {"type": "PodScheduled", "status": "False", "reason": "Unschedulable", "message": "0/5 nodes are available: 5 Insufficient cpu."}
+      ],
+      "containers": [
+        {
+          "name": "reporting",
+          "image": "registry.example.com/reporting:0.9.0-rc1",
+          "ready": false,
+          "restart_count": 0,
+          "state": "waiting",
+          "reason": "ErrImagePull",
+          "message": "rpc error: code = Unknown desc = failed to pull and unpack image \"registry.example.com/reporting:0.9.0-rc1\": not found"
+        }
+      ]
+    },
+    {
+      "namespace": "prod",
+      "name": "web-6b7c8d-ok01",
+      "phase": "Running",
+      "node_name": "node-a",
+      "labels": {"app": "web"},
+      "created_at": "2026-10-15T22:00:00Z",
+      "conditions": [
+        {"type": "Ready", "status": "True", "reason": "", "message": ""}
+      ],
+      "containers": [
+        {
+          "name": "web",
+          "image": "registry.example.com/web:3.0.1",
+          "ready": true,
+          "restart_count": 0,
+          "state": "running",
+          "reason": null,
+          "message": null
+        }
+      ]
+    }
+  ],
+  "events": [
+    {"namespace": "prod", "involved_object": "api-7d9f8b6c4-x2k9p", "reason": "BackOff", "message": "Back-off restarting failed container api in pod api-7d9f8b6c4-x2k9p_prod", "type": "Warning", "count": 14, "last_timestamp": "2026-10-16T09:58:00Z"},
+    {"namespace": "prod", "involved_object": "api-7d9f8b6c4-x2k9p", "reason": "Unhealthy", "message": "Readiness probe failed: Get \"http://10.1.2.3:8080/healthz\": dial tcp 10.1.2.3:8080: connect: connection refused", "type": "Warning", "count": 9, "last_timestamp": "2026-10-16T09:57:30Z"},
+    {"namespace": "prod", "involved_object": "worker-5f8c9d-oom1", "reason": "BackOff", "message": "Back-off restarting failed container worker", "type": "Warning", "count": 5, "last_timestamp": "2026-10-16T09:50:00Z"},
+    {"namespace": "staging", "involved_object": "reporting-6c4b7d-i9p2", "reason": "FailedScheduling", "message": "0/5 nodes are available: 5 Insufficient cpu.", "type": "Warning", "count": 3, "last_timestamp": "2026-10-16T09:56:00Z"},
+    {"namespace": "staging", "involved_object": "reporting-6c4b7d-i9p2", "reason": "Failed", "message": "Failed to pull image \"registry.example.com/reporting:0.9.0-rc1\": not found", "type": "Warning", "count": 2, "last_timestamp": "2026-10-16T09:56:10Z"}
+  ],
+  "logs": {
+    "prod/api-7d9f8b6c4-x2k9p": {
+      "api": [
+        "2026-10-16T09:57:10Z INFO  starting api v1.4.2",
+        "2026-10-16T09:57:10Z ERROR failed to connect to database: dial tcp postgres:5432: connect: connection refused",
+        "2026-10-16T09:57:10Z FATAL could not initialize datastore; exiting",
+        "2026-10-16T09:57:10Z INFO  shutdown complete"
+      ]
+    },
+    "prod/worker-5f8c9d-oom1": {
+      "worker": [
+        "2026-10-16T09:49:40Z INFO  worker started, batch size 5000",
+        "2026-10-16T09:49:58Z WARN  batch buffer growing: 1.2 GiB",
+        "2026-10-16T09:49:59Z ERROR out of memory: killed process"
+      ]
+    },
+    "prod/web-6b7c8d-ok01": {
+      "web": ["2026-10-16T09:00:00Z INFO listening on :8080"]
+    }
+  }
+}

@@ -8,8 +8,9 @@ Key points:
 
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
+
+from alembic import context
 
 # Import Settings and Base. The `from app.db import Base` line triggers
 # `app.db.base` which imports `app.db.models`, so all tables are registered

@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Inter, Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { TopNav } from "@/components/TopNav";
+import { clerkEnabled } from "@/lib/auth";
 
 const sans = Inter({
   subsets: ["latin"],
@@ -34,16 +35,25 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const body = (
+    <>
+      <TopNav />
+      <main className="min-h-screen pt-16">{children}</main>
+    </>
+  );
+
   return (
     <html
       lang="en"
       className={`${sans.variable} ${serif.variable} ${mono.variable}`}
     >
       <body className="bg-ink-900 font-sans text-paper-100 antialiased">
-        <ClerkProvider>
-          <TopNav />
-          <main className="min-h-screen pt-16">{children}</main>
-        </ClerkProvider>
+        {clerkEnabled ? (
+          <ClerkProvider>{body}</ClerkProvider>
+        ) : (
+          // Demo mode: no auth provider, no third-party keys required.
+          body
+        )}
       </body>
     </html>
   );

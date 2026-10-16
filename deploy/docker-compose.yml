@@ -19,7 +19,15 @@ services:
     build:
       context: ../backend
     environment:
+      ENVIRONMENT: ${ENVIRONMENT:-local}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://sre_copilot:change-me@db:5432/sre_copilot}
+      # Local Postgres is migrated by the container CMD; disable SQLite auto-create.
+      AUTO_CREATE_SCHEMA: "false"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      AI_PRIVACY_MODE: ${AI_PRIVACY_MODE:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LOG_JSON: ${LOG_JSON:-false}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
@@ -29,8 +37,10 @@ services:
   frontend:
     build:
       context: ../frontend
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      args:
+        # Bake the API URL into the client bundle at build time.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:

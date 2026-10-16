@@ -11,6 +11,7 @@ from app.db.base import Base
 from app.db.models import (
     AuditEvent,
     Conversation,
+    Evidence,
     Integration,
     Investigation,
     Message,
@@ -29,4 +30,5 @@ __all__ = [
     "Integration",
     "Investigation",
     "AuditEvent",
+    "Evidence",
 ]
