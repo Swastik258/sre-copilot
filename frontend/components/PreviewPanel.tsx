@@ -17,7 +17,7 @@ export function PreviewPanel({
 }) {
   return (
     <div className={`card overflow-hidden rounded-2xl ${className}`}>
-      <div className="flex items-center gap-2 border-b border-hairline bg-white/[0.02] px-4 py-3">
+      <div className="flex items-center gap-2 border-b border-hairline bg-ink-850 px-4 py-3">
         <span className="size-2 rounded-full bg-signal-bad/80" />
         <span className="size-2 rounded-full bg-signal-warn/80" />
         <span className="size-2 rounded-full bg-signal-good/80" />

@@ -20,7 +20,7 @@ const ROWS: { feature: string; free: string; pro: string; team: string }[] = [
 function Cell({ value }: { value: string }) {
   if (value === "yes")
     return (
-      <span className="inline-grid size-5 place-items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
+      <span className="inline-grid size-5 place-items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600">
         <Icon name="check" className="size-3" />
       </span>
     );

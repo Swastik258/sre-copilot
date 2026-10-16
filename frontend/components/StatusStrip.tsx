@@ -51,7 +51,7 @@ export function StatusStrip() {
         </div>
 
         {error && (
-          <p className="font-mono text-[11px] text-rose-300">
+          <p className="font-mono text-[11px] text-rose-600">
             Integration status unavailable: {error}
           </p>
         )}

@@ -4,7 +4,7 @@ import { PageShell } from "@/components/PageShell";
 import { CTASection, Card, Icon } from "@/components/ui";
 
 function Code({ children }: { children: ReactNode }) {
-  return <code className="font-mono text-amber-300">{children}</code>;
+  return <code className="font-mono text-amber-600">{children}</code>;
 }
 
 function DocSection({
@@ -88,10 +88,10 @@ export default function DocsPage() {
 
             <DocSection title="Interface & design system">
               <p>
-                The interface uses a single dark charcoal palette with one amber accent,
-                an editorial serif for headings, and a mono face for labels and evidence.
-                Glass surfaces, ambient glows, and a restrained grid give it depth without
-                noise.
+                The interface uses a light, near-white surface with a single violet
+                accent, a modern sans for headings and body, and a mono face for labels
+                and evidence. Hairline borders, soft shadows, and generous whitespace
+                keep dense diagnostic content readable.
               </p>
               <Bullets
                 items={[
@@ -186,7 +186,7 @@ export default function DocsPage() {
                   },
                   {
                     t: "Interface refresh",
-                    d: "Unified the design system on a charcoal + amber palette, added reusable UI primitives and a global footer, rebuilt every stub page with real content, and marked planned features honestly.",
+                    d: "Moved the design system to a light, modern palette with a violet accent and sans headings, added reusable UI primitives and a global footer, rebuilt every stub page with real content, and marked planned features honestly.",
                   },
                 ].map((x) => (
                   <div key={x.t}>

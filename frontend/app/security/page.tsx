@@ -29,7 +29,7 @@ export default function SecurityPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {IMPLEMENTED.map((c) => (
               <Card key={c} className="flex items-start gap-3 p-5">
-                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
+                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600">
                   <Icon name="check" className="size-3" />
                 </span>
                 <span className="text-dense text-paper-200">{c}</span>
@@ -42,7 +42,7 @@ export default function SecurityPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {MISSING.map((c) => (
               <Card key={c} className="flex items-start gap-3 p-5">
-                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-amber-400/30 bg-amber-400/10 text-amber-300">
+                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-700">
                   <Icon name="bolt" className="size-3" />
                 </span>
                 <span className="text-dense text-paper-200">{c}</span>

@@ -35,12 +35,12 @@ export function HealthPill() {
 
   const color =
     state === "ok"
-      ? "border-emerald-400/20 bg-emerald-400/[0.07] text-emerald-200"
+      ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700"
       : state === "degraded"
-        ? "border-amber-400/20 bg-amber-400/[0.07] text-amber-200"
+        ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
         : state === "error"
-          ? "border-rose-400/20 bg-rose-400/[0.07] text-rose-200"
-          : "border-white/10 bg-white/[0.04] text-slate-300";
+          ? "border-rose-500/25 bg-rose-500/10 text-rose-700"
+          : "border-hairline-strong bg-ink-800 text-paper-300";
 
   return (
     <div
@@ -52,11 +52,11 @@ export function HealthPill() {
       <span
         className={`size-1.5 rounded-full ${
           state === "ok"
-            ? "bg-emerald-300"
+            ? "bg-emerald-500"
             : state === "degraded"
-              ? "bg-amber-300"
+              ? "bg-amber-500"
               : state === "error"
-                ? "bg-rose-300"
+                ? "bg-rose-500"
                 : "bg-slate-400"
         }`}
       />

@@ -80,7 +80,7 @@ export default function SupportPage() {
               <h3 className="font-serif text-lg text-paper-50">Is an integration configured?</h3>
               <p className="mt-2 text-dense text-paper-300">
                 The console reports what is connected, what is in demo mode, and what is
-                off. If a surface returns <code className="font-mono text-amber-300">503 not_configured</code>,
+                off. If a surface returns <code className="font-mono text-amber-600">503 not_configured</code>,
                 it is disabled, not broken.
               </p>
             </Card>

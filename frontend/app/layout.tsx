@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Inter, Fraunces, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -10,13 +10,6 @@ const sans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
-});
-
-const serif = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-  axes: ["SOFT", "WONK"],
 });
 
 const mono = JetBrains_Mono({
@@ -47,7 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sans.variable} ${serif.variable} ${mono.variable}`}
+      className={`${sans.variable} ${mono.variable}`}
     >
       <body className="bg-ink-900 font-sans text-paper-100 antialiased">
         {clerkEnabled ? (

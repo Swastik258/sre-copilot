@@ -12,10 +12,10 @@ type Phase = "loading" | "ready" | "not_configured" | "error";
 
 const SEVERITY_STYLES: Record<string, string> = {
   info: "border-hairline-strong text-paper-300",
-  low: "border-sky-400/30 text-sky-200",
-  medium: "border-amber-400/40 text-amber-200",
-  high: "border-rose-400/40 text-rose-200",
-  critical: "border-rose-500/60 text-rose-100",
+  low: "border-sky-500/30 text-sky-700",
+  medium: "border-amber-500/40 text-amber-700",
+  high: "border-rose-500/40 text-rose-700",
+  critical: "border-rose-600/60 text-rose-700",
 };
 
 export default function KubernetesPage() {
@@ -102,7 +102,7 @@ export default function KubernetesPage() {
             </p>
           </div>
           {demo && (
-            <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-amber-200">
+            <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-amber-700">
               demo data · fixtures
             </span>
           )}
@@ -113,7 +113,7 @@ export default function KubernetesPage() {
         )}
 
         {phase === "error" && (
-          <p className="mt-8 font-mono text-sm text-rose-300">{message}</p>
+          <p className="mt-8 font-mono text-sm text-rose-600">{message}</p>
         )}
 
         {phase === "loading" && (
@@ -151,7 +151,7 @@ export default function KubernetesPage() {
                     onClick={() => void diagnose(pod)}
                     className={`block w-full rounded-lg border px-3 py-2 text-left transition ${
                       selected?.name === pod.name
-                        ? "border-amber-500/50 bg-ink-800"
+                        ? "border-amber-500/50 bg-amber-500/[0.06]"
                         : "border-hairline hover:border-hairline-strong hover:bg-ink-850"
                     }`}
                   >
@@ -161,7 +161,7 @@ export default function KubernetesPage() {
                       <span>{pod.namespace}</span>
                       <span>· {pod.phase}</span>
                       {pod.containers.some((c) => c.restart_count > 0) && (
-                        <span className="text-amber-300">
+                        <span className="text-amber-600">
                           · {pod.containers.reduce((a, c) => a + c.restart_count, 0)} restarts
                         </span>
                       )}
@@ -196,7 +196,7 @@ export default function KubernetesPage() {
 
 function SetupNotice({ message }: { message: string | null }) {
   return (
-    <div className="mt-8 rounded-xl border border-amber-400/30 bg-amber-400/[0.05] p-6">
+    <div className="mt-8 rounded-xl border border-amber-500/30 bg-amber-500/[0.06] p-6">
       <h2 className="font-serif text-xl text-paper-50">Kubernetes is not configured</h2>
       <p className="mt-2 text-sm text-paper-300">
         {message ?? "The read-only Kubernetes integration is disabled."}
@@ -252,9 +252,9 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
         </div>
 
         <div className="mt-4 flex items-center gap-3">
-          <div className="h-1.5 w-40 overflow-hidden rounded-full bg-white/10">
+          <div className="h-1.5 w-40 overflow-hidden rounded-full bg-ink-700">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-blue-400 to-sky-300"
+              className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-400"
               style={{ width: `${Math.round(diagnosis.confidence * 100)}%` }}
             />
           </div>
@@ -269,7 +269,7 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
         <ul className="space-y-1.5">
           {diagnosis.confirmed_observations.map((o, i) => (
             <li key={i} className="flex gap-2 text-[12.5px] text-paper-200">
-              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-emerald-300" />
+              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-emerald-500" />
               <span>{o}</span>
             </li>
           ))}
@@ -332,7 +332,7 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
         <Section title="Remediation (requires explicit approval)">
           <div className="space-y-3">
             {diagnosis.remediation.map((r, i) => (
-              <div key={i} className="rounded-lg border border-amber-400/25 bg-amber-400/[0.04] p-4">
+              <div key={i} className="rounded-lg border border-amber-500/30 bg-amber-500/[0.06] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-[13px] font-medium text-paper-100">{r.title}</p>
                   <Badge tone="warn">changes state · {r.risk}</Badge>
@@ -415,8 +415,8 @@ function Badge({
   children: React.ReactNode;
 }) {
   const styles = {
-    good: "border-emerald-400/25 bg-emerald-400/10 text-emerald-200",
-    warn: "border-amber-400/30 bg-amber-400/10 text-amber-200",
+    good: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700",
+    warn: "border-amber-500/30 bg-amber-500/10 text-amber-700",
     neutral: "border-hairline-strong text-paper-300",
   }[tone];
   return (
