@@ -62,6 +62,7 @@ export function TopNav() {
   const pathname = usePathname();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -91,10 +92,26 @@ export function TopNav() {
     setOpenIndex(null);
   }, [pathname]);
 
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 16);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // The home hero is a dark full-bleed panel; let the nav float over it.
+  const overHero = pathname === "/" && !scrolled && !mobileOpen;
+
   return (
     <header
       ref={navRef}
-      className="fixed inset-x-0 top-0 z-50 border-b border-hairline bg-ink-900/85 backdrop-blur-md"
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-200 ${
+        overHero
+          ? "border-transparent bg-transparent"
+          : "border-hairline bg-ink-900/80 backdrop-blur-md"
+      }`}
     >
       <nav className="shell">
         <div className="flex h-[4.5rem] items-center justify-between">
@@ -103,9 +120,17 @@ export function TopNav() {
             <Link
               href="/"
               onClick={() => setMobileOpen(false)}
-              className="flex shrink-0 items-center gap-3 text-base font-semibold text-paper-50"
+              className={`flex shrink-0 items-center gap-3 text-base font-semibold ${
+                overHero ? "text-white" : "text-paper-50"
+              }`}
             >
-              <span className="grid size-8 place-items-center rounded-lg border border-hairline-strong bg-ink-800 font-mono text-xs font-semibold text-amber-500">
+              <span
+                className={`grid size-8 place-items-center rounded-lg border font-mono text-xs font-semibold ${
+                  overHero
+                    ? "border-white/25 bg-white/15 text-white"
+                    : "border-hairline-strong bg-ink-800 text-amber-500"
+                }`}
+              >
                 SC
               </span>
               <span className="tracking-[-0.02em]">SRE Copilot</span>
@@ -134,9 +159,13 @@ export function TopNav() {
                         }
                       }}
                       className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2.5 text-sm font-medium transition ${
-                        active || isOpen
-                          ? "text-amber-500"
-                          : "text-paper-300 hover:text-paper-100"
+                        overHero
+                          ? active || isOpen
+                            ? "text-white"
+                            : "text-white/75 hover:text-white"
+                          : active || isOpen
+                            ? "text-amber-500"
+                            : "text-paper-300 hover:text-paper-100"
                       }`}
                       aria-haspopup={hasChildren || undefined}
                       aria-expanded={hasChildren ? isOpen : undefined}
@@ -198,7 +227,11 @@ export function TopNav() {
                   <SignInButton mode="modal">
                     <button
                       type="button"
-                      className="hidden rounded-lg px-2 py-2 text-sm font-medium text-paper-300 transition hover:text-paper-100 sm:inline-block"
+                      className={`hidden rounded-lg px-2 py-2 text-sm font-medium transition sm:inline-block ${
+                        overHero
+                          ? "text-white/80 hover:text-white"
+                          : "text-paper-300 hover:text-paper-100"
+                      }`}
                     >
                       Sign in
                     </button>
@@ -206,7 +239,7 @@ export function TopNav() {
                   <SignUpButton mode="modal">
                     <button
                       type="button"
-                      className="btn-accent !rounded-lg !px-4 !py-2.5 !text-sm !font-semibold"
+                      className={`${overHero ? "btn-light" : "btn-accent"} !px-4 !py-2.5 !text-sm`}
                     >
                       Open console
                     </button>
@@ -220,7 +253,7 @@ export function TopNav() {
           ) : (
             <Link
               href="/assistant"
-              className="btn-accent !rounded-lg !px-4 !py-2.5 !text-sm !font-semibold"
+              className={`${overHero ? "btn-light" : "btn-accent"} !px-4 !py-2.5 !text-sm`}
             >
               Open console
             </Link>
@@ -228,7 +261,11 @@ export function TopNav() {
 
           <button
             type="button"
-            className="ml-2 grid size-10 place-items-center rounded-lg border border-hairline-strong text-paper-100 transition hover:bg-ink-800 lg:hidden"
+            className={`ml-2 grid size-10 place-items-center rounded-lg border transition lg:hidden ${
+              overHero
+                ? "border-white/25 text-white hover:bg-white/15"
+                : "border-hairline-strong text-paper-100 hover:bg-ink-800"
+            }`}
             aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={mobileOpen}
             aria-controls="mobile-navigation"

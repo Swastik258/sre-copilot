@@ -289,30 +289,41 @@ export function CTASection({
   note?: string;
 }) {
   return (
-    <section className="relative overflow-hidden border-t border-hairline bg-ink-950/50">
-      <div aria-hidden className="glow glow-amber left-1/2 top-0 h-72 w-72 -translate-x-1/2 -translate-y-1/2" />
-      <div className="shell relative py-24">
-        <div className="grid grid-cols-1 items-end gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-          <div>
-            <Eyebrow>{eyebrow}</Eyebrow>
-            <h2 className="mt-5 font-serif text-display tracking-tight text-paper-50">{title}</h2>
-          </div>
-          <div className="flex flex-col gap-6">
-            <p className="max-w-prose text-dense-lg text-paper-300">{body}</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Link href={primary.href} className="btn-accent">
-                {primary.label}
-                <Icon name="arrow" className="size-4" />
-              </Link>
-              <Link href={secondary.href} className="btn-ghost">
-                {secondary.label}
-              </Link>
+    <section className="border-t border-hairline bg-ink-950/60">
+      <div className="shell py-20">
+        <div className="grad-card relative overflow-hidden rounded-[2rem] px-7 py-14 sm:px-14 sm:py-16">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-16 -top-20 h-80 w-80 rounded-full bg-white/10 blur-3xl"
+          />
+          <div className="relative z-10 grid grid-cols-1 items-end gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+            <div>
+              <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-[13px] font-medium text-white/90">
+                {eyebrow}
+              </span>
+              <h2 className="mt-5 text-[2rem] font-semibold leading-[1.1] tracking-[-0.03em] text-white sm:text-[2.5rem]">
+                {title}
+              </h2>
             </div>
-            {note && (
-              <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-400">
-                {note}
+            <div className="flex flex-col gap-6">
+              <p className="max-w-prose text-[1.0625rem] leading-relaxed text-white/80">
+                {body}
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href={primary.href} className="btn-light">
+                  {primary.label}
+                  <Icon name="arrow" className="size-4" />
+                </Link>
+                <Link href={secondary.href} className="btn-glass">
+                  {secondary.label}
+                </Link>
               </div>
-            )}
+              {note && (
+                <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/55">
+                  {note}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
