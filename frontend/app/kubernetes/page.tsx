@@ -14,8 +14,8 @@ const SEVERITY_STYLES: Record<string, string> = {
   info: "border-hairline-strong text-paper-300",
   low: "border-sky-500/30 text-sky-700",
   medium: "border-amber-500/40 text-amber-700",
-  high: "border-rose-500/40 text-rose-700",
-  critical: "border-rose-600/60 text-rose-700",
+  high: "border-rose-500/40 text-rose-300",
+  critical: "border-rose-600/60 text-rose-200",
 };
 
 export default function KubernetesPage() {
@@ -113,7 +113,7 @@ export default function KubernetesPage() {
         )}
 
         {phase === "error" && (
-          <p className="mt-8 font-mono text-sm text-rose-600">{message}</p>
+          <p className="mt-8 font-mono text-sm text-rose-300">{message}</p>
         )}
 
         {phase === "loading" && (
@@ -415,7 +415,7 @@ function Badge({
   children: React.ReactNode;
 }) {
   const styles = {
-    good: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700",
+    good: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
     warn: "border-amber-500/30 bg-amber-500/10 text-amber-700",
     neutral: "border-hairline-strong text-paper-300",
   }[tone];

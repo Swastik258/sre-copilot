@@ -35,11 +35,11 @@ export function HealthPill() {
 
   const color =
     state === "ok"
-      ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700"
+      ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
       : state === "degraded"
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
+        ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
         : state === "error"
-          ? "border-rose-500/25 bg-rose-500/10 text-rose-700"
+          ? "border-rose-500/25 bg-rose-500/10 text-rose-300"
           : "border-hairline-strong bg-ink-800 text-paper-300";
 
   return (
@@ -57,7 +57,7 @@ export function HealthPill() {
               ? "bg-amber-500"
               : state === "error"
                 ? "bg-rose-500"
-                : "bg-slate-400"
+                : "bg-paper-400"
         }`}
       />
       <span className="font-medium">API</span>

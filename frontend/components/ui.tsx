@@ -236,7 +236,7 @@ export function CheckList({ items }: { items: ReactNode[] }) {
     <ul className="space-y-3">
       {items.map((item, i) => (
         <li key={i} className="flex items-start gap-3 text-dense text-paper-200">
-          <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600">
+          <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
             <Icon name="check" className="size-3" />
           </span>
           <span>{item}</span>

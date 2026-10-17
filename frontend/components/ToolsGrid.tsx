@@ -1,3 +1,5 @@
+import { ToolCard } from "@/components/ToolCard";
+
 export function ToolsGrid() {
   return (
     <section className="border-b border-hairline bg-ink-950/30">
@@ -20,7 +22,7 @@ export function ToolsGrid() {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 gap-px bg-hairline-strong lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <ToolCard
             title="Kubernetes"
             subtitle="Read-only · namespace scoped"
@@ -74,39 +76,6 @@ export function ToolsGrid() {
   );
 }
 
-function ToolCard({
-  title,
-  subtitle,
-  footer,
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  footer: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <article className="tick flex flex-col gap-4 bg-ink-900 p-6">
-      <header className="flex items-baseline justify-between">
-        <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-paper-100">
-          {title}
-        </h3>
-        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-paper-400">
-          {subtitle}
-        </span>
-      </header>
-
-      <div className="overflow-hidden rounded border border-hairline bg-ink-950">
-        {children}
-      </div>
-
-      <footer className="font-mono text-[10.5px] leading-relaxed text-paper-400">
-        {footer}
-      </footer>
-    </article>
-  );
-}
-
 /* ---------- Preview: Kubernetes ---------- */
 
 function KubernetesPreview() {
@@ -134,7 +103,11 @@ function KubernetesPreview() {
           />
           <span
             className={`w-[9rem] shrink-0 text-right font-mono text-[11px] ${
-              r.tone === "bad" ? "text-signal-bad" : "text-paper-300"
+              r.tone === "bad"
+                ? "text-signal-bad"
+                : r.tone === "good"
+                  ? "text-signal-good"
+                  : "text-paper-400"
             }`}
           >
             {r.status}
@@ -173,14 +146,14 @@ function CicdPreview() {
       <div className="flex items-center justify-between px-4 py-2.5">
         <span className="font-mono text-[11.5px] text-paper-200">build</span>
         <span className="dot dot-good" />
-        <span className="w-[8rem] text-right font-mono text-[11px] text-paper-300">
+        <span className="w-[8rem] text-right font-mono text-[11px] text-signal-good">
           passed · 42s
         </span>
       </div>
       <div className="flex items-center justify-between px-4 py-2.5">
         <span className="font-mono text-[11.5px] text-paper-200">test</span>
         <span className="dot dot-good" />
-        <span className="w-[8rem] text-right font-mono text-[11px] text-paper-300">
+        <span className="w-[8rem] text-right font-mono text-[11px] text-signal-good">
           passed · 1m 12s
         </span>
       </div>
@@ -204,7 +177,7 @@ function CicdPreview() {
 function TerraformPreview() {
   return (
     <div className="space-y-1 px-4 py-3 font-mono text-[11px] leading-relaxed">
-      <div className="text-signal-bad">
+      <div className="text-signal-warn">
         <span className="opacity-70">-/+</span> aws_db_instance.primary
       </div>
       <div className="pl-4 text-paper-400">~ engine_version: "15.4" → "15.6"</div>
@@ -212,7 +185,7 @@ function TerraformPreview() {
       <div className="pt-1 text-signal-bad">
         <span className="opacity-70">-</span>   aws_db_snapshot.legacy
       </div>
-      <div className="pt-2 text-[10.5px] text-paper-400">
+      <div className="pt-2 text-[10.5px] text-signal-warn">
         1 replacement · 1 deletion · 0 additions
       </div>
     </div>

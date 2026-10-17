@@ -101,42 +101,37 @@ export function TopNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // The home hero is a dark full-bleed panel; let the nav float over it.
+  // Over the home hero the pill is a touch more transparent; once scrolled or
+  // on any other route it firms up into a frosted dark pill.
   const overHero = pathname === "/" && !scrolled && !mobileOpen;
 
   return (
     <header
       ref={navRef}
-      className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-200 ${
-        overHero
-          ? "border-transparent bg-transparent"
-          : "border-hairline bg-ink-900/80 backdrop-blur-md"
-      }`}
+      className="fixed inset-x-0 top-0 z-50 px-4 pt-3"
     >
-      <nav className="shell">
-        <div className="flex h-[4.5rem] items-center justify-between">
+      <nav className="mx-auto w-full max-w-[80rem]">
+        <div
+          className={`flex h-14 items-center justify-between gap-3 rounded-full border px-2.5 pl-4 backdrop-blur-xl transition-colors duration-200 ${
+            overHero
+              ? "border-white/10 bg-black/40"
+              : "border-white/10 bg-black/75 shadow-[0_18px_50px_-24px_rgba(0,0,0,0.95)]"
+          }`}
+        >
           {/* Left */}
-          <div className="flex min-w-0 items-center gap-8">
+          <div className="flex min-w-0 items-center gap-6">
             <Link
               href="/"
               onClick={() => setMobileOpen(false)}
-              className={`flex shrink-0 items-center gap-3 text-base font-semibold ${
-                overHero ? "text-white" : "text-paper-50"
-              }`}
+              className="flex shrink-0 items-center gap-3 text-base font-semibold text-paper-50"
             >
-              <span
-                className={`grid size-8 place-items-center rounded-lg border font-mono text-xs font-semibold ${
-                  overHero
-                    ? "border-white/25 bg-white/15 text-white"
-                    : "border-hairline-strong bg-ink-800 text-amber-500"
-                }`}
-              >
+              <span className="grid size-8 place-items-center rounded-lg border border-hairline-strong bg-ink-800 font-mono text-xs font-semibold text-amber-400">
                 SC
               </span>
               <span className="tracking-[-0.02em]">SRE Copilot</span>
             </Link>
 
-            <div className="hidden items-center gap-1.5 lg:flex">
+            <div className="hidden items-center gap-0.5 lg:flex">
               {LINKS.map((item, i) => {
                 const active =
                   pathname === item.href || pathname.startsWith(item.href + "/");
@@ -158,14 +153,10 @@ export function TopNav() {
                           setOpenIndex(isOpen ? null : i);
                         }
                       }}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2.5 text-sm font-medium transition ${
-                        overHero
-                          ? active || isOpen
-                            ? "text-white"
-                            : "text-white/75 hover:text-white"
-                          : active || isOpen
-                            ? "text-amber-500"
-                            : "text-paper-300 hover:text-paper-100"
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition ${
+                        active || isOpen
+                          ? "text-amber-400"
+                          : "text-paper-300 hover:text-paper-50"
                       }`}
                       aria-haspopup={hasChildren || undefined}
                       aria-expanded={hasChildren ? isOpen : undefined}
@@ -174,7 +165,7 @@ export function TopNav() {
                       {hasChildren && (
                         <svg
                           viewBox="0 0 12 12"
-                          className={`h-2.5 w-2.5 opacity-50 transition-transform ${
+                          className={`h-2.5 w-2.5 opacity-60 transition-transform ${
                             isOpen ? "rotate-180" : ""
                           }`}
                           aria-hidden
@@ -191,14 +182,14 @@ export function TopNav() {
                     </Link>
 
                     {hasChildren && isOpen && (
-                      <div className="absolute left-0 top-full z-50 pt-2">
-                        <div className="min-w-[280px] rounded-xl border border-hairline-strong bg-ink-850 p-2 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]">
+                      <div className="absolute left-0 top-full z-50 pt-3">
+                        <div className="min-w-[280px] rounded-2xl border border-white/10 bg-[#101014]/95 p-2 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.9)] backdrop-blur-xl">
                           {item.children!.map((child) => (
                             <Link
                               key={child.href}
                               href={child.href}
                               onClick={() => setOpenIndex(null)}
-                              className="block rounded-lg px-3 py-2.5 transition hover:bg-ink-800"
+                              className="block rounded-xl px-3 py-2.5 transition hover:bg-white/5"
                             >
                               <div className="text-sm font-medium text-paper-100">
                                 {child.label}
@@ -220,71 +211,57 @@ export function TopNav() {
           </div>
 
           {/* Right */}
-          {clerkEnabled ? (
-            <>
-              <Show when="signed-out">
-                <div className="flex shrink-0 items-center gap-4">
+          <div className="flex shrink-0 items-center gap-2">
+            {clerkEnabled ? (
+              <>
+                <Show when="signed-out">
                   <SignInButton mode="modal">
                     <button
                       type="button"
-                      className={`hidden rounded-lg px-2 py-2 text-sm font-medium transition sm:inline-block ${
-                        overHero
-                          ? "text-white/80 hover:text-white"
-                          : "text-paper-300 hover:text-paper-100"
-                      }`}
+                      className="hidden rounded-full px-3 py-2 text-sm font-medium text-paper-300 transition hover:text-paper-50 sm:inline-block"
                     >
                       Sign in
                     </button>
                   </SignInButton>
                   <SignUpButton mode="modal">
-                    <button
-                      type="button"
-                      className={`${overHero ? "btn-light" : "btn-accent"} !px-4 !py-2.5 !text-sm`}
-                    >
+                    <button type="button" className="btn-accent !px-4 !py-2 !text-sm">
                       Open console
                     </button>
                   </SignUpButton>
-                </div>
-              </Show>
-              <Show when="signed-in">
-                <UserButton />
-              </Show>
-            </>
-          ) : (
-            <Link
-              href="/assistant"
-              className={`${overHero ? "btn-light" : "btn-accent"} !px-4 !py-2.5 !text-sm`}
-            >
-              Open console
-            </Link>
-          )}
+                </Show>
+                <Show when="signed-in">
+                  <UserButton />
+                </Show>
+              </>
+            ) : (
+              <Link href="/assistant" className="btn-accent !px-4 !py-2 !text-sm">
+                Open console
+              </Link>
+            )}
 
-          <button
-            type="button"
-            className={`ml-2 grid size-10 place-items-center rounded-lg border transition lg:hidden ${
-              overHero
-                ? "border-white/25 text-white hover:bg-white/15"
-                : "border-hairline-strong text-paper-100 hover:bg-ink-800"
-            }`}
-            aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-navigation"
-            onClick={() => setMobileOpen((isOpen) => !isOpen)}
-          >
-            <svg viewBox="0 0 20 20" className="size-5" fill="none" aria-hidden="true">
-              {mobileOpen ? (
-                <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              ) : (
-                <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              )}
-            </svg>
-          </button>
+            <button
+              type="button"
+              className="grid size-9 place-items-center rounded-full border border-hairline-strong text-paper-100 transition hover:bg-white/5 lg:hidden"
+              aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-navigation"
+              onClick={() => setMobileOpen((isOpen) => !isOpen)}
+            >
+              <svg viewBox="0 0 20 20" className="size-5" fill="none" aria-hidden="true">
+                {mobileOpen ? (
+                  <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                ) : (
+                  <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
 
         {mobileOpen && (
           <div
             id="mobile-navigation"
-            className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-hairline py-6 lg:hidden"
+            className="mt-3 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-2xl border border-white/10 bg-[#101014]/95 p-5 backdrop-blur-xl lg:hidden"
           >
             <div className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
               {LINKS.map((item) => (
@@ -293,7 +270,7 @@ export function TopNav() {
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={`inline-block py-1 text-sm font-semibold transition ${
-                      pathname === item.href ? "text-amber-500" : "text-paper-200 hover:text-paper-50"
+                      pathname === item.href ? "text-amber-400" : "text-paper-200 hover:text-paper-50"
                     }`}
                   >
                     {item.label}

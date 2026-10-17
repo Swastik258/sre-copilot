@@ -20,6 +20,13 @@ const STATE_STYLES: Record<
   disabled: { dot: "dot-idle", text: "text-paper-400", label: "Disabled" },
 };
 
+/** AI surfaces read as amber even when their state would otherwise be green. */
+function dotClass(integration: IntegrationInfo): string {
+  if (integration.state === "disabled") return "dot-idle";
+  if (/ai|assistant|llm|model/i.test(integration.kind)) return "dot-warn";
+  return STATE_STYLES[integration.state].dot;
+}
+
 export function StatusStrip() {
   const [data, setData] = useState<IntegrationsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +48,7 @@ export function StatusStrip() {
   }, []);
 
   return (
-    <section className="border-y border-hairline bg-ink-950/40">
+    <section className="border-y border-hairline bg-ink-950/60">
       <div className="shell py-5">
         <div className="mb-3 flex items-center justify-between">
           <span className="label-caps">Configured integrations</span>
@@ -51,7 +58,7 @@ export function StatusStrip() {
         </div>
 
         {error && (
-          <p className="font-mono text-[11px] text-rose-600">
+          <p className="font-mono text-[11px] text-rose-400">
             Integration status unavailable: {error}
           </p>
         )}
@@ -61,13 +68,13 @@ export function StatusStrip() {
         )}
 
         {data && (
-          <div className="grid grid-cols-2 gap-px bg-hairline-strong sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-hairline-strong bg-hairline-strong sm:grid-cols-3 lg:grid-cols-4">
             {data.integrations.map((integration) => {
               const style = STATE_STYLES[integration.state];
               return (
-                <div key={integration.kind} className="tick bg-ink-900 px-4 py-3">
+                <div key={integration.kind} className="bg-[#111113] px-4 py-3.5">
                   <div className="flex items-center gap-2">
-                    <span className={`dot ${style.dot}`} />
+                    <span className={`dot ${dotClass(integration)}`} />
                     <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-paper-300">
                       {integration.kind}
                     </span>

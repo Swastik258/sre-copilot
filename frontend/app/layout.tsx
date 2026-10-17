@@ -33,7 +33,7 @@ export default function RootLayout({
   const body = (
     <>
       <TopNav />
-      <main className="min-h-screen pt-16">{children}</main>
+      <main className="min-h-screen pt-24">{children}</main>
       <SiteFooter />
     </>
   );
@@ -44,6 +44,10 @@ export default function RootLayout({
       className={`${sans.variable} ${mono.variable}`}
     >
       <body className="bg-ink-900 font-sans text-paper-100 antialiased">
+        <noscript>
+          {/* Without JS the scroll-reveal wrappers would stay at opacity: 0. */}
+          <style>{`[data-reveal]{opacity:1 !important;transform:none !important;}`}</style>
+        </noscript>
         {clerkEnabled ? (
           <ClerkProvider>{body}</ClerkProvider>
         ) : (

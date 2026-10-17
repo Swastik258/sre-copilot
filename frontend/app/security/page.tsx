@@ -29,7 +29,7 @@ export default function SecurityPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {IMPLEMENTED.map((c) => (
               <Card key={c} className="flex items-start gap-3 p-5">
-                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600">
+                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
                   <Icon name="check" className="size-3" />
                 </span>
                 <span className="text-dense text-paper-200">{c}</span>

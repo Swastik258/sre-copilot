@@ -23,11 +23,11 @@ const STATES = [
     title: "Failure",
     body: "An incident is open. The ring turns red and the card shows the evidence behind it.",
   },
-];
+] as const;
 
 export function SignatureRing() {
   return (
-    <section className="border-b border-hairline bg-ink-900">
+    <section className="border-b border-hairline bg-ink-950/40">
       <div className="shell py-24">
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
           {/* Left: copy */}
@@ -80,9 +80,12 @@ export function SignatureRing() {
             {STATES.map((s) => (
               <div
                 key={s.key}
-                className="flex flex-col items-center gap-4 bg-ink-900 px-6 py-10 text-center"
+                className="flex flex-col items-center gap-4 bg-[#111113] px-6 py-10 text-center"
               >
-                <Ring color={s.color} />
+                <Ring
+                  color={s.color}
+                  pulse={s.key === "warn" || s.key === "bad"}
+                />
                 <div className="mt-1">
                   <div className="font-mono text-[11px] uppercase tracking-[0.12em] text-paper-300">
                     {s.title}
@@ -100,10 +103,10 @@ export function SignatureRing() {
   );
 }
 
-function Ring({ color }: { color: string }) {
+function Ring({ color, pulse = false }: { color: string; pulse?: boolean }) {
   return (
     <div
-      className="ring-status"
+      className={`ring-status${pulse ? " ring-pulse" : ""}`}
       style={{ ["--ring-color" as string]: color }}
       aria-hidden
     />

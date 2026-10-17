@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.14",
+    "framer-motion": "^14.3.0",
     "next": "16.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
