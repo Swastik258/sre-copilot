@@ -34,9 +34,15 @@ def _ensure_local_schema() -> None:
 
     if settings.auto_create_schema and settings.is_sqlite and settings.is_local:
         from app.db.base import Base  # noqa: WPS433 (intentional local import)
+        from app.db.local_schema import upgrade_local_sqlite_schema
         from app.db.session import engine
 
         Base.metadata.create_all(engine)
+        # create_all() cannot add a column to an existing table, so a DB from an
+        # earlier milestone would break signup. Apply additive upgrades here.
+        applied = upgrade_local_sqlite_schema(engine)
+        if applied:
+            log.info("Upgraded local SQLite schema: %s", ", ".join(applied))
         log.info("Ensured local SQLite schema exists")
 
 

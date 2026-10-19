@@ -20,7 +20,9 @@ Last updated: Milestone 2.5 (self-hosted accounts & dashboard).
   `app/security/*`): signup/login/logout/me, scrypt-hashed passwords, and
   server-side sessions in an HttpOnly cookie. API-wide enforcement is available
   via `AUTH_REQUIRED` (off by default).
-- Tests: **79 passing** (`pytest`); lint clean (`ruff check .`).
+- Local SQLite databases from an older milestone are upgraded additively on
+  startup (`app/db/local_schema.py`), since `create_all()` cannot add columns.
+- Tests: **82 passing** (`pytest`); lint clean (`ruff check .`).
 
 ## Frontend
 

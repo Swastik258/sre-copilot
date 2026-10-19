@@ -28,6 +28,22 @@ uvicorn app.main:app --reload --port 8000
 - The SQLite schema is created automatically when `ENVIRONMENT=local` and the
   database URL is SQLite.
 
+### Local database from an older milestone
+
+`create_all()` creates missing tables but never adds a column to an existing
+table. On startup the backend therefore applies additive upgrades to a local
+SQLite file (currently `users.password_hash` and the unique `users.email`
+index), so a database created before the auth milestone keeps working. Look for
+this line in the log:
+
+```
+Upgraded local SQLite schema: users.password_hash, ix_users_email
+```
+
+If the upgrade logs a duplicate-email warning, delete the local SQLite file
+(demo data only) or remove the duplicate rows, then restart. Postgres and any
+non-local environment are never altered this way — use the migrations below.
+
 ### Migrations
 
 ```bash
