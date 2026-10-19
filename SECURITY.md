@@ -12,8 +12,11 @@ include credentials or other secrets in issue reports.
 
 This project is a foundation, not a production-hardened product. In particular:
 
-- **Authentication and authorization are not implemented on the backend.** The
-  optional Clerk integration affects the UI only. Do not expose the API publicly.
+- **Authentication and authorization are only partly implemented.** Local
+  self-hosted signup/login exists with scrypt-hashed passwords and server-side
+  sessions, but it is **not enforced by default** (`AUTH_REQUIRED` is off) and
+  there is no authorization model. The optional Clerk integration affects the UI
+  only. Do not expose the API publicly.
 - Secret redaction exists but is best-effort defence-in-depth.
 - Rate limiting is in-memory and disabled by default.
 

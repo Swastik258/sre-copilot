@@ -1,6 +1,6 @@
 # Build status
 
-Last updated: Milestone 2 (read-only Kubernetes diagnosis).
+Last updated: Milestone 2.5 (self-hosted accounts & dashboard).
 
 ## Backend
 
@@ -16,7 +16,11 @@ Last updated: Milestone 2 (read-only Kubernetes diagnosis).
   `app/services/kubernetes_diagnosis.py`, `app/api/v1/kubernetes.py`): normalized
   models, a structurally read-only client interface, a real client (lazy import)
   and a fixture client, deterministic rules, and evidence-backed diagnoses.
-- Tests: **67 passing** (`pytest`); lint clean (`ruff check .`).
+- **Self-hosted accounts** (`app/api/v1/auth.py`, `app/services/auth.py`,
+  `app/security/*`): signup/login/logout/me, scrypt-hashed passwords, and
+  server-side sessions in an HttpOnly cookie. API-wide enforcement is available
+  via `AUTH_REQUIRED` (off by default).
+- Tests: **79 passing** (`pytest`); lint clean (`ruff check .`).
 
 ## Frontend
 
@@ -25,8 +29,12 @@ Last updated: Milestone 2 (read-only Kubernetes diagnosis).
 - **Kubernetes console** (`/kubernetes`): namespace filter, pod list, and an
   evidence-backed diagnosis view with read-only next steps and approval-gated
   remediation.
-- Clerk is optional; the app boots in demo mode with no keys.
-- Lint and production build pass.
+- **Auth pages + dashboard** (`/sign-up`, `/login`, `/dashboard`): self-hosted
+  signup/login with an HttpOnly session cookie; the dashboard is gated and shows
+  live integration status plus quick links to each diagnosis surface.
+- Clerk is optional; without keys the app uses the local auth pages and boots in
+  demo mode with no third-party credentials.
+- Lint and production build pass (31 routes).
 
 ## Deployment
 
@@ -37,5 +45,6 @@ Last updated: Milestone 2 (read-only Kubernetes diagnosis).
 ## Not yet implemented
 
 GitHub / Prometheus / Terraform adapters; AI providers; the investigation,
-log-analysis, metrics, timeline and runbook modules; backend authentication.
+log-analysis, metrics, timeline and runbook modules; authorization and tenant
+isolation (API-wide auth is off by default).
 Live Kubernetes verification needs a Docker-enabled host. See `docs/ROADMAP.md`.

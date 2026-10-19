@@ -41,11 +41,19 @@ provenance, approval workflow, and audit logging.
 | Integration status without secrets | `app/services/integrations.py` | Reports configuration state only; never returns tokens. |
 | Demo labelling | `schemas/evidence.py`, frontend | Fixture data flagged `demo=true`. |
 | Audit events | `app/services/audit.py` | Redacted resource/outcome payloads. |
+| Account passwords | `app/security/passwords.py` | scrypt (per-user salt, 16-byte, `n=2^14`), constant-time compare; PBKDF2 fallback. |
+| Local signup/login | `app/services/auth.py`, `app/api/v1/auth.py` | Self-hosted accounts; the session token is never returned in a body. |
+| Session tokens | `app/security/tokens.py` | 256-bit `secrets.token_urlsafe`; only the SHA-256 hash is stored. |
+| Session cookie | `app/api/v1/auth.py` | `HttpOnly`, `SameSite=Lax` (blocks cross-site POST CSRF), `Secure` off-server, 7-day TTL, revocable. |
+| Optional API enforcement | `app/api/v1/router.py` (`AUTH_REQUIRED`) | **Off by default**; when on, read-only routes require a session (health/auth stay public). |
 
 ## Missing controls (must be implemented before public exposure)
 
-- **Authentication & authorization** — no verified identity on any backend
-  route; the frontend's Clerk integration is UI-only and optional.
+- **Authentication & authorization** — local signup/login now exists
+  (`app/api/v1/auth.py`) with hashed passwords and server-side sessions, but it is
+  **not enforced by default**: `AUTH_REQUIRED` is off so the demo and tests run
+  without credentials. There is no authorization model (roles/permissions) and no
+  verified identity on routes when the flag is off.
 - **Tenant/organization isolation** — no enforced data boundaries.
 - **CSRF/SSRF/command-injection hardening** — no URL-fetching features exist
   yet, but must be reviewed as adapters land.

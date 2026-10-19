@@ -8,11 +8,12 @@ const IMPLEMENTED = [
   "Structured logs with request ids and a uniform JSON error envelope.",
   "Demo data labeled end to end with a demo flag.",
   "Secrets read on the backend only; never embedded in the frontend bundle.",
+  "Self-hosted signup/login: scrypt-hashed passwords and server-side sessions in an HttpOnly, SameSite cookie.",
 ];
 
 const MISSING = [
-  "Backend authentication and authorization (the UI can gate, the API does not yet).",
-  "Per-user scoping and workspace isolation.",
+  "Authorization and per-user scoping — API-wide enforcement is behind an off-by-default AUTH_REQUIRED flag.",
+  "Role/permission model for who may do what within a workspace.",
   "Secret storage and rotation for connected integrations.",
   "Egress controls for hosted AI providers beyond privacy mode.",
 ];

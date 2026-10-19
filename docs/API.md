@@ -120,7 +120,7 @@ docs/KUBERNETES_SETUP.md. Live use also needs the optional dependency:
 | HTTP | `code` | Meaning |
 |------|--------|---------|
 | 400 | `bad_request` | Malformed request |
-| 401 | `unauthorized` | Missing/invalid credentials (auth not yet enforced) |
+| 401 | `unauthorized` | Missing/invalid credentials (enforced only when `AUTH_REQUIRED=true`) |
 | 403 | `permission_denied` | Not allowed |
 | 404 | `not_found` | Resource missing |
 | 409 | `conflict` | State conflict |

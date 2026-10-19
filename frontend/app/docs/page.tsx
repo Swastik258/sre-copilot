@@ -126,16 +126,25 @@ export default function DocsPage() {
 
             <DocSection title="Authentication & keys">
               <p>
-                Clerk is optional. It powers the navigation sign-in and sign-up modals and
-                the signed-in user menu when <Code>NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</Code>{" "}
-                and <Code>CLERK_SECRET_KEY</Code> are present at build time. Without them
-                the app runs in demo mode with no third-party credentials.
+                Signup and sign-in are self-hosted. Accounts and sessions live in your own
+                backend (<Code>/api/v1/auth/*</Code>): passwords are hashed with scrypt, and
+                the session token is carried in an <Code>HttpOnly</Code> cookie — never
+                exposed to JavaScript or returned in a response body. After signing in you
+                land on the dashboard.
               </p>
               <p>
-                The backend does not yet enforce authentication — see the{" "}
+                API-wide enforcement is <strong>off by default</strong> so the demo and tests
+                run without credentials. Set <Code>AUTH_REQUIRED=true</Code> to require a
+                session on the read-only routes; health and the auth endpoints stay public.
+                There is no authorization model yet — see the{" "}
                 <Link href="/security" className="link-editorial">security notes</Link>{" "}
-                before exposing the API publicly. AI provider keys are read on the backend
-                only and are never sent to the browser.
+                before exposing the API publicly.
+              </p>
+              <p>
+                Clerk remains optional: when <Code>NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</Code>{" "}
+                and <Code>CLERK_SECRET_KEY</Code> are present at build time, the navigation
+                uses Clerk&apos;s sign-in/sign-up modals instead of the local auth pages. AI
+                provider keys are read on the backend only and are never sent to the browser.
               </p>
             </DocSection>
 

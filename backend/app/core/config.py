@@ -54,7 +54,18 @@ class Settings(BaseSettings):
 
     # ---- HTTP / CORS ----
     cors_origins: str = "http://localhost:3000"
-    allow_credentials: bool = False
+    # Required so the browser will send the session cookie on cross-origin
+    # (localhost:3000 -> localhost:8000) requests. Safe with an explicit
+    # origin allow-list; never combine with a "*" origin.
+    allow_credentials: bool = True
+
+    # ---- Authentication (local, self-hosted) ----
+    # When True, every read-only API route except /health and /auth requires a
+    # valid session. Off by default so the local demo and the test suite run
+    # without credentials; turn it on in shared environments.
+    auth_required: bool = False
+    auth_cookie_name: str = "sre_session"
+    auth_session_ttl_hours: int = 168  # 7 days
 
     # ---- Request limits ----
     max_request_bytes: int = 2_000_000  # 2 MB default cap on request bodies

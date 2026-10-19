@@ -40,6 +40,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     res = await fetch(`${API_BASE}${path}`, {
       ...init,
+      // Send/receive the HttpOnly session cookie for authenticated calls.
+      credentials: "include",
       headers: {
         Accept: "application/json",
         ...(init?.body ? { "Content-Type": "application/json" } : {}),
@@ -100,6 +102,23 @@ export type IntegrationsResponse = {
   demo_mode: boolean;
   integrations: IntegrationInfo[];
 };
+
+// ---- Authentication (local, self-hosted) ----
+
+export type AuthUser = {
+  id: string;
+  email: string | null;
+  display_name: string | null;
+  created_at: string;
+};
+
+export type AuthResponse = { user: AuthUser };
+export type SignupPayload = {
+  email: string;
+  password: string;
+  display_name?: string | null;
+};
+export type LoginPayload = { email: string; password: string };
 
 // ---- Kubernetes (read-only) ----
 
@@ -215,6 +234,28 @@ export type PodDiagnosisResponse = {
 export const api = {
   health: () => request<Health>("/api/v1/health"),
   integrations: () => request<IntegrationsResponse>("/api/v1/integrations"),
+  auth: {
+    /** Current user, or null when there is no valid session (401). */
+    me: async (): Promise<AuthUser | null> => {
+      try {
+        return await request<AuthUser>("/api/v1/auth/me");
+      } catch (err) {
+        if (err instanceof ApiRequestError && err.status === 401) return null;
+        throw err;
+      }
+    },
+    signup: (payload: SignupPayload) =>
+      request<AuthResponse>("/api/v1/auth/signup", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    login: (payload: LoginPayload) =>
+      request<AuthResponse>("/api/v1/auth/login", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    logout: () => request<null>("/api/v1/auth/logout", { method: "POST" }),
+  },
   kubernetes: {
     clusters: () =>
       request<{ demo: boolean; clusters: K8sCluster[] }>("/api/v1/kubernetes/clusters"),

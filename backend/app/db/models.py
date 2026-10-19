@@ -26,16 +26,41 @@ class User(Base):
     external_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True)
     display_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    # Local (self-hosted) auth. NULL for accounts created by an external
+    # identity provider (e.g. Clerk), which authenticate elsewhere.
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
 
     conversations: Mapped[list[Conversation]] = relationship(back_populates="user", cascade="all, delete-orphan")
     investigations: Mapped[list[Investigation]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    sessions: Mapped[list[AuthSession]] = relationship(back_populates="user", cascade="all, delete-orphan")
     audit_events: Mapped[list[AuditEvent]] = relationship(
         back_populates="user",
         passive_deletes=True,
     )
+
+
+class AuthSession(Base):
+    """A server-side browser session for local auth.
+
+    Only the SHA-256 hash of the opaque token is stored, so a database leak does
+    not hand out usable sessions.
+    """
+
+    __tablename__ = "sessions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    user_agent: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    user: Mapped[User] = relationship(back_populates="sessions")
 
 
 class Conversation(Base):
@@ -141,3 +166,5 @@ Index("ix_investigations_user_created", Investigation.user_id, Investigation.cre
 Index("ix_audit_events_created", AuditEvent.created_at)
 Index("ix_audit_events_request", AuditEvent.request_id)
 Index("ix_evidence_investigation_collected", Evidence.investigation_id, Evidence.collected_at)
+Index("ix_users_email", User.email, unique=True)
+Index("ix_sessions_user_created", AuthSession.user_id, AuthSession.created_at)

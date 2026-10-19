@@ -45,18 +45,27 @@ Postgres deployments always use migrations (SQLite auto-create is local-only).
 cd frontend
 npm install
 
-# Demo mode (no auth): point at the backend
+# Demo mode: point at the backend
 NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
 ```
 
-Open http://localhost:3000. With no `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, the app
-runs without sign-in and without any third-party credentials.
+Open http://localhost:3000. Signup and sign-in are self-hosted: accounts and
+sessions live in the backend (`/api/v1/auth/*`), passwords are hashed with
+scrypt, and the session is carried in an `HttpOnly` cookie. After signing in you
+land on `/dashboard`. No third-party credentials are required.
 
-### Optional authentication (Clerk)
+### Optional: API-wide enforcement
 
-Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` to enable Clerk
-sign-in. This affects the **UI only**; the backend does not verify tokens yet
-(see docs/SECURITY.md).
+Authentication is **not enforced by default** so the demo and tests run without
+credentials. Set `AUTH_REQUIRED=true` on the backend to require a valid session
+on the read-only routes (`/api/v1/integrations`, `/api/v1/kubernetes/*`); health
+and `/api/v1/auth/*` stay public. See docs/SECURITY.md.
+
+### Optional: Clerk
+
+Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` to use Clerk's
+sign-in/sign-up modals in the navigation instead of the local auth pages. This
+affects the **UI only**.
 
 ## Docker Compose
 

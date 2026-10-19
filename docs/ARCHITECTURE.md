@@ -82,7 +82,11 @@ cite evidence by ID instead of restating it.
 - Next.js App Router; the marketing site is static.
 - `lib/api.ts` is the single typed API client (base URL, error unwrapping).
 - `lib/auth.ts` toggles Clerk. **Clerk is optional**: with no publishable key the
-  app runs in demo mode with no sign-in and no third-party credentials.
+  app runs with a self-hosted signup/login flow and no third-party credentials.
+- `lib/auth-client.tsx` mirrors the signed-in user for the UI (identity only —
+  the session token lives in an `HttpOnly` cookie). `components/AuthForm.tsx` +
+  `app/login`, `app/sign-up`, and the gated `app/dashboard` implement the flow;
+  `lib/api.ts` sends the cookie with `credentials: "include"`.
 - `components/StatusStrip.tsx` and `components/HealthPill.tsx` render live
   backend status; demo data is explicitly labelled.
 

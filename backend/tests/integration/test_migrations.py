@@ -20,6 +20,7 @@ EXPECTED_TABLES = {
     "investigations",
     "audit_events",
     "evidence",
+    "sessions",
 }
 
 

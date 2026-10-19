@@ -4,6 +4,7 @@ import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { AuthProvider } from "@/lib/auth-client";
 import { clerkEnabled } from "@/lib/auth";
 
 const sans = Plus_Jakarta_Sans({
@@ -31,11 +32,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const body = (
-    <>
+    <AuthProvider>
       <TopNav />
       <main className="min-h-screen pt-24">{children}</main>
       <SiteFooter />
-    </>
+    </AuthProvider>
   );
 
   return (

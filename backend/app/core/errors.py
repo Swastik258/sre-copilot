@@ -106,6 +106,29 @@ def _envelope(
     }
 
 
+def _safe_validation_errors(errors: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Make pydantic's error list JSON-serializable.
+
+    Pydantic puts the raised exception object (e.g. ``ValueError``) into the
+    ``ctx`` of errors produced by custom validators. That object is not JSON
+    serializable, so the error envelope would itself fail with a 500. Keep the
+    human-readable message and stringify anything else.
+    """
+    cleaned: list[dict[str, Any]] = []
+    for error in errors:
+        item = dict(error)
+        ctx = item.get("ctx")
+        if isinstance(ctx, dict):
+            item["ctx"] = {
+                key: value
+                if isinstance(value, (str, int, float, bool)) or value is None
+                else str(value)
+                for key, value in ctx.items()
+            }
+        cleaned.append(item)
+    return cleaned
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def _app_error(_: Request, exc: AppError) -> JSONResponse:
@@ -126,7 +149,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             content=_envelope(
                 code="validation_error",
                 message="Request validation failed",
-                details={"errors": exc.errors()},
+                details={"errors": _safe_validation_errors(exc.errors())},
                 request_id=get_request_id(),
             ),
         )

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Show,
   SignInButton,
@@ -10,6 +10,7 @@ import {
 } from "@clerk/nextjs";
 import { useEffect, useRef, useState } from "react";
 import { clerkEnabled } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-client";
 
 type NavChild = { label: string; href: string; description?: string };
 type NavItem = { label: string; href: string; children?: NavChild[] };
@@ -60,10 +61,30 @@ const LINKS: NavItem[] = [
 
 export function TopNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading, logout } = useAuth();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
+
+  async function handleSignOut() {
+    await logout();
+    setMobileOpen(false);
+    router.push("/");
+    router.refresh();
+  }
+
+  const initials = (() => {
+    const source = user?.display_name?.trim() || user?.email || "";
+    const letters = source
+      .split(/[\s@._-]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("");
+    return letters || "?";
+  })();
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -225,7 +246,7 @@ export function TopNav() {
                   </SignInButton>
                   <SignUpButton mode="modal">
                     <button type="button" className="btn-accent !px-4 !py-2 !text-sm">
-                      Open console
+                      Get started
                     </button>
                   </SignUpButton>
                 </Show>
@@ -233,10 +254,44 @@ export function TopNav() {
                   <UserButton />
                 </Show>
               </>
+            ) : loading ? (
+              <span
+                aria-hidden
+                className="hidden h-9 w-28 animate-pulse rounded-full bg-white/5 sm:block"
+              />
+            ) : user ? (
+              <div className="hidden items-center gap-1.5 sm:flex">
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 rounded-full border border-hairline-strong py-1.5 pl-1.5 pr-3.5 transition hover:bg-white/5"
+                >
+                  <span className="grid size-6 place-items-center rounded-full bg-amber-500/20 font-mono text-[11px] font-semibold text-amber-300">
+                    {initials}
+                  </span>
+                  <span className="max-w-[8rem] truncate text-sm font-medium text-paper-100">
+                    {user.display_name?.trim() || user.email}
+                  </span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="rounded-full px-3 py-2 text-sm font-medium text-paper-300 transition hover:text-paper-50"
+                >
+                  Log out
+                </button>
+              </div>
             ) : (
-              <Link href="/assistant" className="btn-accent !px-4 !py-2 !text-sm">
-                Open console
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="hidden rounded-full px-3 py-2 text-sm font-medium text-paper-300 transition hover:text-paper-50 sm:inline-block"
+                >
+                  Sign in
+                </Link>
+                <Link href="/sign-up" className="btn-accent !px-4 !py-2 !text-sm">
+                  Get started
+                </Link>
+              </>
             )}
 
             <button
@@ -292,6 +347,46 @@ export function TopNav() {
                 </div>
               ))}
             </div>
+
+            {!clerkEnabled && (
+              <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5">
+                {user ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMobileOpen(false)}
+                      className="btn-accent w-full"
+                    >
+                      Open dashboard
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="btn-ghost w-full"
+                    >
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/sign-up"
+                      onClick={() => setMobileOpen(false)}
+                      className="btn-accent w-full"
+                    >
+                      Get started
+                    </Link>
+                    <Link
+                      href="/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="btn-ghost w-full"
+                    >
+                      Sign in
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
       </nav>

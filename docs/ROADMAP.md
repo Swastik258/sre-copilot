@@ -41,6 +41,21 @@ Statuses: **Done** · **In progress** · **Planned** · **Blocked**
 > host. The real client is import-verified but not exercised against a live API
 > here.
 
+## Milestone 2.5 — Self-hosted accounts & dashboard ✅ Done
+
+- Local signup/login: `POST /api/v1/auth/{signup,login,logout}`, `GET /api/v1/auth/me`.
+- Passwords hashed with scrypt (stdlib, per-user salt, constant-time compare;
+  PBKDF2 fallback). Session tokens are random and stored only as a SHA-256 hash.
+- Sessions delivered as a revocable `HttpOnly`, `SameSite=Lax` cookie; the token
+  is never returned in a response body.
+- Optional API-wide enforcement via `AUTH_REQUIRED` (**off by default**, so the
+  demo and tests run without credentials).
+- Frontend `/sign-up`, `/login`, and a gated `/dashboard`; the navigation shows
+  Sign in / Get started when signed out and the user + log-out when signed in.
+- Audit events for signup, login, and logout.
+- Tests: signup/login/logout/me, duplicate email, weak password, cookie flags,
+  hashing-at-rest, bearer-token auth, and the `AUTH_REQUIRED` gate.
+
 ## Milestone 3 — Investigation engine (Planned)
 
 - Shared evidence model end-to-end; evidence-backed structured diagnoses.
@@ -61,7 +76,9 @@ Statuses: **Done** · **In progress** · **Planned** · **Blocked**
 
 ## Explicitly not implemented
 
-- Backend authentication/authorization, tenant isolation.
+- Authorization, tenant isolation, and API-wide authentication enforcement
+  (self-hosted auth exists — see Milestone 2.5 — but `AUTH_REQUIRED` is off by
+  default and there is no role/permission model).
 - Any infrastructure-mutating action (only recommendations are planned first).
 - AI providers beyond a configuration placeholder.
 - Log analysis, metrics, timelines, runbooks, Terraform review.
