@@ -24,9 +24,24 @@ services:
       # Local Postgres is migrated by the container CMD; disable SQLite auto-create.
       AUTO_CREATE_SCHEMA: "false"
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      AUTH_REQUIRED: ${AUTH_REQUIRED:-false}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      DEFAULT_TENANT_ID: ${DEFAULT_TENANT_ID:-default}
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-0}
       AI_PROVIDER: ${AI_PROVIDER:-mock}
+      AI_MODEL: ${AI_MODEL:-gpt-4o-mini}
       AI_PRIVACY_MODE: ${AI_PRIVACY_MODE:-false}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GITHUB_ENABLED: ${GITHUB_ENABLED:-false}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      KUBERNETES_ENABLED: ${KUBERNETES_ENABLED:-false}
+      KUBERNETES_DEMO_MODE: ${KUBERNETES_DEMO_MODE:-true}
+      KUBERNETES_CLUSTERS: ${KUBERNETES_CLUSTERS:-}
+      PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-false}
+      PROMETHEUS_DEMO_MODE: ${PROMETHEUS_DEMO_MODE:-true}
+      PROMETHEUS_URL: ${PROMETHEUS_URL:-}
       LOG_JSON: ${LOG_JSON:-false}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
@@ -40,7 +55,6 @@ services:
       args:
         # Bake the API URL into the client bundle at build time.
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:

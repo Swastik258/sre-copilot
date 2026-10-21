@@ -103,16 +103,85 @@ export type IntegrationsResponse = {
   integrations: IntegrationInfo[];
 };
 
+// ---- Audit and settings ----
+
+export type AuditEvent = {
+  id: string;
+  user_id?: string | null;
+  action: string;
+  actor: string;
+  resource?: Record<string, unknown> | null;
+  decision: string;
+  reason?: string | null;
+  outcome?: Record<string, unknown> | null;
+  request_id?: string | null;
+  created_at: string;
+};
+
+export type AuditEventListResponse = {
+  events: AuditEvent[];
+  total: number;
+};
+
+export type AuditRetentionResponse = {
+  deleted: number;
+  older_than_days: number;
+};
+
+export type SettingsResponse = {
+  ai_provider: string;
+  ai_model: string;
+  ai_privacy_mode: boolean;
+  ai_privacy_source: "environment" | "override";
+  audit_retention_days: number;
+  default_environment?: string | null;
+  auth_required: boolean;
+  rate_limit_per_minute: number;
+  redaction_enabled: boolean;
+  demo_mode: boolean;
+  integrations: IntegrationInfo[];
+};
+
+export type SettingsUpdate = {
+  audit_retention_days?: number;
+  ai_privacy_mode?: boolean;
+  default_environment?: string | null;
+};
+
 // ---- Authentication (local, self-hosted) ----
 
 export type AuthUser = {
   id: string;
   email: string | null;
   display_name: string | null;
+  role: "admin" | "member";
+  tenant_id: string;
+  is_active: boolean;
   created_at: string;
 };
 
 export type AuthResponse = { user: AuthUser };
+
+export type AdminUserListResponse = {
+  users: AuthUser[];
+  total: number;
+};
+
+export type AdminUserUpdate = {
+  role?: "admin" | "member";
+  tenant_id?: string;
+  is_active?: boolean;
+};
+
+export type TenantSummary = {
+  tenant_id: string;
+  user_count: number;
+};
+
+export type TenantListResponse = {
+  tenants: TenantSummary[];
+  total: number;
+};
 export type SignupPayload = {
   email: string;
   password: string;
@@ -346,6 +415,88 @@ export type TerraformReviewResponse = {
   demo: boolean;
 };
 
+export type TerraformExplainResponse = {
+  review: TerraformReviewResponse;
+  explanation: AIStructuredDiagnosis;
+};
+
+// ---- Runbooks ----
+
+export type RunbookStep = {
+  title: string;
+  action: string;
+  command?: string | null;
+  expected?: string | null;
+  changes_state: boolean;
+  risk: string;
+};
+
+export type Runbook = {
+  id: string;
+  title: string;
+  category: string;
+  severity: string;
+  summary: string;
+  symptoms: string[];
+  applies_to: string[];
+  steps: RunbookStep[];
+  guardrails: string[];
+};
+
+export type RunbookListResponse = {
+  runbooks: Runbook[];
+  total: number;
+};
+
+export type RunbookMatchResponse = {
+  runbook: Runbook;
+  matched_on: string;
+};
+
+// ---- Infrastructure-code generation ----
+
+export type InfraKind =
+  | "kubernetes_deployment"
+  | "kubernetes_service"
+  | "terraform_module";
+
+export type InfraGeneratePayload = {
+  kind: InfraKind;
+  name: string;
+  namespace: string;
+  image: string;
+  replicas: number;
+  port: number;
+  environment: string;
+  cpu_request: string;
+  memory_request: string;
+  cpu_limit: string;
+  memory_limit: string;
+  intent?: string | null;
+};
+
+export type GeneratedFile = {
+  path: string;
+  language: string;
+  content: string;
+};
+
+export type InfraPolicyFinding = {
+  severity: string;
+  rule: string;
+  message: string;
+  path?: string | null;
+};
+
+export type InfraGenerateResponse = {
+  kind: InfraKind;
+  files: GeneratedFile[];
+  findings: InfraPolicyFinding[];
+  summary: string;
+  evidence: EvidenceRecord[];
+  demo: boolean;
+};
+
 // ---- AI-assisted diagnosis ----
 
 export type AIHypothesis = {
@@ -379,6 +530,140 @@ export type AIStructuredDiagnosis = {
   demo: boolean;
 };
 
+// ---- Local log analysis ----
+
+export type LogSignature = {
+  id: string;
+  signature: string;
+  severity: string;
+  count: number;
+  first_seen?: string | null;
+  last_seen?: string | null;
+  sample: string;
+  frames: string[];
+  evidence_id?: string | null;
+};
+
+export type LogAnalyzeResponse = {
+  total_lines: number;
+  parsed_lines: number;
+  truncated: boolean;
+  signatures: LogSignature[];
+  summary: string;
+  evidence: EvidenceRecord[];
+  demo: boolean;
+};
+
+// ---- Prometheus metrics and correlation ----
+
+export type MetricPoint = {
+  timestamp: string;
+  value: number;
+};
+
+export type MetricSeries = {
+  name: string;
+  labels: Record<string, string>;
+  points: MetricPoint[];
+};
+
+export type MetricQueryResponse = {
+  query: string;
+  start: string;
+  end: string;
+  step: string;
+  series: MetricSeries[];
+  summary: string;
+  evidence: EvidenceRecord[];
+  demo: boolean;
+};
+
+export type CorrelationEvent = {
+  timestamp: string;
+  label: string;
+  severity: string;
+};
+
+export type CorrelationMatch = {
+  event_label: string;
+  event_timestamp: string;
+  metric_name: string;
+  labels: Record<string, string>;
+  observed_value: number;
+  baseline_mean: number;
+  baseline_stddev: number;
+  z_score: number;
+  direction: string;
+  evidence_id?: string | null;
+};
+
+export type CorrelationResponse = {
+  query: string;
+  start: string;
+  end: string;
+  step: string;
+  matches: CorrelationMatch[];
+  summary: string;
+  evidence: EvidenceRecord[];
+  demo: boolean;
+};
+
+// ---- Investigations and assistant chat ----
+
+export type InvestigationKind =
+  | "kubernetes"
+  | "github"
+  | "logs"
+  | "terraform"
+  | "metrics"
+  | "general";
+
+export type InvestigationStatus = "open" | "in_progress" | "resolved" | "closed";
+
+export type Investigation = {
+  id: string;
+  title: string;
+  kind: InvestigationKind;
+  status: InvestigationStatus;
+  summary?: string | null;
+  demo: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type InvestigationDetail = Investigation & {
+  evidence_ids: string[];
+  message_count: number;
+};
+
+export type InvestigationMessage = {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  diagnosis?: Diagnosis | null;
+  created_at: string;
+};
+
+export type InvestigationListResponse = {
+  investigations: InvestigationDetail[];
+  total: number;
+};
+
+export type InvestigationMessagesResponse = {
+  investigation_id: string;
+  messages: InvestigationMessage[];
+};
+
+export type InvestigationExchange = {
+  user_message: InvestigationMessage;
+  assistant_message: InvestigationMessage;
+  diagnosis?: Diagnosis | null;
+};
+
+function clusterParam(cluster?: string): string {
+  return cluster ? `?cluster=${encodeURIComponent(cluster)}` : "";
+}
+
 export const api = {
   health: () => request<Health>("/api/v1/health"),
   integrations: () => request<IntegrationsResponse>("/api/v1/integrations"),
@@ -407,19 +692,29 @@ export const api = {
   kubernetes: {
     clusters: () =>
       request<{ demo: boolean; clusters: K8sCluster[] }>("/api/v1/kubernetes/clusters"),
-    namespaces: () =>
-      request<{ namespaces: { name: string }[] }>("/api/v1/kubernetes/namespaces"),
-    pods: (namespace?: string) =>
-      request<{ pods: K8sPod[] }>(
-        `/api/v1/kubernetes/pods${namespace ? `?namespace=${encodeURIComponent(namespace)}` : ""}`,
+    namespaces: (cluster?: string) =>
+      request<{ namespaces: { name: string }[] }>(
+        `/api/v1/kubernetes/namespaces${clusterParam(cluster)}`,
       ),
-    workloads: (namespace?: string) =>
-      request<{ workloads: K8sWorkload[] }>(
-        `/api/v1/kubernetes/workloads${namespace ? `?namespace=${encodeURIComponent(namespace)}` : ""}`,
-      ),
-    diagnose: (namespace: string, name: string) =>
+    pods: (namespace?: string, cluster?: string) => {
+      const search = new URLSearchParams();
+      if (namespace) search.set("namespace", namespace);
+      if (cluster) search.set("cluster", cluster);
+      const suffix = search.toString() ? `?${search.toString()}` : "";
+      return request<{ pods: K8sPod[] }>(`/api/v1/kubernetes/pods${suffix}`);
+    },
+    workloads: (namespace?: string, cluster?: string) => {
+      const search = new URLSearchParams();
+      if (namespace) search.set("namespace", namespace);
+      if (cluster) search.set("cluster", cluster);
+      const suffix = search.toString() ? `?${search.toString()}` : "";
+      return request<{ workloads: K8sWorkload[] }>(
+        `/api/v1/kubernetes/workloads${suffix}`,
+      );
+    },
+    diagnose: (namespace: string, name: string, cluster?: string) =>
       request<PodDiagnosisResponse>(
-        `/api/v1/kubernetes/pods/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/diagnose`,
+        `/api/v1/kubernetes/pods/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/diagnose${clusterParam(cluster)}`,
         { method: "POST" },
       ),
   },
@@ -449,6 +744,145 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ plan }),
       }),
+    explain: (plan: unknown, question?: string) =>
+      request<TerraformExplainResponse>("/api/v1/terraform/explain", {
+        method: "POST",
+        body: JSON.stringify({ plan, question }),
+      }),
+  },
+  runbooks: {
+    list: (query?: string, category?: string) => {
+      const search = new URLSearchParams();
+      if (query) search.set("query", query);
+      if (category) search.set("category", category);
+      const suffix = search.toString() ? `?${search.toString()}` : "";
+      return request<RunbookListResponse>(`/api/v1/runbooks${suffix}`);
+    },
+    get: (id: string) =>
+      request<Runbook>(`/api/v1/runbooks/${encodeURIComponent(id)}`),
+    match: (kind: string, signal?: string) =>
+      request<RunbookMatchResponse>("/api/v1/runbooks/match", {
+        method: "POST",
+        body: JSON.stringify({ kind, signal }),
+      }),
+  },
+  infra: {
+    generate: (payload: InfraGeneratePayload) =>
+      request<InfraGenerateResponse>("/api/v1/infra/generate", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  },
+  logs: {
+    analyze: (payload: {
+      text: string;
+      source?: string | null;
+      environment?: string | null;
+      limit?: number;
+    }) =>
+      request<LogAnalyzeResponse>("/api/v1/logs/analyze", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  },
+  metrics: {
+    query: (query: string, minutes = 15, step = "15s") => {
+      const search = new URLSearchParams({
+        query,
+        minutes: String(minutes),
+        step,
+      });
+      return request<MetricQueryResponse>(`/api/v1/metrics/query?${search.toString()}`);
+    },
+    correlate: (payload: {
+      query: string;
+      minutes: number;
+      step: string;
+      events: CorrelationEvent[];
+    }) =>
+      request<CorrelationResponse>("/api/v1/metrics/correlate", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  },
+  investigations: {
+    list: (params?: { status?: InvestigationStatus; kind?: InvestigationKind; page?: number; page_size?: number }) => {
+      const search = new URLSearchParams();
+      if (params?.status) search.set("status", params.status);
+      if (params?.kind) search.set("kind", params.kind);
+      if (params?.page) search.set("page", String(params.page));
+      if (params?.page_size) search.set("page_size", String(params.page_size));
+      const suffix = search.toString() ? `?${search.toString()}` : "";
+      return request<InvestigationListResponse>(`/api/v1/investigations${suffix}`);
+    },
+    create: (payload: {
+      title: string;
+      kind?: InvestigationKind;
+      environment?: string | null;
+      target?: string | null;
+    }) =>
+      request<InvestigationDetail>("/api/v1/investigations", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    get: (id: string) => request<InvestigationDetail>(`/api/v1/investigations/${id}`),
+    messages: (id: string) =>
+      request<InvestigationMessagesResponse>(`/api/v1/investigations/${id}/messages`),
+    send: (id: string, content: string) =>
+      request<InvestigationExchange>(`/api/v1/investigations/${id}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ content }),
+      }),
+    evidence: (id: string) => request<EvidenceRecord[]>(`/api/v1/investigations/${id}/evidence`),
+    close: (id: string) =>
+      request<InvestigationDetail>(`/api/v1/investigations/${id}/close`, { method: "POST" }),
+  },
+  audit: {
+    list: (params?: {
+      limit?: number;
+      offset?: number;
+      action?: string;
+      actor?: string;
+      decision?: string;
+    }) => {
+      const search = new URLSearchParams();
+      if (params?.limit) search.set("limit", String(params.limit));
+      if (params?.offset) search.set("offset", String(params.offset));
+      if (params?.action) search.set("action", params.action);
+      if (params?.actor) search.set("actor", params.actor);
+      if (params?.decision) search.set("decision", params.decision);
+      const suffix = search.toString() ? `?${search.toString()}` : "";
+      return request<AuditEventListResponse>(`/api/v1/audit-events${suffix}`);
+    },
+    exportUrl: () => `${API_BASE}/api/v1/audit-events/export.csv`,
+    applyRetention: (olderThanDays: number) =>
+      request<AuditRetentionResponse>(
+        `/api/v1/audit-events?older_than_days=${olderThanDays}`,
+        { method: "DELETE" },
+      ),
+  },
+  settings: {
+    get: () => request<SettingsResponse>("/api/v1/settings"),
+    update: (payload: SettingsUpdate) =>
+      request<SettingsResponse>("/api/v1/settings", {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+  },
+  admin: {
+    users: (tenantId?: string) => {
+      const search = new URLSearchParams({ page_size: "200" });
+      if (tenantId) search.set("tenant_id", tenantId);
+      return request<AdminUserListResponse>(
+        `/api/v1/admin/users?${search.toString()}`,
+      );
+    },
+    updateUser: (userId: string, payload: AdminUserUpdate) =>
+      request<AuthUser>(`/api/v1/admin/users/${encodeURIComponent(userId)}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+    tenants: () => request<TenantListResponse>("/api/v1/admin/tenants"),
   },
   ai: {
     diagnose: (payload: {

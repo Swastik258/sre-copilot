@@ -6,6 +6,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from app.schemas.ai import StructuredDiagnosis
 from app.schemas.evidence import Evidence, Severity
 
 TerraformAction = Literal[
@@ -65,3 +66,19 @@ class TerraformReviewResponse(BaseModel):
     findings: list[TerraformFinding] = Field(default_factory=list)
     evidence: list[Evidence] = Field(default_factory=list)
     demo: bool = False
+
+
+class TerraformExplainRequest(TerraformReviewRequest):
+    question: str = Field(
+        default=(
+            "Explain the riskiest changes in this plan and what an operator "
+            "should verify before applying it."
+        ),
+        min_length=1,
+        max_length=2000,
+    )
+
+
+class TerraformExplainResponse(BaseModel):
+    review: TerraformReviewResponse
+    explanation: StructuredDiagnosis

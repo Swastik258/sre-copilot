@@ -172,8 +172,12 @@ def _risk_level(actions: list[ProposedAction]) -> RiskLevel:
     }[highest]
 
 
-def summarize(request: AIRequest) -> StructuredDiagnosis:
+def summarize(
+    request: AIRequest, *, privacy_mode: bool | None = None
+) -> StructuredDiagnosis:
     settings = get_settings()
+    if privacy_mode is not None:
+        settings = settings.model_copy(update={"ai_privacy_mode": privacy_mode})
     provider: AIProvider = build_provider(settings)
 
     evidence_text = _evidence_context(

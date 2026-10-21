@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from app.ai.providers.anthropic import AnthropicProvider
 from app.ai.providers.base import AIProvider, ChatMessage
 from app.ai.providers.mock import MockProvider
 from app.ai.providers.openai_compatible import OpenAICompatibleProvider
@@ -13,6 +14,7 @@ __all__ = [
     "ChatMessage",
     "MockProvider",
     "OpenAICompatibleProvider",
+    "AnthropicProvider",
     "build_provider",
 ]
 
@@ -69,11 +71,16 @@ def build_provider(settings: Settings) -> AIProvider:
         )
 
     if provider == "anthropic":
-        # Anthropic's Messages API has a different request/response shape. Keep
-        # the configuration honest rather than silently treating it as OpenAI.
-        raise NotConfiguredError(
-            "The Anthropic provider is not implemented yet. Use openrouter, "
-            "openai, or mock."
+        if not settings.anthropic_api_key:
+            raise NotConfiguredError(
+                "Anthropic is selected but ANTHROPIC_API_KEY is not set."
+            )
+        return AnthropicProvider(
+            model=settings.ai_model,
+            api_key=settings.anthropic_api_key,
+            base_url=settings.anthropic_base_url,
+            timeout_seconds=settings.ai_timeout_seconds,
+            max_output_tokens=settings.ai_max_output_tokens,
         )
 
     raise NotConfiguredError(f"Unknown AI provider: {provider}")

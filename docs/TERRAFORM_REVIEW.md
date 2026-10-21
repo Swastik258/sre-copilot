@@ -1,8 +1,10 @@
 # Terraform plan review
 
 > **Status: implemented.** `POST /api/v1/terraform/review` parses a plan JSON
-> document and the `/terraform` console renders the result. It never runs
-> Terraform, reads cloud credentials, or applies changes.
+> document and the `/terraform` console renders the result.
+> `POST /api/v1/terraform/explain` adds an optional AI explanation grounded in
+> the deterministic findings. It never runs Terraform, reads cloud credentials,
+> or applies changes.
 
 ## Input
 
@@ -57,6 +59,21 @@ plan-level evidence contains counts and versions only.
 Stateful detection is conservative and heuristic. It is a warning to review the
 plan, not a guarantee of data loss. Always inspect the plan in Terraform and
 follow your change-management process.
+
+## AI explanation
+
+`POST /api/v1/terraform/explain` accepts the same `plan` object plus an optional
+`question`. It runs the deterministic review first, then sends only the redacted
+review evidence to the configured AI provider. The response contains both the
+`review` and a `StructuredDiagnosis` explanation.
+
+- Deterministic findings remain authoritative; the model cannot add or execute
+  changes.
+- `AI_PRIVACY_MODE` or the per-tenant privacy override returns
+  `503 not_configured` rather than transmitting evidence.
+- No plan values are sent; the explain path uses the same value-omitting review
+  evidence.
+- The `/terraform` console exposes this as "Explain with AI" after a review.
 
 ## Safety
 

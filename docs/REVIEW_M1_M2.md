@@ -1,6 +1,10 @@
 # Review Guide — Milestones 1 & 2
 
-> **Status:** uncommitted work, committed locally on branch `milestones-1-2-foundation`.
+> **Historical snapshot.** This document records the M1/M2 review and is not the
+> current status. See [`BUILD_STATUS.md`](../BUILD_STATUS.md) and
+> [`ROADMAP.md`](ROADMAP.md) for what is implemented today.
+>
+> **Status at the time:** uncommitted work, committed locally on branch `milestones-1-2-foundation`.
 > **Baseline:** original commit `68d4c44 initial`.
 > **Diff size:** 84 files changed, +5,600 / −244.
 > This document is a map of *everything that changed and why*. It contains no secrets.

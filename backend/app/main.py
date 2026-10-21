@@ -18,6 +18,7 @@ from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.ratelimit import MaxBodySizeMiddleware, RateLimitMiddleware
 from app.core.request_context import RequestContextMiddleware
+from app.core.security import SecurityHeadersMiddleware
 
 configure_logging()
 
@@ -46,9 +47,22 @@ def _ensure_local_schema() -> None:
         log.info("Ensured local SQLite schema exists")
 
 
+def _ensure_bootstrap_admin() -> None:
+    """Promote ``BOOTSTRAP_ADMIN_EMAIL`` if the account already exists."""
+
+    from app.db.session import SessionLocal
+    from app.services.auth import ensure_bootstrap_admin
+
+    with SessionLocal() as db:
+        promoted = ensure_bootstrap_admin(db)
+    if promoted is not None:
+        log.info("Promoted %s to administrator via bootstrap configuration", promoted.email)
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     _ensure_local_schema()
+    _ensure_bootstrap_admin()
     yield
 
 
@@ -64,7 +78,9 @@ app = FastAPI(
 
 # Order matters: the last middleware added is the outermost.
 app.add_middleware(MaxBodySizeMiddleware, max_bytes=settings.max_request_bytes)
-app.add_middleware(RateLimitMiddleware, limit_per_minute=settings.rate_limit_per_minute)
+app.add_middleware(
+    RateLimitMiddleware, limit_per_minute=settings.effective_rate_limit
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -73,7 +89,18 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
     expose_headers=["X-Request-ID"],
 )
+if settings.security_headers_enabled:
+    app.add_middleware(
+        SecurityHeadersMiddleware,
+        production=settings.environment == "production",
+    )
 app.add_middleware(RequestContextMiddleware)
+
+if settings.environment == "production" and not settings.auth_required:
+    log.warning(
+        "ENVIRONMENT=production without AUTH_REQUIRED=true; production still "
+        "enforces authentication, but set the flag explicitly for clarity."
+    )
 
 register_exception_handlers(app)
 

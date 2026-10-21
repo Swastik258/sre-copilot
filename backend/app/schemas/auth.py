@@ -51,6 +51,9 @@ class UserOut(BaseModel):
     id: str
     email: str | None = None
     display_name: str | None = None
+    role: str = "member"
+    tenant_id: str = "default"
+    is_active: bool = True
     created_at: datetime
 
     @field_validator("created_at")

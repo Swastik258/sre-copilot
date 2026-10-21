@@ -8,7 +8,7 @@ from fastapi import Depends, Query, Request
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.errors import UnauthorizedError
+from app.core.errors import ForbiddenError, UnauthorizedError
 from app.db.models import User
 from app.db.session import get_db
 from app.schemas.common import PageParams
@@ -58,12 +58,26 @@ def require_user(user: CurrentUser) -> User:
 RequiredUser = Annotated[User, Depends(require_user)]
 
 
-def enforce_auth(user: CurrentUser) -> None:
-    """Gate a route behind a session when ``auth_required`` is enabled.
+def require_admin(user: RequiredUser) -> User:
+    if user.role != "admin":
+        raise ForbiddenError(
+            "Administrator role required.",
+            details={"required_role": "admin", "current_role": user.role},
+        )
+    return user
 
-    Intentionally a no-op when the flag is off, so the local demo and the test
-    suite keep working without credentials. Attach with
-    ``dependencies=[Depends(enforce_auth)]``.
+
+AdminUser = Annotated[User, Depends(require_admin)]
+
+
+def enforce_auth(user: CurrentUser) -> None:
+    """Gate a route behind a session when auth is enabled.
+
+    Intentionally a no-op in local/test environments when the flag is off, so
+    the demo and test suite keep working without credentials. Production always
+    requires authentication even if ``AUTH_REQUIRED`` was accidentally left
+    unset. Attach with ``dependencies=[Depends(enforce_auth)]``.
     """
-    if get_settings().auth_required and user is None:
+    settings = get_settings()
+    if (settings.auth_required or settings.environment == "production") and user is None:
         raise UnauthorizedError("Authentication required.")

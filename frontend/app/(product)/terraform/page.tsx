@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui";
 import {
   api,
   ApiRequestError,
+  type AIStructuredDiagnosis,
   type EvidenceRecord,
   type TerraformChange,
   type TerraformFinding,
@@ -79,12 +80,15 @@ export default function TerraformPage() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [isSample, setIsSample] = useState(false);
   const [result, setResult] = useState<TerraformReviewResponse | null>(null);
+  const [explanation, setExplanation] = useState<AIStructuredDiagnosis | null>(null);
   const [loading, setLoading] = useState(false);
+  const [explaining, setExplaining] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function reviewPlan() {
     setError(null);
     setResult(null);
+    setExplanation(null);
     let parsed: unknown;
     try {
       parsed = JSON.parse(planText);
@@ -114,6 +118,39 @@ export default function TerraformPage() {
     }
   }
 
+  async function explainPlan() {
+    setError(null);
+    setExplaining(true);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(planText);
+    } catch (err) {
+      setError(
+        `Plan is not valid JSON: ${err instanceof Error ? err.message : "parse error"}`,
+      );
+      setExplaining(false);
+      return;
+    }
+    try {
+      const response = await api.terraform.explain(
+        parsed,
+        "Explain the riskiest changes in this plan and what an operator should verify before applying it.",
+      );
+      setResult(response.review);
+      setExplanation(response.explanation);
+    } catch (err) {
+      setError(
+        err instanceof ApiRequestError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "AI explanation failed",
+      );
+    } finally {
+      setExplaining(false);
+    }
+  }
+
   async function onFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -123,6 +160,7 @@ export default function TerraformPage() {
       setFileName(file.name);
       setIsSample(false);
       setResult(null);
+      setExplanation(null);
       setError(null);
     } catch {
       setError("Could not read the selected file.");
@@ -134,6 +172,7 @@ export default function TerraformPage() {
     setFileName("sample-plan.json");
     setIsSample(true);
     setResult(null);
+    setExplanation(null);
     setError(null);
   }
 
@@ -142,6 +181,7 @@ export default function TerraformPage() {
     setFileName(null);
     setIsSample(false);
     setResult(null);
+    setExplanation(null);
     setError(null);
   }
 
@@ -201,6 +241,7 @@ export default function TerraformPage() {
                 setFileName(null);
                 setIsSample(false);
                 setResult(null);
+                setExplanation(null);
                 setError(null);
               }}
               rows={18}
@@ -255,10 +296,115 @@ export default function TerraformPage() {
             {loading && (
               <p className="font-mono text-sm text-tertiary">Reviewing plan…</p>
             )}
-            {result && <ReviewView result={result} />}
+            {result && (
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-[4px] border border-hairline bg-[var(--bg-subtle)] px-3 py-2">
+                  <span className="font-mono text-[10.5px] text-tertiary">
+                    Evidence is redacted before any external AI request.
+                  </span>
+                  <button
+                    type="button"
+                    className="btn-ghost text-[12px] disabled:opacity-50"
+                    onClick={() => void explainPlan()}
+                    disabled={explaining}
+                  >
+                    {explaining ? "Explaining…" : "Explain with AI"}
+                  </button>
+                </div>
+                <ReviewView result={result} />
+                {explanation && <ExplanationView explanation={explanation} />}
+              </div>
+            )}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ExplanationView({
+  explanation,
+}: {
+  explanation: AIStructuredDiagnosis;
+}) {
+  return (
+    <div className="rounded-[4px] border border-accent bg-accent-soft p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="label-caps">AI explanation</div>
+          <p className="mt-2 text-[13px] leading-relaxed text-primary">
+            {explanation.summary}
+          </p>
+        </div>
+        <span className="font-mono text-[10px] text-tertiary">
+          {explanation.model_provider ?? "mock"} · confidence{" "}
+          {Math.round(explanation.confidence * 100)}%
+        </span>
+      </div>
+
+      {explanation.hypotheses.length > 0 && (
+        <div className="mt-4">
+          <div className="label-caps">Interpretations</div>
+          <div className="mt-2 space-y-2">
+            {explanation.hypotheses.map((hypothesis, index) => (
+              <div
+                key={`${hypothesis.explanation}-${index}`}
+                className="rounded-[4px] border border-hairline bg-[var(--bg)] p-3"
+              >
+                <p className="text-[12px] text-secondary">{hypothesis.explanation}</p>
+                <p className="mt-1 font-mono text-[10px] text-tertiary">
+                  confidence {Math.round(hypothesis.confidence * 100)}%
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {explanation.next_steps.length > 0 && (
+        <div className="mt-4">
+          <div className="label-caps">Verify next</div>
+          <ul className="mt-2 space-y-1.5 text-[12px] text-secondary">
+            {explanation.next_steps.map((step, index) => (
+              <li key={`${step}-${index}`} className="flex gap-2">
+                <span className="text-accent">·</span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {explanation.unknowns.length > 0 && (
+        <div className="mt-4">
+          <div className="label-caps">Unknowns</div>
+          <ul className="mt-2 space-y-1.5 text-[11.5px] text-tertiary">
+            {explanation.unknowns.map((item) => (
+              <li key={item}>· {item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {explanation.proposed_remediation.length > 0 && (
+        <div className="mt-4">
+          <div className="label-caps">Proposed actions · not executed</div>
+          <div className="mt-2 space-y-2">
+            {explanation.proposed_remediation.map((action) => (
+              <div
+                key={action.description}
+                className="rounded-[4px] border border-hairline bg-[var(--bg)] p-3"
+              >
+                <p className="text-[12px] text-secondary">{action.description}</p>
+                <p className="mt-1 font-mono text-[10px] text-tertiary">
+                  risk {action.risk} · {action.changes_state ? "changes state" : "read-only"} ·
+                  approval required
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

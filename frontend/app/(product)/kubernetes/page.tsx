@@ -5,6 +5,7 @@ import {
   api,
   ApiRequestError,
   type AIStructuredDiagnosis,
+  type K8sCluster,
   type K8sPod,
   type PodDiagnosisResponse,
 } from "@/lib/api";
@@ -23,6 +24,8 @@ export default function KubernetesPage() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [message, setMessage] = useState<string | null>(null);
   const [demo, setDemo] = useState(false);
+  const [clusters, setClusters] = useState<K8sCluster[]>([]);
+  const [cluster, setCluster] = useState<string>("");
   const [namespaces, setNamespaces] = useState<string[]>([]);
   const [namespace, setNamespace] = useState<string>("");
   const [pods, setPods] = useState<K8sPod[]>([]);
@@ -30,20 +33,24 @@ export default function KubernetesPage() {
   const [result, setResult] = useState<PodDiagnosisResponse | null>(null);
   const [diagnosing, setDiagnosing] = useState(false);
 
-  const load = useCallback(async (ns?: string) => {
+  const load = useCallback(async (clusterName?: string, ns?: string) => {
     setPhase("loading");
     setMessage(null);
     try {
-      const [clusters, nsList] = await Promise.all([
-        api.kubernetes.clusters(),
-        api.kubernetes.namespaces(),
-      ]);
-      setDemo(clusters.demo);
+      const clusterList = await api.kubernetes.clusters();
+      setDemo(clusterList.demo);
+      setClusters(clusterList.clusters);
+      const activeCluster = clusterName ?? clusterList.clusters[0]?.name ?? "";
+      setCluster(activeCluster);
+      const nsList = await api.kubernetes.namespaces(activeCluster || undefined);
       const names = nsList.namespaces.map((n) => n.name);
       setNamespaces(names);
       const activeNs = ns ?? names[0] ?? "";
       setNamespace(activeNs);
-      const podList = await api.kubernetes.pods(activeNs || undefined);
+      const podList = await api.kubernetes.pods(
+        activeNs || undefined,
+        activeCluster || undefined,
+      );
       setPods(podList.pods);
       setPhase("ready");
     } catch (err) {
@@ -61,6 +68,33 @@ export default function KubernetesPage() {
     void load();
   }, [load]);
 
+  const onClusterChange = useCallback(
+    async (name: string) => {
+      setCluster(name);
+      setSelected(null);
+      setResult(null);
+      setMessage(null);
+      setPhase("loading");
+      try {
+        const nsList = await api.kubernetes.namespaces(name || undefined);
+        const names = nsList.namespaces.map((n) => n.name);
+        setNamespaces(names);
+        const activeNs = names[0] ?? "";
+        setNamespace(activeNs);
+        const podList = await api.kubernetes.pods(
+          activeNs || undefined,
+          name || undefined,
+        );
+        setPods(podList.pods);
+        setPhase("ready");
+      } catch (err) {
+        setPhase("error");
+        setMessage(err instanceof Error ? err.message : "Failed to switch cluster");
+      }
+    },
+    [],
+  );
+
   const onNamespaceChange = useCallback(
     async (ns: string) => {
       setNamespace(ns);
@@ -68,29 +102,39 @@ export default function KubernetesPage() {
       setResult(null);
       setMessage(null);
       try {
-        const podList = await api.kubernetes.pods(ns || undefined);
+        const podList = await api.kubernetes.pods(
+          ns || undefined,
+          cluster || undefined,
+        );
         setPods(podList.pods);
       } catch (err) {
         setMessage(err instanceof Error ? err.message : "Failed to load pods");
       }
     },
-    [],
+    [cluster],
   );
 
-  const diagnose = useCallback(async (pod: K8sPod) => {
-    setSelected(pod);
-    setResult(null);
-    setMessage(null);
-    setDiagnosing(true);
-    try {
-      const res = await api.kubernetes.diagnose(pod.namespace, pod.name);
-      setResult(res);
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Diagnosis failed");
-    } finally {
-      setDiagnosing(false);
-    }
-  }, []);
+  const diagnose = useCallback(
+    async (pod: K8sPod) => {
+      setSelected(pod);
+      setResult(null);
+      setMessage(null);
+      setDiagnosing(true);
+      try {
+        const res = await api.kubernetes.diagnose(
+          pod.namespace,
+          pod.name,
+          cluster || undefined,
+        );
+        setResult(res);
+      } catch (err) {
+        setMessage(err instanceof Error ? err.message : "Diagnosis failed");
+      } finally {
+        setDiagnosing(false);
+      }
+    },
+    [cluster],
+  );
 
   return (
     <div className="relative min-h-screen">
@@ -130,6 +174,31 @@ export default function KubernetesPage() {
         {phase === "ready" && (
           <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] animate-fade-in">
             <div>
+              {clusters.length > 0 && (
+                <div className="mb-5">
+                  <label className="label-caps" htmlFor="cluster">
+                    Cluster
+                  </label>
+                  <select
+                    id="cluster"
+                    value={cluster}
+                    onChange={(e) => void onClusterChange(e.target.value)}
+                    className="mt-2 w-full rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-sm text-primary"
+                  >
+                    {clusters.map((item) => (
+                      <option key={item.name} value={item.name}>
+                        {item.name}
+                        {item.demo ? " · demo" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 font-mono text-[10px] text-tertiary">
+                    {clusters.length === 1
+                      ? "One read-only target configured."
+                      : `${clusters.length} read-only targets configured.`}
+                  </p>
+                </div>
+              )}
               <label className="label-caps" htmlFor="ns">
                 Namespace
               </label>

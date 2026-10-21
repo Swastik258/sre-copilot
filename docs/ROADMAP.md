@@ -1,132 +1,162 @@
 # Roadmap
 
-Statuses: **Done** · **In progress** · **Planned** · **Blocked**
+Last updated: **2026-10-21**
+Current baseline: `master` at `e9b0966`; the work below is uncommitted.
 
-## Milestone 1 — Audit & stabilize ✅ Done
+Statuses: **Done** · **Partial** · **Blocked** · **Future**
 
-- Repository audited; feature inventory recorded (see git history / PR notes).
-- Fixed: empty Alembic migration (schema was never created) and a latent
-  SQLAlchemy mapper bug (`User.audit_events` ↔ `AuditEvent.user`) that meant the
-  ORM models could not be configured at all.
-- Fixed: app could not boot without Clerk keys; Clerk is now optional.
-- Fixed: `NEXT_PUBLIC_API_BASE` vs `NEXT_PUBLIC_API_URL` mismatch.
-- Fixed: Docker passed `NEXT_PUBLIC_*` at runtime instead of build time.
+## At a glance
+
+| Area | Status | What exists | Remaining |
+|------|--------|-------------|-----------|
+| Kubernetes diagnosis | **Done** | Read-only client, fixtures, deterministic rules, evidence, `/kubernetes`, named multi-cluster selection | Live re-verification after Windows sync |
+| GitHub Actions | **Done** | Read-only runs/jobs/logs, deterministic rules, `/cicd` | Live verification needs a fresh read-only token |
+| Terraform plan review | **Done** | Plan JSON parsing, blast radius, evidence, `/terraform`, AI explanation | None known |
+| AI explanations | **Done** | Mock, OpenAI, OpenRouter, native Anthropic; privacy mode; redaction | Live provider check after key rotation |
+| Accounts and dashboard | **Done** | Self-hosted auth, gated dashboard, auth-aware nav | None known |
+| Authorization and tenancy | **Done** | Admin/member roles, tenant-scoped investigations/settings/audit, admin APIs, session revocation | Shared-role granularity is intentionally simple |
+| Product UI | **Done** | Paper/ink themes, semantic utilities, motion, responsive shell | Full browser E2E runner |
+| Logs | **Done** | Analyzer, endpoint, evidence, live console | None known |
+| Assistant and investigations | **Done** | Persisted cases, message history, evidence, AI exchange, live `/assistant` | Richer read-only tool orchestration |
+| Audit | **Done** | Read/filter/export API, admin retention, live console | Shared retention scheduling |
+| Settings | **Done** | Per-tenant privacy/retention policy, admin user/tenant controls | Secret editing remains intentionally unsupported |
+| Prometheus | **Done** | Read-only adapter, fixture mode, query endpoint, correlation, live console | Shared query cache is future work |
+| Multi-cluster | **Done** | `KUBERNETES_CLUSTERS` JSON, legacy fallback, selector in API/UI | Live multi-cluster verification |
+| Runbooks and infra-code | **Done** | Runbook catalog/matching/UI; deterministic Deployment/Service/Terraform proposals | Diff/apply workflow is explicitly out of scope |
+| Release readiness | **Partial** | CI lint/test/build, HTTP route smoke, release checklist | Browser E2E runner; live credential checks; Windows sync |
+
+## Milestone 1 — Audit and stabilize ✅ Done
+
+- Repository audited; feature inventory recorded.
+- Fixed the empty Alembic migration and a latent SQLAlchemy mapper bug.
+- Removed Clerk from the runtime path while leaving the package installed.
+- Fixed API-base environment mismatch and Docker build-time `NEXT_PUBLIC_*`.
 - Replaced fabricated status numbers with live integration status.
-- Added: expanded validated config, structured logging + request IDs, JSON error
-  envelope, secret redaction, request-size/rate-limit middleware, typed schemas
-  (evidence/investigation/health/integrations), integration-status API, Evidence
-  ORM model + migration, audit service, CI, Docker hardening, and this docs set.
-- Tests: 43 backend tests pass; frontend lint + build pass.
+- Added validated config, structured logging, request IDs, JSON errors, redaction,
+  request-size/rate-limit middleware, typed schemas, Evidence model/migration,
+  audit service, CI, Docker hardening, and the docs set.
 
-## Milestone 2 — Real Kubernetes read-only diagnosis ✅ Done (demo/mock verified)
+## Milestone 2 — Read-only Kubernetes diagnosis ✅ Done
 
-- Read-only client interface (`KubernetesReadClient`) with **no mutating methods**
-  — diagnosis cannot change cluster state.
-- Two implementations: `RealKubernetesClient` (official client, lazy import) and
-  `FixtureKubernetesClient` (labelled demo snapshot).
-- Normalized models: pods, container statuses, events, workloads, namespaces,
-  bounded logs.
-- Deterministic rules: CrashLoopBackOff, OOMKilled, ImagePullBackOff/ErrImagePull,
-  Pending/Unschedulable, probe failures, non-zero exits, log-derived leads.
-- Evidence wired to the shared model (provenance, redaction, integrity, `demo`).
-- Endpoints: `/api/v1/kubernetes/{clusters,namespaces,workloads,pods,pods/{ns}/{name},
-  pods/{ns}/{name}/logs,pods/{ns}/{name}/diagnose}`.
-- Frontend `/kubernetes` console: namespace filter, pod list, evidence-backed
-  diagnosis view (read-only steps, approval-gated remediation).
-- Tests: structural read-only guarantees, fixture client, every rule, redaction,
-  and the API surface.
+- Structurally read-only client with fixture and real implementations.
+- Normalized pods, workloads, events, namespaces, and bounded logs.
+- Deterministic rules for CrashLoopBackOff, OOMKilled, image pulls, scheduling,
+  probes, exits, and log-derived leads.
+- Evidence with provenance, redaction, integrity, and `demo`.
+- Live verification against a local Kind cluster on the Windows host.
 
-> **Live-cluster verification:** the real client was verified against a local
-> Kind cluster (`kind-tws-cluster`) on the user's Windows host, including a
-> pending/ImagePullBackOff pod with unavailable logs. This development container
-> still has no Docker daemon, so live tests are run on the Docker-enabled host.
+## Milestone 2.5 — Self-hosted accounts and dashboard ✅ Done
 
-## Milestone 2.5 — Self-hosted accounts & dashboard ✅ Done
+- Signup/login/logout/me, scrypt password hashing, server-side sessions.
+- `HttpOnly`, `SameSite=Lax`, revocable cookies.
+- Optional `AUTH_REQUIRED` for local deployments; production always enforces.
+- Gated `/dashboard`, auth-aware navigation, and auth audit events.
 
-- Local signup/login: `POST /api/v1/auth/{signup,login,logout}`, `GET /api/v1/auth/me`.
-- Passwords hashed with scrypt (stdlib, per-user salt, constant-time compare;
-  PBKDF2 fallback). Session tokens are random and stored only as a SHA-256 hash.
-- Sessions delivered as a revocable `HttpOnly`, `SameSite=Lax` cookie; the token
-  is never returned in a response body.
-- Optional API-wide enforcement via `AUTH_REQUIRED` (**off by default**, so the
-  demo and tests run without credentials).
-- Frontend `/sign-up`, `/login`, and a gated `/dashboard`; the navigation shows
-  Sign in / Get started when signed out and the user + log-out when signed in.
-- Audit events for signup, login, and logout.
-- Tests: signup/login/logout/me, duplicate email, weak password, cookie flags,
-  hashing-at-rest, bearer-token auth, and the `AUTH_REQUIRED` gate.
+## Milestone 3 — Investigation engine ✅ Done
 
-## Milestone 3 — Investigation engine (In progress)
+### 3a — AI explanation layer
 
-### Milestone 3a — AI explanation layer ✅ Done
+- Provider-independent interface with mock, OpenAI-compatible, OpenRouter, and
+  native Anthropic adapters.
+- Strict Pydantic validation, timeouts, explicit errors, privacy mode, and
+  redaction before transmission.
+- Optional AI panels in Kubernetes, GitHub, Terraform, and investigations.
 
-- Shared evidence model end-to-end; evidence-backed structured diagnoses.
-- Provider-independent interface with a deterministic mock and an
-  OpenAI-compatible adapter; OpenRouter is supported via configuration.
-- Strict Pydantic validation, timeouts, explicit provider errors, privacy mode,
-  and redaction before transmission.
-- `POST /api/v1/ai/diagnose` and `/api/v1/ai/summarize`; the Kubernetes console
-  has an optional "Explain with AI" panel.
-- Provider/model metadata is returned; keys stay server-side.
-- Tests: schema, provider selection, JSON validation, privacy mode, unknown
-  citation filtering, endpoint errors.
+### 3b — Assistant and investigation persistence
 
-### Remaining
+- Create/read/list/close investigations with tenant scoping.
+- Persisted messages, evidence attachment, and AI exchanges.
+- Live `/assistant` console with citations and approval-gated proposals.
 
-- Investigation persistence + messages API.
-- Anthropic's native Messages API adapter.
-- Vertical "core investigation flow" slice in demo mode.
+### 3c — Anthropic native provider
+
+- Native Messages API payload/response handling and factory wiring.
+- Anthropic configuration works with `AI_PROVIDER=anthropic`.
 
 ## Milestone 4 — GitHub Actions integration ✅ Done (read-only)
 
-- Structurally read-only adapter (`GitHubReadClient`) with only list/get
-  operations; every request is a `GET`. No dispatch, re-run, cancel, secret, or
-  write path.
-- Normalized runs, jobs, steps, and bounded log excerpts.
-- Deterministic failure correlation: failed jobs, first failed step, and
-  conservative log patterns for dependency, import, test, permission, command,
-  image-pull, timeout, OOM, and missing-path failures.
-- Evidence-backed diagnosis with missing-log handling; cross-host log-download
-  redirects strip the GitHub token.
-- Endpoints: `/api/v1/github/{runs,runs/{id},runs/{id}/diagnose}`.
-- Frontend `/cicd` console: repository/branch lookup, run and job inspection,
-  failure diagnosis, evidence, and optional AI explanation.
-- Tests: read-only structure, repo validation, failure rules, log patterns,
-  missing logs, successful runs, and redirect token stripping.
+- Structurally read-only adapter; every request is `GET`.
+- Normalized runs/jobs/steps and bounded log excerpts.
+- Deterministic failure correlation and evidence-backed diagnosis.
+- Cross-host log redirects strip the GitHub token.
+- Live `/cicd` console.
 
-## Milestone 5 — Metrics & correlation (Planned)
+## Milestone 5 — Logs, metrics, and correlation ✅ Done
 
-## Milestone 6 — Terraform review & runbooks (In progress)
+### 5a — Log analysis
 
-### 6a — Terraform plan review ✅ Done
+- Size/type-validated paste/upload, never forwarded raw to a third party.
+- Signature grouping/deduplication, counts, timestamps, severity, and samples.
+- Stack-frame extraction and redaction before storage/model use.
+- `POST /api/v1/logs/analyze` and live `/logs`.
 
-- `POST /api/v1/terraform/review` parses `terraform show -json` plan data.
-- Detects replacements and deletions, replacement paths, attribute-name changes,
-  unknown values, and stateful-resource risk.
-- Reports create/update/replace/destroy/read/no-op counts and a blast-radius
-  classification.
-- Returns findings and shared evidence; **values are omitted** because plan JSON
-  can contain secrets.
-- Frontend `/terraform` console: paste or upload a plan, load an illustrative
-  sample, and review blast radius, findings, changes, and evidence.
-- Tests: action classification, replacement order, stateful risk, unknown values,
-  malformed plans, empty plans, and value non-disclosure.
+### 5b — Prometheus metrics
 
-### Remaining
+- Standard-library read-only adapter for query and query-range.
+- Configurable windows, limits, query validation, and explicit upstream errors.
+- Fixture mode when enabled without a URL and `PROMETHEUS_DEMO_MODE=true`.
+- Live `/metrics` console that shows the actual query/range and data.
 
-- Runbook library and plan-review-to-runbook links.
-- Optional AI explanation for plan findings.
+### 5c — Correlation and multi-cluster
 
-## Milestone 7 — Security & multi-user readiness (Planned)
+- Z-score timing correlation with explicit labels/timestamps and evidence.
+- Correlation is reported as a hypothesis, not proven causality.
+- `KUBERNETES_CLUSTERS` JSON defines named read-only targets; legacy single-target
+  settings remain a fallback. The API and UI accept a cluster selector.
 
-## Milestone 8 — Deployment & release readiness (Planned)
+## Milestone 6 — Terraform, runbooks, and infra-code ✅ Done
 
-## Explicitly not implemented
+- Terraform plan review detects replacements, deletions, replacement paths,
+  attribute-name changes, unknown values, and stateful risk.
+- `POST /api/v1/terraform/explain` adds an optional AI explanation using the same
+  redacted evidence.
+- Static runbook catalog with search, finding matching, steps, and guardrails.
+- Deterministic Kubernetes Deployment/Service and Terraform module generation
+  with policy findings and evidence.
+- `/runbooks` and `/infra-code` are live; generated code is proposal-only.
 
-- Authorization, tenant isolation, and API-wide authentication enforcement
-  (self-hosted auth exists — see Milestone 2.5 — but `AUTH_REQUIRED` is off by
-  default and there is no role/permission model).
-- Any infrastructure-mutating action (only recommendations are planned first).
-- Anthropic's native provider.
-- Log analysis, Prometheus metrics, timelines, runbooks, investigation
-  persistence, and multi-cluster selection.
+## Milestone 7 — Audit, settings, and multi-user readiness ✅ Done
+
+- Audit browser with filters, pagination, CSV export, and admin-only retention.
+- Per-tenant settings for AI privacy, retention, and default environment.
+- Admin/member roles, admin user/tenant APIs, last-admin lockout protection, and
+  session revocation on deactivation.
+- Tenant-scoped investigations, settings, and audit views; moving a member
+  migrates their investigations.
+- Production authentication enforcement, security headers, and conservative
+  production rate limiting.
+
+## Milestone 8 — Deployment and release readiness 🟡 Partial
+
+- CI runs backend lint/tests and frontend lint/build.
+- Dependency-free production route smoke (`npm run smoke`) checks 16 routes.
+- Release and Windows sync checklist documented in
+  [docs/RELEASE.md](RELEASE.md).
+- Docker Compose remains the local deployment path.
+
+Remaining before a public release:
+
+- Approve and install a browser E2E runner (or perform a documented manual
+  browser pass). The project intentionally adds no unapproved frontend
+  dependencies.
+- Rotate exposed credentials and complete live GitHub, OpenRouter/Anthropic,
+  Prometheus, and multi-cluster checks.
+- Sync to the Windows checkout with Windows-accessible kubeconfig paths.
+- Complete the hardening items in [docs/SECURITY.md](SECURITY.md).
+
+## Hardening and future work
+
+- Shared (Redis-backed) rate limiting for multi-instance deployments.
+- Dependency and container-image scanning in CI.
+- CSRF/SSRF review and prompt-injection regression tests.
+- Encryption-at-rest/key-management and backup/restore strategy.
+- Richer assistant tool orchestration while preserving read-only contracts.
+- Diff/apply workflow for infra-code, still behind explicit human approval.
+- Scheduled audit retention.
+
+## Explicit non-goals
+
+- Mutating Kubernetes, GitHub, Terraform, or infrastructure state from diagnosis.
+- Running shell commands or applying generated code.
+- Storing provider keys or integration tokens in the browser or API.
+- Fabricating logs, metrics, events, diagnoses, or integration status.

@@ -59,7 +59,14 @@ def signup(
     token, _ = auth_service.create_session(
         db, user, user_agent=request.headers.get("user-agent")
     )
-    record_event(db, action="auth.signup", actor="user", decision="allow", user_id=user.id)
+    record_event(
+        db,
+        action="auth.signup",
+        actor="user",
+        decision="allow",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+    )
     _set_session_cookie(response, token)
     return AuthResponse(user=UserOut.model_validate(user))
 
@@ -75,7 +82,14 @@ def login(
     token, _ = auth_service.create_session(
         db, user, user_agent=request.headers.get("user-agent")
     )
-    record_event(db, action="auth.login", actor="user", decision="allow", user_id=user.id)
+    record_event(
+        db,
+        action="auth.login",
+        actor="user",
+        decision="allow",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+    )
     _set_session_cookie(response, token)
     return AuthResponse(user=UserOut.model_validate(user))
 
@@ -87,7 +101,14 @@ def logout(request: Request, db: DbSession) -> Response:
     user = auth_service.resolve_session(db, token)
     auth_service.revoke_session(db, token)
     if user is not None:
-        record_event(db, action="auth.logout", actor="user", decision="allow", user_id=user.id)
+        record_event(
+            db,
+            action="auth.logout",
+            actor="user",
+            decision="allow",
+            user_id=user.id,
+            tenant_id=user.tenant_id,
+        )
     cleared = Response(status_code=status.HTTP_204_NO_CONTENT)
     cleared.delete_cookie(key=settings.auth_cookie_name, path="/")
     return cleared

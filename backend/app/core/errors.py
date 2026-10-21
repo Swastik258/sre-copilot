@@ -88,6 +88,13 @@ class GitHubAPIError(AppError):
     code = "github_api_error"
 
 
+class PrometheusAPIError(AppError):
+    """Raised when a read-only Prometheus query fails."""
+
+    status_code = 502
+    code = "prometheus_api_error"
+
+
 class PermissionDeniedError(AppError):
     status_code = 403
     code = "permission_denied"
@@ -96,6 +103,11 @@ class PermissionDeniedError(AppError):
 class UnauthorizedError(AppError):
     status_code = 401
     code = "unauthorized"
+
+
+class ForbiddenError(AppError):
+    status_code = 403
+    code = "forbidden"
 
 
 class RateLimitedError(AppError):

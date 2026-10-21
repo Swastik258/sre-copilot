@@ -30,6 +30,12 @@ class User(Base):
     # identity provider (e.g. Clerk), which authenticate elsewhere.
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Workspace role and tenant boundary. The first local account becomes an
+    # admin; later accounts are members in the configured default tenant.
+    role: Mapped[str] = mapped_column(String(16), default="member", nullable=False, index=True)
+    tenant_id: Mapped[str] = mapped_column(
+        String(36), default="default", nullable=False, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
 
@@ -87,6 +93,22 @@ class Message(Base):
     conversation: Mapped[Conversation] = relationship(back_populates="messages")
 
 
+class AppSetting(Base):
+    """Small, non-secret application preferences.
+
+    Secrets are never stored here. Integration credentials remain in the
+    server environment; this table is for editable operational preferences such
+    as audit retention and AI privacy mode.
+    """
+
+    __tablename__ = "app_settings"
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    value: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
+    )
+
+
 class Integration(Base):
     __tablename__ = "integrations"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -102,6 +124,9 @@ class Investigation(Base):
     __tablename__ = "investigations"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    tenant_id: Mapped[str] = mapped_column(
+        String(36), default="default", nullable=False, index=True
+    )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     kind: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(16), default="open", nullable=False)
@@ -149,6 +174,9 @@ class AuditEvent(Base):
     __tablename__ = "audit_events"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    tenant_id: Mapped[str] = mapped_column(
+        String(36), default="default", nullable=False, index=True
+    )
     action: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
     actor: Mapped[str] = mapped_column(String(16), nullable=False)
     resource: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
@@ -167,4 +195,7 @@ Index("ix_audit_events_created", AuditEvent.created_at)
 Index("ix_audit_events_request", AuditEvent.request_id)
 Index("ix_evidence_investigation_collected", Evidence.investigation_id, Evidence.collected_at)
 Index("ix_users_email", User.email, unique=True)
+Index("ix_users_tenant_role", User.tenant_id, User.role)
 Index("ix_sessions_user_created", AuthSession.user_id, AuthSession.created_at)
+Index("ix_investigations_tenant_created", Investigation.tenant_id, Investigation.created_at)
+Index("ix_audit_events_tenant_created", AuditEvent.tenant_id, AuditEvent.created_at)

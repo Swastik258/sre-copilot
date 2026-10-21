@@ -30,6 +30,16 @@ const LINKS: NavItem[] = [
         description: "Group, dedupe, first occurrence",
       },
       {
+        label: "Metrics",
+        href: "/metrics",
+        description: "Prometheus queries and correlation",
+      },
+      {
+        label: "Runbooks",
+        href: "/runbooks",
+        description: "Safe operator triage sequences",
+      },
+      {
         label: "CI/CD",
         href: "/cicd",
         description: "GitHub Actions failure analysis",

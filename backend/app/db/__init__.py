@@ -9,6 +9,7 @@ instead of reaching into submodules.
 
 from app.db.base import Base
 from app.db.models import (
+    AppSetting,
     AuditEvent,
     Conversation,
     Evidence,
@@ -28,6 +29,7 @@ __all__ = [
     "Conversation",
     "Message",
     "Integration",
+    "AppSetting",
     "Investigation",
     "AuditEvent",
     "Evidence",

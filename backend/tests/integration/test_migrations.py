@@ -21,6 +21,7 @@ EXPECTED_TABLES = {
     "audit_events",
     "evidence",
     "sessions",
+    "app_settings",
 }
 
 
@@ -47,7 +48,84 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
             row[0]
             for row in con.execute("SELECT name FROM sqlite_master WHERE type='table'")
         }
+        user_columns = {
+            row[1] for row in con.execute("PRAGMA table_info(users)")
+        }
+        investigation_columns = {
+            row[1] for row in con.execute("PRAGMA table_info(investigations)")
+        }
+        audit_columns = {
+            row[1] for row in con.execute("PRAGMA table_info(audit_events)")
+        }
     finally:
         con.close()
 
     assert EXPECTED_TABLES <= tables
+    assert {"role", "tenant_id"} <= user_columns
+    assert "tenant_id" in investigation_columns
+    assert "tenant_id" in audit_columns
+
+
+def test_upgrade_promotes_the_earliest_existing_user(tmp_path):
+    db_path = tmp_path / "migration_roles_test.db"
+    env = {
+        **os.environ,
+        "DATABASE_URL": f"sqlite:///{db_path}",
+        "ENVIRONMENT": "test",
+    }
+
+    before = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "0004_app_settings"],
+        cwd=BACKEND_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert before.returncode == 0, f"alembic failed:\n{before.stdout}\n{before.stderr}"
+
+    con = sqlite3.connect(db_path)
+    try:
+        con.execute(
+            "INSERT INTO users "
+            "(id, email, is_active, created_at, updated_at) "
+            "VALUES (?, ?, 1, ?, ?)",
+            (
+                "first-user",
+                "first@example.com",
+                "2026-01-01T00:00:00+00:00",
+                "2026-01-01T00:00:00+00:00",
+            ),
+        )
+        con.execute(
+            "INSERT INTO users "
+            "(id, email, is_active, created_at, updated_at) "
+            "VALUES (?, ?, 1, ?, ?)",
+            (
+                "second-user",
+                "second@example.com",
+                "2026-01-02T00:00:00+00:00",
+                "2026-01-02T00:00:00+00:00",
+            ),
+        )
+        con.commit()
+    finally:
+        con.close()
+
+    after = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        cwd=BACKEND_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert after.returncode == 0, f"alembic failed:\n{after.stdout}\n{after.stderr}"
+
+    con = sqlite3.connect(db_path)
+    try:
+        roles = dict(con.execute("SELECT id, role FROM users ORDER BY created_at"))
+        tenants = dict(con.execute("SELECT id, tenant_id FROM users ORDER BY created_at"))
+    finally:
+        con.close()
+
+    assert roles == {"first-user": "admin", "second-user": "member"}
+    assert tenants == {"first-user": "default", "second-user": "default"}

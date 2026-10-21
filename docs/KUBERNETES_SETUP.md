@@ -1,8 +1,9 @@
 # Kubernetes setup
 
-> **Status: implemented (read-only), verified in demo/fixture mode.** Live-cluster
-> runs require a Docker-enabled host (this development container has no Docker
-> daemon) and the optional dependency: `pip install -e ".[kubernetes]"`.
+> **Status: implemented (read-only), fixture and live verified.** The adapter was
+> verified against a local Kind cluster (`kind-tws-cluster`) on the Windows host.
+> Live use requires read-only RBAC and the optional dependency:
+> `pip install -e ".[kubernetes]"`.
 
 ## Quick demo (no cluster)
 
@@ -11,21 +12,45 @@ cd backend
 KUBERNETES_ENABLED=true KUBERNETES_DEMO_MODE=true uvicorn app.main:app --reload
 ```
 
-Then open the Kubernetes console at `/kubernetes` (or call
-`GET /api/v1/kubernetes/pods`). All demo records are labelled `demo: true`.
+Then open `/kubernetes` or call `GET /api/v1/kubernetes/pods`. Demo records are
+labelled `demo: true`.
 
-## Live cluster configuration
+## Single live cluster
 
 | Env var | Purpose |
 |---------|---------|
 | `KUBERNETES_ENABLED` | Master switch (default `false`) |
-| `KUBERNETES_DEMO_MODE` | Use labelled fixtures when no cluster is configured (set `false` for live) |
-| `KUBERNETES_KUBECONFIG` | Path to a kubeconfig for local development |
+| `KUBERNETES_DEMO_MODE` | Use fixtures when no cluster is configured (set `false` for live) |
+| `KUBERNETES_KUBECONFIG` | Path to a kubeconfig |
 | `KUBERNETES_CONTEXT` | Explicit context selection |
-| `KUBERNETES_IN_CLUSTER` | Use in-cluster service account when deployed |
+| `KUBERNETES_IN_CLUSTER` | Use the in-cluster service account |
 | `KUBERNETES_REQUEST_TIMEOUT_SECONDS` | Per-call timeout (default 15) |
 
-See [docs/API.md](API.md#kubernetes-read-only) for the endpoint list.
+Windows example (use a Windows-accessible path, not WSL `/home/...`):
+
+```dotenv
+KUBERNETES_ENABLED=true
+KUBERNETES_DEMO_MODE=false
+KUBERNETES_KUBECONFIG=C:/Users/swastik/.kube/kind-config
+KUBERNETES_CONTEXT=kind-tws-cluster
+KUBERNETES_IN_CLUSTER=false
+```
+
+## Multiple clusters
+
+Set `KUBERNETES_CLUSTERS` to a JSON array. Each item has a unique `name` and the
+same read-only connection fields. This takes precedence over the legacy
+single-target settings.
+
+```dotenv
+KUBERNETES_ENABLED=true
+KUBERNETES_DEMO_MODE=false
+KUBERNETES_CLUSTERS=[{"name":"kind-local","kubeconfig":"C:/Users/swastik/.kube/kind-config","context":"kind-tws-cluster","in_cluster":false},{"name":"staging","kubeconfig":"C:/Users/swastik/.kube/staging","context":"staging","in_cluster":false}]
+```
+
+Use `cluster=<name>` on namespace/workload/pod/log/diagnose endpoints. The
+`/kubernetes` console lists clusters and passes the selected name through.
+`GET /api/v1/kubernetes/clusters` returns the configured names and demo flags.
 
 ## Read-only RBAC
 
@@ -53,12 +78,15 @@ rules:
   there is no create/update/patch/delete anywhere in the adapter, and a test
   (`tests/unit/test_kubernetes_readonly.py`) enforces this structurally.
 - Logs are bounded by `tail_lines` and redacted before becoming evidence.
-- If no cluster is available, use clearly-labelled demo fixtures (`demo: true`).
+- If no cluster is available, use clearly labelled demo fixtures (`demo: true`).
 - Remediation is emitted as *recommendations* that require explicit human
   approval and are never executed.
+- Cluster selection is a read-only target selector; it does not grant or change
+  cluster permissions.
 
 ## Testing
 
 Unit tests use the fixture client and cover every rule scenario plus structural
-read-only guarantees. Live verification is planned via `kind`/`minikube`
-integration tests on a Docker-enabled host.
+read-only guarantees. Multi-cluster parsing/selection has dedicated tests.
+Live verification used a local Kind cluster; repeat the check after syncing to
+the Windows checkout. See `docs/TESTING.md` and `docs/RELEASE.md`.

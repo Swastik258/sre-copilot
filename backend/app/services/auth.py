@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -44,11 +44,18 @@ def create_user(
     email = email.strip().lower()
     if get_user_by_email(db, email) is not None:
         raise ConflictError("An account with that email already exists.")
+    settings = get_settings()
+    bootstrap = (settings.bootstrap_admin_email or "").strip().lower()
+    is_first_user = (
+        db.scalar(select(func.count()).select_from(User)) or 0
+    ) == 0
     user = User(
         email=email,
         display_name=display_name,
         password_hash=hash_password(password),
         is_active=True,
+        role="admin" if is_first_user or (bootstrap and email == bootstrap) else "member",
+        tenant_id=(settings.default_tenant_id or "default").strip() or "default",
     )
     db.add(user)
     try:
@@ -58,6 +65,27 @@ def create_user(
         # the insert.
         db.rollback()
         raise ConflictError("An account with that email already exists.") from None
+    db.refresh(user)
+    return user
+
+
+def ensure_bootstrap_admin(db: Session) -> User | None:
+    """Promote the configured address when it already exists.
+
+    New signups are handled in :func:`create_user`. This covers an existing
+    database where the operator sets ``BOOTSTRAP_ADMIN_EMAIL`` after accounts
+    have already been provisioned.
+    """
+
+    email = (get_settings().bootstrap_admin_email or "").strip().lower()
+    if not email:
+        return None
+    user = get_user_by_email(db, email)
+    if user is None or not user.is_active or user.role == "admin":
+        return None
+    user.role = "admin"
+    db.add(user)
+    db.commit()
     db.refresh(user)
     return user
 

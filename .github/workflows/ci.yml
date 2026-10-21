@@ -46,3 +46,13 @@ jobs:
         run: npm run lint
       - name: Build
         run: npm run build
+      - name: Release route smoke
+        run: |
+          npm run start > /tmp/sre-copilot-frontend.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/ > /dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          RELEASE_BASE_URL=http://localhost:3000 npm run smoke

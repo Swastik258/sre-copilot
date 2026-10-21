@@ -136,4 +136,14 @@ class MessageExchange(BaseModel):
 
     user_message: MessageOut
     assistant_message: MessageOut
-    diagnosis: Diagnosis
+    diagnosis: Diagnosis | None = None
+
+
+class InvestigationListResponse(BaseModel):
+    investigations: list[InvestigationDetail]
+    total: int
+
+
+class InvestigationMessagesResponse(BaseModel):
+    investigation_id: str
+    messages: list[MessageOut]

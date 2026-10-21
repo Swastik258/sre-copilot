@@ -5,8 +5,10 @@
 - Python 3.11+ (CI uses 3.12)
 - Node.js 20+
 - Optional: Docker + Docker Compose (for Postgres)
+- Optional: a read-only kubeconfig, GitHub token, Prometheus URL, or AI key for
+  live integrations
 
-No cloud accounts, API keys, or clusters are required for local development.
+No cloud accounts or credentials are required for demo mode.
 
 ## Backend
 
@@ -16,85 +18,128 @@ python -m venv .venv
 . .venv/bin/activate            # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 
-# Optional configuration (defaults already work for local):
+# Optional configuration (defaults already work locally):
 cp ../.env.example .env
 
-# Run
 uvicorn app.main:app --reload --port 8000
 ```
 
 - API docs: http://localhost:8000/docs
 - Health: http://localhost:8000/api/v1/health
-- The SQLite schema is created automatically when `ENVIRONMENT=local` and the
-  database URL is SQLite.
+- SQLite schema is created automatically for local SQLite. Postgres uses Alembic.
+
+### Accounts, roles, and tenants
+
+Signup and sign-in are self-hosted. The **first local account becomes an admin**;
+later accounts are members in `DEFAULT_TENANT_ID`. When an older database is
+upgraded, the earliest existing account is promoted to admin so the workspace
+cannot be left without an administrator. To promote a specific account
+in an existing database, set:
+
+```dotenv
+BOOTSTRAP_ADMIN_EMAIL=you@example.com
+```
+
+The backend promotes that active account on startup (and applies it to a new
+signup), then the setting can be removed. Admins can manage users and tenants
+from `/settings` or via `/api/v1/admin/*`. The last active admin cannot be
+demoted or deactivated. Moving a member migrates their investigations. Settings
+and audit views are tenant-scoped.
+
+### Authentication enforcement
+
+`AUTH_REQUIRED=false` is the local demo default. Set `AUTH_REQUIRED=true` in
+shared environments. `ENVIRONMENT=production` always enforces authentication,
+even if the flag is unset. Production also defaults to 120 requests/minute when
+`RATE_LIMIT_PER_MINUTE=0`.
 
 ### Local database from an older milestone
 
 `create_all()` creates missing tables but never adds a column to an existing
-table. On startup the backend therefore applies additive upgrades to a local
-SQLite file (currently `users.password_hash` and the unique `users.email`
-index), so a database created before the auth milestone keeps working. Look for
-this line in the log:
+table. On startup the backend applies additive upgrades to local SQLite files,
+including `users.password_hash`, `users.role`, `users.tenant_id`,
+`investigations.tenant_id`, `audit_events.tenant_id`, and the unique email index.
+Look for a log line such as:
 
 ```
-Upgraded local SQLite schema: users.password_hash, ix_users_email
+Upgraded local SQLite schema: users.password_hash, users.role, users.tenant_id, users.role(admin)
 ```
 
-If the upgrade logs a duplicate-email warning, delete the local SQLite file
-(demo data only) or remove the duplicate rows, then restart. Postgres and any
-non-local environment are never altered this way — use the migrations below.
+If an upgrade logs a duplicate-email warning, delete the local SQLite file (demo
+data only) or remove duplicate rows, then restart. Non-local environments use
+Alembic and are never altered this way.
 
 ### Migrations
 
 ```bash
 cd backend
-alembic upgrade head                       # apply migrations
-alembic revision --autogenerate -m "msg"   # create a new revision
-alembic downgrade -1                       # roll back one revision
+alembic upgrade head
+alembic revision --autogenerate -m "msg"
+alembic downgrade -1
 ```
-
-Postgres deployments always use migrations (SQLite auto-create is local-only).
 
 ## Frontend
 
 ```bash
 cd frontend
 npm install
-
-# Demo mode: point at the backend
 NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
 ```
 
-Open http://localhost:3000. Signup and sign-in are self-hosted: accounts and
-sessions live in the backend (`/api/v1/auth/*`), passwords are hashed with
-scrypt, and the session is carried in an `HttpOnly` cookie. After signing in you
-land on `/dashboard`. No third-party credentials are required.
+Open http://localhost:3000. Accounts and sessions live in the backend; the
+session is carried in an `HttpOnly` cookie. After signing in you land on
+`/dashboard`.
 
-### Optional: API-wide enforcement
+Live product pages: `/kubernetes`, `/cicd`, `/terraform`, `/logs`, `/assistant`,
+`/metrics`, `/runbooks`, `/audit`, `/settings`, and `/infra-code`.
 
-Authentication is **not enforced by default** so the demo and tests run without
-credentials. Set `AUTH_REQUIRED=true` on the backend to require a valid session
-on the read-only routes (`/api/v1/integrations`, `/api/v1/kubernetes/*`,
-`/api/v1/github/*`, `/api/v1/terraform/*`, `/api/v1/ai/*`); health and
-`/api/v1/auth/*` stay public. See docs/SECURITY.md.
+### Clerk status
 
-### Optional: GitHub Actions
+Clerk is **not used by the UI**. The `@clerk/nextjs` package remains in
+`package.json`, but no component imports it and there is no Clerk provider or
+modal. Use the self-hosted `/sign-up` and `/login` pages. `lib/auth.ts` is a
+legacy configuration shim and is not part of the authentication flow.
 
-Set `GITHUB_ENABLED=true` and a fine-grained read-only `GITHUB_TOKEN` in the
-backend `.env`, then open `/cicd`. Use `Actions: read`, `Contents: read`, and
-`Metadata: read` only. See docs/GITHUB_SETUP.md.
+## Optional live integrations
 
-### Terraform plan review
+### Kubernetes
 
-Open `/terraform` and paste or upload the output of `terraform show -json
-tfplan`. No backend credentials are required. Attribute values are omitted; see
-docs/TERRAFORM_REVIEW.md.
+Set `KUBERNETES_ENABLED=true`, `KUBERNETES_DEMO_MODE=false`, and either the legacy
+single-target settings or `KUBERNETES_CLUSTERS` for named clusters. Use Windows
+paths such as `C:/Users/you/.kube/kind-config` on Windows. See
+[docs/KUBERNETES_SETUP.md](KUBERNETES_SETUP.md).
 
-### Optional: Clerk
+### GitHub Actions
 
-Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` to use Clerk's
-sign-in/sign-up modals in the navigation instead of the local auth pages. This
-affects the **UI only**.
+Set `GITHUB_ENABLED=true` and a fine-grained read-only `GITHUB_TOKEN`, then open
+`/cicd`. Use `Actions: read`, `Contents: read`, and `Metadata: read` only. See
+[docs/GITHUB_SETUP.md](GITHUB_SETUP.md).
+
+### Terraform
+
+Open `/terraform` and paste/upload the output of `terraform show -json tfplan`.
+No backend credentials are required. Attribute values are omitted. See
+[docs/TERRAFORM_REVIEW.md](TERRAFORM_REVIEW.md).
+
+### Prometheus
+
+Set `PROMETHEUS_ENABLED=true` and `PROMETHEUS_URL=http://localhost:9090`, or use
+fixture mode with `PROMETHEUS_URL=` and `PROMETHEUS_DEMO_MODE=true`. See
+[docs/PROMETHEUS_SETUP.md](PROMETHEUS_SETUP.md).
+
+### AI
+
+The default `AI_PROVIDER=mock` makes no external calls. For OpenRouter:
+
+```dotenv
+AI_PROVIDER=openrouter
+AI_MODEL=openai/gpt-4o-mini
+OPENROUTER_API_KEY=sk-or-...
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+```
+
+Anthropic (`AI_PROVIDER=anthropic`) uses the native Messages API. Keep all keys
+server-side. See [docs/AI_PROVIDERS.md](AI_PROVIDERS.md).
 
 ## Docker Compose
 
@@ -117,14 +162,19 @@ Services: Postgres (`db`), backend (migrates then serves on 8000), frontend on
 | `npm run dev` | Run frontend |
 | `npm run lint` | Frontend lint |
 | `npm run build` | Frontend production build |
+| `npm run start` | Start production build |
+| `npm run smoke` | HTTP route smoke against `RELEASE_BASE_URL` |
 
 ## Troubleshooting
 
-- **"Cannot reach the API"** in the UI — the backend is not running or
+- **"Cannot reach the API"** — the backend is not running or
   `NEXT_PUBLIC_API_URL` is wrong. `NEXT_PUBLIC_*` values are baked at build time;
   rebuild after changing them.
 - **CORS errors** — set `CORS_ORIGINS` to include the frontend origin.
 - **Empty database** — run `alembic upgrade head`, or ensure
   `AUTO_CREATE_SCHEMA=true` for local SQLite.
-- **Frontend build fails without Clerk** — this should not happen; Clerk is
-  optional. If it does, ensure `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is unset.
+- **Cannot stay signed in** — check `CORS_ORIGINS`, the `HttpOnly` cookie, and
+  that the frontend/backend origins match. Clerk environment variables are not
+  used.
+- **403 on settings/audit retention** — the signed-in account is a member. Ask
+  an admin, or set `BOOTSTRAP_ADMIN_EMAIL` for the account before restarting.

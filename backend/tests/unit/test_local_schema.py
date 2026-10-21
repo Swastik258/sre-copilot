@@ -36,9 +36,20 @@ def test_upgrades_a_pre_auth_database(tmp_path):
 
     applied = upgrade_local_sqlite_schema(engine)
 
-    assert applied == ["users.password_hash", "ix_users_email"]
+    assert applied == [
+        "users.password_hash",
+        "users.role",
+        "users.tenant_id",
+        "users.role(admin)",
+        "ix_users_email",
+    ]
     assert "password_hash" in _columns(engine)
+    assert "role" in _columns(engine)
+    assert "tenant_id" in _columns(engine)
     assert "ix_users_email" in _indexes(engine)
+    with engine.connect() as conn:
+        roles = dict(conn.exec_driver_sql("SELECT id, role FROM users ORDER BY rowid").all())
+    assert roles == {"u1": "admin", "u2": "member"}
 
 
 def test_is_idempotent(tmp_path):
@@ -56,6 +67,11 @@ def test_duplicate_emails_do_not_break_the_upgrade(tmp_path):
 
     applied = upgrade_local_sqlite_schema(engine)
 
-    assert applied == ["users.password_hash"]
+    assert applied == [
+        "users.password_hash",
+        "users.role",
+        "users.tenant_id",
+        "users.role(admin)",
+    ]
     assert "password_hash" in _columns(engine)
     assert "ix_users_email" not in _indexes(engine)

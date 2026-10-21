@@ -16,7 +16,12 @@ All responses are JSON. Errors use a consistent envelope:
 }
 ```
 
-Every response includes an `X-Request-ID` header (echoed if supplied).
+Every response includes an `X-Request-ID` header (echoed if supplied). Responses
+also include conservative security headers.
+
+Authentication uses the `sre_session` `HttpOnly` cookie (or a bearer token in the
+`Authorization` header for API clients). `AUTH_REQUIRED` defaults to `false` for
+local demo use, but `ENVIRONMENT=production` always requires authentication.
 
 ---
 
@@ -32,20 +37,8 @@ Returns service name, version, docs path, and API prefix.
 ### `GET /api/v1/health`
 Full health including a database check.
 
-```json
-{
-  "status": "ok",
-  "database": "ok",
-  "version": "0.2.0",
-  "environment": "local",
-  "ai_provider": "mock",
-  "demo_mode": true,
-  "integrations_enabled": []
-}
-```
-
 ### `GET /api/v1/health/live`
-Liveness — does not touch downstream dependencies. `database` is `"skipped"`.
+Liveness — does not touch downstream dependencies.
 
 ### `GET /api/v1/health/ready`
 Readiness — includes the database check.
@@ -56,28 +49,43 @@ Readiness — includes the database check.
 
 ### `GET /api/v1/integrations`
 Reports the **configured** state of each integration. Never returns secrets.
+`state` is one of `connected`, `enabled`, `unconfigured`, `demo`, or `disabled`.
+Configuration state is not reachability.
+
+---
+
+## Authentication and authorization
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/v1/auth/signup` | Create an account and session |
+| POST | `/api/v1/auth/login` | Create a session |
+| POST | `/api/v1/auth/logout` | Revoke the current session |
+| GET | `/api/v1/auth/me` | Current user |
+| GET | `/api/v1/admin/users?tenant_id=&page=&page_size=` | List users (admin only) |
+| PATCH | `/api/v1/admin/users/{user_id}` | Change role, tenant, or activation (admin only) |
+| GET | `/api/v1/admin/tenants` | List tenants and user counts (admin only) |
+
+`UserOut` includes `id`, `email`, `display_name`, `role` (`admin` or `member`),
+`tenant_id`, `is_active`, and `created_at`.
+
+The first local account becomes an `admin`; later accounts are `member`s in
+`DEFAULT_TENANT_ID`. `BOOTSTRAP_ADMIN_EMAIL` can promote a specific address.
+Admins can move a member to another tenant; their investigations are migrated.
+The last active admin cannot be demoted or deactivated, and deactivation revokes
+the member's sessions.
+
+Example admin update:
 
 ```json
 {
-  "demo_mode": true,
-  "integrations": [
-    {
-      "kind": "kubernetes",
-      "name": "Kubernetes",
-      "state": "disabled",
-      "enabled": false,
-      "read_only": true,
-      "detail": "Read-only Kubernetes diagnosis is disabled.",
-      "demo": false
-    }
-  ]
+  "role": "member",
+  "tenant_id": "team-payments",
+  "is_active": true
 }
 ```
 
-`state` is one of: `connected`, `enabled`, `unconfigured`, `demo`, `disabled`.
-
-> `state` describes configuration, not reachability. A live adapter upgrades its
-> own state to `connected` only after a successful read.
+All fields are optional. Invalid tenant IDs return `422 validation_error`.
 
 ---
 
@@ -89,28 +97,38 @@ serve labelled fixtures (`demo: true`).
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/api/v1/kubernetes/clusters` | Configured cluster (demo flag included) |
-| GET | `/api/v1/kubernetes/namespaces` | List namespaces |
-| GET | `/api/v1/kubernetes/workloads?namespace=` | Deployments/StatefulSets/DaemonSets |
-| GET | `/api/v1/kubernetes/pods?namespace=` | List pods with container statuses |
-| GET | `/api/v1/kubernetes/pods/{namespace}/{name}` | Single pod |
-| GET | `/api/v1/kubernetes/pods/{namespace}/{name}/logs?container=&tail_lines=&previous=` | Bounded logs |
-| POST | `/api/v1/kubernetes/pods/{namespace}/{name}/diagnose?log_tail_lines=` | Evidence-backed diagnosis |
+| GET | `/api/v1/kubernetes/clusters` | Configured named clusters |
+| GET | `/api/v1/kubernetes/namespaces?cluster=` | List namespaces |
+| GET | `/api/v1/kubernetes/workloads?namespace=&cluster=` | Deployments/StatefulSets/DaemonSets |
+| GET | `/api/v1/kubernetes/pods?namespace=&cluster=` | List pods with container statuses |
+| GET | `/api/v1/kubernetes/pods/{namespace}/{name}?cluster=` | Single pod |
+| GET | `/api/v1/kubernetes/pods/{namespace}/{name}/logs?container=&tail_lines=&previous=&cluster=` | Bounded logs |
+| POST | `/api/v1/kubernetes/pods/{namespace}/{name}/diagnose?log_tail_lines=&cluster=` | Evidence-backed diagnosis |
 
-The diagnose response returns a `Diagnosis` (confirmed observations, hypotheses
-with confidences, read-only next steps, approval-gated remediation, confidence
-and its basis) plus the `Evidence` records it cites.
+The diagnose response returns a `Diagnosis` (confirmed observations, hypotheses,
+read-only next steps, approval-gated remediation, confidence and its basis) plus
+the `Evidence` records it cites.
 
-Enabling demo mode:
+Configure one legacy target:
 
 ```bash
 KUBERNETES_ENABLED=true
-KUBERNETES_DEMO_MODE=true
+KUBERNETES_DEMO_MODE=false
+KUBERNETES_KUBECONFIG=C:/Users/you/.kube/kind-config
+KUBERNETES_CONTEXT=kind-tws-cluster
+KUBERNETES_IN_CLUSTER=false
 ```
 
-For a live cluster set `KUBERNETES_KUBECONFIG` (or `KUBERNETES_IN_CLUSTER=true`)
-and `KUBERNETES_DEMO_MODE=false`, and apply the read-only RBAC in
-docs/KUBERNETES_SETUP.md. Live use also needs the optional dependency:
+Or configure named clusters (takes precedence):
+
+```bash
+KUBERNETES_CLUSTERS='[
+  {"name":"kind-local","kubeconfig":"C:/Users/you/.kube/kind-config","context":"kind-tws-cluster"},
+  {"name":"staging","kubeconfig":"C:/Users/you/.kube/staging","context":"staging"}
+]'
+```
+
+Use the read-only RBAC in `docs/KUBERNETES_SETUP.md`. Live use needs
 `pip install -e ".[kubernetes]"`.
 
 ---
@@ -127,18 +145,9 @@ returned.
 | GET | `/api/v1/github/runs/{run_id}?repo=owner/name` | Run, jobs, and steps |
 | POST | `/api/v1/github/runs/{run_id}/diagnose?repo=owner/name&log_tail_lines=` | Evidence-backed run diagnosis |
 
-The diagnose response returns the run, jobs, a `Diagnosis`, and the `Evidence`
-records it cites. Failed-job logs are optional supporting evidence; missing logs
-are reported in `missing_evidence`. Log excerpts are bounded and redacted, and
-cross-host log-download redirects strip the GitHub token.
-
-Configuration:
-
-```bash
-GITHUB_ENABLED=true
-GITHUB_TOKEN=github_pat_...
-GITHUB_API_URL=https://api.github.com
-```
+Failed-job logs are optional supporting evidence; missing logs are reported in
+`missing_evidence`. Log excerpts are bounded and redacted, and cross-host
+log-download redirects strip the GitHub token.
 
 Use a fine-grained token limited to `Actions: read`, `Contents: read`, and
 `Metadata: read`. See `docs/GITHUB_SETUP.md`.
@@ -150,6 +159,7 @@ Use a fine-grained token limited to `Actions: read`, `Contents: read`, and
 | Method | Path | Purpose |
 |--------|------|---------|
 | POST | `/api/v1/terraform/review` | Review a `terraform show -json` plan object |
+| POST | `/api/v1/terraform/explain` | Review plus optional AI explanation |
 
 Request:
 
@@ -159,64 +169,201 @@ Request:
     "format_version": "1.2",
     "terraform_version": "1.9.0",
     "resource_changes": []
-  }
+  },
+  "question": "What should I verify before apply?"
 }
 ```
 
-The response contains summary counts, a `blast_radius`, normalized resource
-changes, findings, and evidence. Replacement/destroy actions and stateful
-resources are highlighted. Attribute names are returned; attribute values are
-deliberately omitted because plan files may contain sensitive data. The endpoint
-never runs Terraform or reads cloud credentials. See
-`docs/TERRAFORM_REVIEW.md`.
+The review response contains summary counts, a `blast_radius`, normalized
+resource changes, findings, and evidence. Attribute names are returned; values
+are deliberately omitted because plan files may contain sensitive data. The
+endpoint never runs Terraform or reads cloud credentials.
+
+The explain response adds `explanation`, a `StructuredDiagnosis` built only from
+the deterministic review evidence. It returns `503 not_configured` when AI is
+unavailable or privacy mode blocks the provider. See `docs/TERRAFORM_REVIEW.md`.
 
 ---
 
-## AI explanation (model-generated, optional)
+## AI explanation (optional)
 
 | Method | Path | Purpose |
 |--------|------|---------|
 | POST | `/api/v1/ai/diagnose` | Explain supplied evidence with the configured provider |
 | POST | `/api/v1/ai/summarize` | Alias for the same operation |
 
-Request:
+The response is a `StructuredDiagnosis`: summary, confidence, cited hypotheses,
+read-only next steps, risks, unknowns, and approval-gated proposed remediation.
+It is labelled `model_generated: true` except for the deterministic mock.
+Deterministic diagnosis remains authoritative.
+
+Only evidence **summaries** and the question are sent to the provider. Payloads
+and credentials are not forwarded. Providers: `mock`, `openai`, `openrouter`,
+and native `anthropic`. See `docs/AI_PROVIDERS.md`.
+
+---
+
+## Logs
+
+### `POST /api/v1/logs/analyze`
 
 ```json
 {
-  "question": "Why is this pod failing?",
-  "surface": "kubernetes",
-  "evidence": [
+  "text": "2026-10-21T12:00:00Z ERROR checkout failed\n...",
+  "source": "checkout-7f9",
+  "environment": "production",
+  "limit": 50
+}
+```
+
+Returns `total_lines`, `parsed_lines`, `truncated`, grouped `signatures`
+(severity, count, first/last seen, sample, stack frames), a summary, and
+evidence. Raw log text is not persisted or sent to an external model. Input is
+capped at 1,000,000 characters.
+
+---
+
+## Metrics and correlation
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/v1/metrics/query?query=&minutes=&step=` | Read-only Prometheus query |
+| POST | `/api/v1/metrics/correlate` | Correlate metric anomalies with events |
+
+`GET /metrics/query` runs a read-only `query_range` against the configured
+Prometheus-compatible API. `minutes` is 1–1440; `step` is a Prometheus duration.
+When enabled without a URL and `PROMETHEUS_DEMO_MODE=true`, labelled fixture
+series are returned. Responses include the exact query, start/end, step, series,
+summary, evidence, and `demo`.
+
+Correlation request:
+
+```json
+{
+  "query": "rate(http_requests_total{job=\"checkout\"}[5m])",
+  "minutes": 15,
+  "step": "15s",
+  "events": [
     {
-      "id": "ev-1",
-      "source_type": "kubernetes",
-      "collected_at": "2026-10-21T12:00:00Z",
-      "severity": "high",
-      "summary": "Container image pull failed with ErrImagePull.",
-      "redacted": true,
-      "demo": false
+      "timestamp": "2026-10-21T12:00:00Z",
+      "label": "checkout deploy",
+      "severity": "info"
     }
   ]
 }
 ```
 
-The response is a `StructuredDiagnosis`: a summary, confidence, cited
-hypotheses, read-only next steps, risks, unknowns, and approval-gated proposed
-remediation. It is labelled `model_generated: true` (except for the deterministic
-mock provider) and the deterministic Kubernetes diagnosis remains authoritative.
+Matches report the event, metric/labels, observed and baseline values, z-score,
+direction, and evidence. Correlation is a hypothesis, not proof of causality.
 
-Only evidence **summaries** and the question are sent to the provider. Payloads
-and credentials are not forwarded. Configure the server-side key in `.env`:
+---
 
-```bash
-AI_PROVIDER=openrouter
-AI_MODEL=openai/gpt-4o-mini
-OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+## Runbooks
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/v1/runbooks?query=&category=` | List/search the read-only catalog |
+| GET | `/api/v1/runbooks/{id}` | Runbook detail |
+| POST | `/api/v1/runbooks/match` | Match a finding kind/signal to a runbook |
+
+Match request:
+
+```json
+{"kind": "crash_loop", "signal": "restart count climbing"}
 ```
 
-Errors: `503 not_configured` when the provider/key is missing or privacy mode is
-on; `502 ai_provider_error` when the upstream call fails or returns unusable
-JSON. See `docs/AI_PROVIDERS.md`.
+Runbooks contain symptoms, read-only steps, optional commands, expected results,
+guardrails, and explicit `changes_state` risk labels. Unknown IDs return `404`.
+
+---
+
+## Infrastructure-code generation (proposal only)
+
+### `POST /api/v1/infra/generate`
+
+```json
+{
+  "kind": "kubernetes_deployment",
+  "name": "checkout",
+  "namespace": "shop",
+  "image": "ghcr.io/acme/checkout:1.4.2",
+  "replicas": 2,
+  "port": 8080,
+  "environment": "production",
+  "cpu_request": "100m",
+  "memory_request": "128Mi",
+  "cpu_limit": "500m",
+  "memory_limit": "512Mi",
+  "intent": "Serve checkout traffic with a reversible rollout."
+}
+```
+
+`kind` is `kubernetes_deployment`, `kubernetes_service`, or `terraform_module`.
+The response contains proposed `files`, baseline `findings`, a summary, and
+evidence. Nothing is written, applied, or deployed. Mutable image tags and other
+baseline policy issues are reported, not fixed.
+
+---
+
+## Investigations and assistant
+
+Authenticated. Members see only their own investigations; admins may inspect
+across tenants.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/v1/investigations` | Create an investigation |
+| GET | `/api/v1/investigations?status=&kind=&page=&page_size=` | List |
+| GET | `/api/v1/investigations/{id}` | Detail |
+| GET | `/api/v1/investigations/{id}/messages` | Message history |
+| POST | `/api/v1/investigations/{id}/messages` | Ask the assistant |
+| GET | `/api/v1/investigations/{id}/evidence` | Attached evidence |
+| POST | `/api/v1/investigations/{id}/close` | Close the investigation |
+
+Create request:
+
+```json
+{"title": "Checkout failure", "kind": "kubernetes", "environment": "production"}
+```
+
+Message request:
+
+```json
+{"content": "Why is the checkout pod crash-looping?"}
+```
+
+Messages are persisted in `Investigation.result["messages"]`; shared evidence
+stays in the `Evidence` table. AI exchange uses the configured provider and
+per-tenant privacy policy, and returns an AI `StructuredDiagnosis`.
+
+---
+
+## Audit
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/v1/audit-events?limit=&offset=&action=&actor=&decision=&before=&after=` | Filtered audit trail |
+| GET | `/api/v1/audit-events/export.csv` | CSV export |
+| DELETE | `/api/v1/audit-events?older_than_days=` | Delete old events (admin only) |
+
+Members see only audit events they created, within their tenant; admins can
+inspect across tenants. Resource and outcome payloads are redacted before
+persistence. Retention is admin-only, currently applies across all tenants, and
+is itself audited.
+
+---
+
+## Settings
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/v1/settings` | Per-tenant operational settings |
+| PATCH | `/api/v1/settings` | Update settings (admin only) |
+
+Writable fields: `audit_retention_days`, `ai_privacy_mode`, and
+`default_environment`. Provider keys, tokens, and connection strings are
+environment-only and are neither accepted nor returned. Settings are scoped to
+the caller's tenant.
 
 ---
 
@@ -225,30 +372,15 @@ JSON. See `docs/AI_PROVIDERS.md`.
 | HTTP | `code` | Meaning |
 |------|--------|---------|
 | 400 | `bad_request` | Malformed request |
-| 401 | `unauthorized` | Missing/invalid credentials (enforced only when `AUTH_REQUIRED=true`) |
-| 403 | `permission_denied` | Not allowed |
+| 401 | `unauthorized` | Missing/invalid credentials |
+| 403 | `forbidden` | Authenticated but lacking the required role |
 | 404 | `not_found` | Resource missing |
-| 409 | `conflict` | State conflict |
+| 409 | `conflict` | State conflict, including last-admin protection |
 | 413 | `payload_too_large` | Body exceeds `MAX_REQUEST_BYTES` |
 | 422 | `validation_error` | Schema validation failed |
 | 429 | `rate_limited` | Too many requests |
 | 500 | `internal_error` | Unexpected server error |
 | 502 | `ai_provider_error` | External AI provider failed or returned unusable output |
 | 502 | `github_api_error` | GitHub rejected or failed a read-only request |
+| 502 | `prometheus_api_error` | Prometheus rejected or failed a read-only request |
 | 503 | `not_configured` | Integration requested but not configured |
-
----
-
-## Planned endpoints (not yet implemented)
-
-The following are **not** available yet — listed so the roadmap is explicit:
-
-```
-`POST /api/v1/investigations`, `GET /api/v1/investigations/{id}`,
-`POST /api/v1/investigations/{id}/messages`, `GET /api/v1/investigations/{id}/evidence`,
-`POST /api/v1/logs/analyze`, `GET /api/v1/metrics/query`,
-`GET /api/v1/runbooks`, `GET /api/v1/audit-events`
-```
-
-GitHub Actions (`/api/v1/github/*`) and Terraform plan review
-(`POST /api/v1/terraform/review`) are implemented; see the sections above.

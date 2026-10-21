@@ -60,9 +60,12 @@ def _prometheus(settings: Settings) -> IntegrationInfo:
     if not settings.prometheus_enabled:
         state = IntegrationState.disabled
         detail = "Metrics queries are disabled."
+    elif not settings.prometheus_url and settings.prometheus_demo_mode:
+        state = IntegrationState.demo
+        detail = "Fixture-backed metric series only; no live Prometheus URL configured."
     elif not settings.prometheus_url:
         state = IntegrationState.unconfigured
-        detail = "Enabled but PROMETHEUS_URL is not set."
+        detail = "Enabled but PROMETHEUS_URL is not set and demo mode is off."
     else:
         state = IntegrationState.enabled
         detail = "Configured for read-only queries; reachability not yet verified."
@@ -73,6 +76,7 @@ def _prometheus(settings: Settings) -> IntegrationInfo:
         enabled=settings.prometheus_enabled,
         read_only=True,
         detail=detail,
+        demo=state == IntegrationState.demo,
     )
 
 

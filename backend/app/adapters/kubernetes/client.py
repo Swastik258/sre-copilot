@@ -21,6 +21,7 @@ import json
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
+from app.adapters.kubernetes.clusters import cluster_configs, select_cluster
 from app.adapters.kubernetes.models import (
     ClusterInfo,
     ContainerState,
@@ -73,12 +74,17 @@ class FixtureKubernetesClient:
 
     def __init__(self, snapshot: dict[str, Any], *, name: str | None = None) -> None:
         self._snapshot = snapshot
-        self._cluster = ClusterInfo(**(snapshot.get("cluster") or {"name": name or "demo", "source": "fixture"}))
+        cluster_payload = dict(
+            snapshot.get("cluster") or {"name": name or "demo", "source": "fixture"}
+        )
+        if name:
+            cluster_payload["name"] = name
+        self._cluster = ClusterInfo(**cluster_payload)
         self._cluster = self._cluster.model_copy(update={"demo": True})
 
     @classmethod
-    def from_file(cls, path: Path) -> FixtureKubernetesClient:
-        return cls(json.loads(path.read_text(encoding="utf-8")))
+    def from_file(cls, path: Path, *, name: str | None = None) -> FixtureKubernetesClient:
+        return cls(json.loads(path.read_text(encoding="utf-8")), name=name)
 
     def cluster(self) -> ClusterInfo:
         return self._cluster
@@ -388,8 +394,33 @@ class RealKubernetesClient:
 # ---------------------------------------------------------------------------
 
 
-def build_kubernetes_client(settings: Settings) -> KubernetesReadClient:
-    """Return a read client, or raise a clear error if none is available."""
+def cluster_summaries(settings: Settings) -> list[ClusterInfo]:
+    """Describe configured targets without opening a connection."""
+
+    if not settings.kubernetes_enabled:
+        raise NotConfiguredError(
+            "Kubernetes integration is disabled.",
+            details={"hint": "Set KUBERNETES_ENABLED=true to enable read-only diagnosis."},
+        )
+    clusters = cluster_configs(settings)
+    fixture = settings.kubernetes_demo_mode or not any(
+        cluster.kubeconfig or cluster.in_cluster for cluster in clusters
+    )
+    return [
+        ClusterInfo(
+            name=cluster.name,
+            source="fixture" if fixture else ("in-cluster" if cluster.in_cluster else "kubeconfig"),
+            demo=fixture,
+            context=cluster.context,
+        )
+        for cluster in clusters
+    ]
+
+
+def build_kubernetes_client(
+    settings: Settings, cluster_name: str | None = None
+) -> KubernetesReadClient:
+    """Return a read client for the selected cluster, or raise a clear error."""
 
     if not settings.kubernetes_enabled:
         raise NotConfiguredError(
@@ -397,10 +428,19 @@ def build_kubernetes_client(settings: Settings) -> KubernetesReadClient:
             details={"hint": "Set KUBERNETES_ENABLED=true to enable read-only diagnosis."},
         )
 
-    live_target = bool(settings.kubernetes_kubeconfig or settings.kubernetes_in_cluster)
+    selected = select_cluster(settings, cluster_name)
+    live_target = bool(selected.kubeconfig or selected.in_cluster)
     if settings.kubernetes_demo_mode or not live_target:
         if not DEFAULT_FIXTURE.exists():
             raise NotConfiguredError("Demo fixture is missing and no live cluster is configured.")
-        return FixtureKubernetesClient.from_file(DEFAULT_FIXTURE)
+        return FixtureKubernetesClient.from_file(DEFAULT_FIXTURE, name=selected.name)
 
-    return RealKubernetesClient(settings)
+    return RealKubernetesClient(
+        settings.model_copy(
+            update={
+                "kubernetes_kubeconfig": selected.kubeconfig,
+                "kubernetes_context": selected.context,
+                "kubernetes_in_cluster": selected.in_cluster,
+            }
+        )
+    )

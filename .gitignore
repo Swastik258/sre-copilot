@@ -28,3 +28,6 @@ npm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local build/report artifacts
+frontend/public/SRE_Copilot_Build_Report.pdf

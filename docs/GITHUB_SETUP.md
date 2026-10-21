@@ -86,3 +86,7 @@ Mocked clients and API tests cover disabled configuration, repo validation,
 failed-job/step correlation, dependency and test log patterns, missing logs,
 successful runs, unknown actions, and cross-host redirect token stripping. No
 real credentials are required in CI.
+
+Live verification still requires a **fresh** fine-grained read-only token. The
+previously exposed token must be revoked first. Complete the `/cicd` checks in
+`docs/RELEASE.md` after rotating credentials.

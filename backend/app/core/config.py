@@ -66,6 +66,11 @@ class Settings(BaseSettings):
     auth_required: bool = False
     auth_cookie_name: str = "sre_session"
     auth_session_ttl_hours: int = 168  # 7 days
+    # The first local account is always an admin. Set this to also promote a
+    # specific bootstrap email (useful when a database already has members).
+    bootstrap_admin_email: str | None = None
+    default_tenant_id: str = "default"
+    security_headers_enabled: bool = True
 
     # ---- Request limits ----
     max_request_bytes: int = 2_000_000  # 2 MB default cap on request bodies
@@ -98,9 +103,13 @@ class Settings(BaseSettings):
     # ---- Kubernetes (read-only) ----
     kubernetes_enabled: bool = False
     kubernetes_demo_mode: bool = True
+    # Backward-compatible single-cluster target.
     kubernetes_kubeconfig: str | None = None
     kubernetes_context: str | None = None
     kubernetes_in_cluster: bool = False
+    # Optional JSON array of named clusters. When set, it takes precedence and
+    # the UI can select a target by name.
+    kubernetes_clusters: str | None = None
     kubernetes_request_timeout_seconds: float = 15.0
 
     # ---- GitHub ----
@@ -111,6 +120,9 @@ class Settings(BaseSettings):
 
     # ---- Prometheus ----
     prometheus_enabled: bool = False
+    # Fixture-backed queries when no URL is configured. Every response is
+    # labelled demo; set PROMETHEUS_DEMO_MODE=false for live-only behavior.
+    prometheus_demo_mode: bool = True
     prometheus_url: str | None = None
     prometheus_request_timeout_seconds: float = 15.0
 
@@ -139,6 +151,14 @@ class Settings(BaseSettings):
     @property
     def is_local(self) -> bool:
         return self.environment in {"local", "dev", "development", "test"}
+
+    @property
+    def effective_rate_limit(self) -> int:
+        """Production gets a conservative default even when unset."""
+
+        if self.rate_limit_per_minute > 0:
+            return self.rate_limit_per_minute
+        return 120 if self.environment == "production" else 0
 
     @property
     def is_sqlite(self) -> bool:
