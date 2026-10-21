@@ -1,0 +1,169 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Documentation — SRE Copilot",
+  description:
+    "Local setup, API reference, architecture, security, Kubernetes, and the investigation engine.",
+};
+
+const SECTIONS = [
+  {
+    id: "local-setup",
+    title: "Local setup",
+    description:
+      "Run the FastAPI backend and Next.js frontend locally with SQLite and no external services.",
+  },
+  {
+    id: "api-reference",
+    title: "API reference",
+    description:
+      "The versioned HTTP API, its error envelope, request IDs, and the endpoints used by the console.",
+  },
+  {
+    id: "architecture",
+    title: "Architecture",
+    description:
+      "Adapters, services, the shared evidence model, and how a diagnosis is assembled.",
+  },
+  {
+    id: "security",
+    title: "Security",
+    description:
+      "Read-only Kubernetes access, scrypt password hashing, session handling, and secret redaction.",
+  },
+  {
+    id: "kubernetes",
+    title: "Kubernetes",
+    description:
+      "Fixture mode, real-cluster configuration, and the read-only client contract.",
+  },
+  {
+    id: "investigation-engine",
+    title: "Investigation engine",
+    description:
+      "How observations become ranked hypotheses, and why every claim carries evidence IDs.",
+  },
+];
+
+export default function Page() {
+  return (
+    <div className="shell py-24">
+      <span className="label-caps">Documentation</span>
+      <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
+        Read the system before you trust the diagnosis.
+      </h1>
+      <div className="prose-copilot mt-6 max-w-2xl">
+        <p>
+          These notes describe the implementation as it exists, including the
+          parts that are still planned. If a capability is not live, it is
+          labelled that way.
+        </p>
+      </div>
+
+      <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {SECTIONS.map((section) => (
+          <Link
+            key={section.id}
+            href={`#${section.id}`}
+            className="card card-hover flex flex-col p-6"
+          >
+            <span className="label-caps">Section</span>
+            <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
+              {section.title}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
+              {section.description}
+            </p>
+            <span className="mt-6 text-xs text-[var(--accent)]">Jump to notes</span>
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-24 space-y-12">
+        <section id="local-setup" className="scroll-mt-24 border-t border-[var(--border)] pt-8">
+          <span className="label-caps">Local setup</span>
+          <h2 className="mt-3 font-serif text-3xl text-[var(--text)]">
+            One repository, two processes.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
+            Start the backend with its local SQLite database, then run the
+            frontend against the versioned API. Demo fixtures make the
+            Kubernetes surface usable without a cluster.
+          </p>
+        </section>
+
+        <section id="api-reference" className="scroll-mt-24 border-t border-[var(--border)] pt-8">
+          <span className="label-caps">API reference</span>
+          <h2 className="mt-3 font-serif text-3xl text-[var(--text)]">
+            Predictable errors, traceable requests.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
+            Responses use a uniform error envelope, every request carries an ID,
+            and secrets are redacted before they reach logs or evidence.
+          </p>
+        </section>
+
+        <section id="architecture" className="scroll-mt-24 border-t border-[var(--border)] pt-8">
+          <span className="label-caps">Architecture</span>
+          <h2 className="mt-3 font-serif text-3xl text-[var(--text)]">
+            Adapters in, evidence out.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
+            Infrastructure adapters normalize read-only observations. Services
+            turn those observations into evidence, and the diagnosis layer ranks
+            hypotheses without hiding the facts underneath them.
+          </p>
+        </section>
+
+        <section id="security" className="scroll-mt-24 border-t border-[var(--border)] pt-8">
+          <span className="label-caps">Security</span>
+          <h2 className="mt-3 font-serif text-3xl text-[var(--text)]">
+            Read-only is a structural property.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
+            The Kubernetes client has no mutating methods. Passwords are scrypt
+            hashed, session tokens are stored hashed, and sensitive values are
+            removed before they enter the evidence trail.
+          </p>
+        </section>
+
+        <section id="kubernetes" className="scroll-mt-24 border-t border-[var(--border)] pt-8">
+          <span className="label-caps">Kubernetes</span>
+          <h2 className="mt-3 font-serif text-3xl text-[var(--text)]">
+            Fixtures first, cluster second.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
+            Start with the bundled demo fixtures, then connect a real cluster
+            with a read-only kubeconfig. The console reports connected, demo, and
+            off states honestly.
+          </p>
+        </section>
+
+        <section
+          id="investigation-engine"
+          className="scroll-mt-24 border-t border-[var(--border)] pt-8"
+        >
+          <span className="label-caps">Investigation engine</span>
+          <h2 className="mt-3 font-serif text-3xl text-[var(--text)]">
+            Facts first. Hypotheses second.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
+            Each diagnosis exposes its evidence IDs, the resource and payload
+            behind each observation, and a confidence for every hypothesis. A
+            plausible guess is never presented as a fact.
+          </p>
+        </section>
+      </div>
+
+      <div className="mt-16 flex flex-wrap gap-3">
+        <Link href="/support" className="btn-accent">
+          Ask a question
+        </Link>
+        <Link href="/security" className="btn-ghost">
+          Read the security page
+        </Link>
+      </div>
+    </div>
+  );
+}

@@ -1,6 +1,25 @@
 # Build status
 
-Last updated: Milestone 2.5 (self-hosted accounts & dashboard).
+Last updated: Milestone 2.5 (self-hosted accounts & dashboard) + paper/ink UI migration.
+
+## Design system: paper + ink (2026-10-21)
+
+- Three route groups now own the theme: `(marketing)` and `(auth)` use
+  `data-theme="paper"`; `(product)` uses `data-theme="ink"`. The root layout sets
+  no theme.
+- Root layout loads Geist, Geist Mono, and Instrument Serif and wraps the local
+  `AuthProvider`. It has no nav, footer, or Clerk provider.
+- `TopNav` is theme-neutral and works on both canvases. `MarketingFooter` and
+  `AuthHeader` are new.
+- All marketing pages were rewritten in paper mode with editorial type, hairline
+  borders, square controls, and honest empty states.
+- Login and sign-up now use a paper-mode local `AuthForm`. Clerk imports were
+  removed everywhere; the package remains installed but unused.
+- Product pages were moved unchanged under `(product)`. They inherit the ink
+  wrapper but still use legacy palette classes, so they render incorrectly. This
+  is expected and is the next sweep.
+- `docs/DESIGN_SYSTEM.md` documents the modes, tokens, semantic utilities, and
+  the no-literal-colors rule.
 
 ## Backend
 
@@ -34,8 +53,8 @@ Last updated: Milestone 2.5 (self-hosted accounts & dashboard).
 - **Auth pages + dashboard** (`/sign-up`, `/login`, `/dashboard`): self-hosted
   signup/login with an HttpOnly session cookie; the dashboard is gated and shows
   live integration status plus quick links to each diagnosis surface.
-- Clerk is optional; without keys the app uses the local auth pages and boots in
-  demo mode with no third-party credentials.
+- Auth is local only. The Clerk package remains installed in `package.json`, but
+  no file imports it.
 - Lint and production build pass (31 routes).
 
 ## Deployment

@@ -1,21 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ApiRequestError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-client";
-import { Icon } from "@/components/ui";
 
 type Mode = "login" | "signup";
 
 const inputClass =
-  "w-full rounded-xl border border-hairline-strong bg-ink-850 px-4 py-3 text-sm text-paper-100 " +
-  "placeholder:text-paper-400 transition focus:border-amber-500/60 focus:outline-none " +
-  "focus:ring-2 focus:ring-amber-500/20";
+  "w-full rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg)] px-3.5 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] transition focus:border-[var(--accent)] focus:outline-none";
 
 export function AuthForm({ mode }: { mode: Mode }) {
-  const router = useRouter();
   const { setUser } = useAuth();
   const isSignup = mode === "signup";
 
@@ -51,8 +46,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         : await api.auth.login({ email, password });
 
       setUser(result.user);
-      router.push("/dashboard");
-      router.refresh();
+      window.location.href = "/dashboard";
     } catch (err) {
       setError(
         err instanceof ApiRequestError
@@ -66,27 +60,32 @@ export function AuthForm({ mode }: { mode: Mode }) {
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <span className="eyebrow">{isSignup ? "Create account" : "Sign in"}</span>
-        <span className="badge badge-neutral hidden sm:inline-flex">
+        <span className="label-caps">
+          {isSignup ? "Create account" : "Sign in"}
+        </span>
+        <span className="badge badge-neutral">
           <span className="dot dot-good" />
-          Local · self-hosted
+          Local
         </span>
       </div>
 
-      <h1 className="mt-5 font-serif text-[2rem] leading-tight tracking-tight text-paper-50">
-        {isSignup ? "Start your workspace" : "Welcome back"}
+      <h1 className="heading-display mt-5 text-4xl text-[var(--text)]">
+        {isSignup ? "Create an account" : "Sign in"}
       </h1>
-      <p className="mt-3 text-dense text-paper-300">
+      <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
         {isSignup
-          ? "No credit card, no external identity provider. Your account is stored on your own backend."
-          : "Sign in to open your investigation dashboard."}
+          ? "No external identity provider. Your account is stored on your own backend."
+          : "Open your investigation dashboard with your local account."}
       </p>
 
-      <form className="mt-8 space-y-4" onSubmit={onSubmit} noValidate>
+      <form className="mt-8 space-y-4" onSubmit={onSubmit}>
         {isSignup && (
           <div>
-            <label htmlFor="name" className="mb-2 block text-dense font-medium text-paper-200">
-              Name <span className="text-paper-400">(optional)</span>
+            <label
+              htmlFor="name"
+              className="label-caps mb-2 block"
+            >
+              Name <span className="normal-case tracking-normal">(optional)</span>
             </label>
             <input
               id="name"
@@ -94,7 +93,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               type="text"
               autoComplete="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(event) => setName(event.target.value)}
               placeholder="Ada Lovelace"
               className={inputClass}
             />
@@ -102,8 +101,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
         )}
 
         <div>
-          <label htmlFor="email" className="mb-2 block text-dense font-medium text-paper-200">
-            Work email
+          <label htmlFor="email" className="label-caps mb-2 block">
+            Email
           </label>
           <input
             id="email"
@@ -112,14 +111,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
             required
             autoComplete="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(event) => setEmail(event.target.value)}
             placeholder="you@company.com"
             className={inputClass}
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="mb-2 block text-dense font-medium text-paper-200">
+          <label htmlFor="password" className="label-caps mb-2 block">
             Password
           </label>
           <div className="relative">
@@ -130,24 +129,24 @@ export function AuthForm({ mode }: { mode: Mode }) {
               required
               autoComplete={isSignup ? "new-password" : "current-password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               placeholder={isSignup ? "At least 8 characters" : "Your password"}
-              className={`${inputClass} pr-12`}
+              className={`${inputClass} pr-16`}
             />
             <button
               type="button"
-              onClick={() => setShowPassword((v) => !v)}
+              onClick={() => setShowPassword((value) => !value)}
               aria-label={showPassword ? "Hide password" : "Show password"}
-              className="absolute inset-y-0 right-0 grid w-11 place-items-center text-paper-400 transition hover:text-paper-100"
+              className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-[var(--text-muted)] transition hover:text-[var(--text)]"
             >
-              <Icon name="eye" className="size-4" />
+              {showPassword ? "Hide" : "Show"}
             </button>
           </div>
         </div>
 
         {isSignup && (
           <div>
-            <label htmlFor="confirm" className="mb-2 block text-dense font-medium text-paper-200">
+            <label htmlFor="confirm" className="label-caps mb-2 block">
               Confirm password
             </label>
             <input
@@ -157,7 +156,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               required
               autoComplete="new-password"
               value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
+              onChange={(event) => setConfirm(event.target.value)}
               placeholder="Repeat your password"
               className={inputClass}
             />
@@ -167,31 +166,37 @@ export function AuthForm({ mode }: { mode: Mode }) {
         {error && (
           <div
             role="alert"
-            className="flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-dense text-rose-200"
+            className="border border-[var(--signal-bad)] bg-[var(--bg-subtle)] px-3.5 py-3 text-sm leading-6 text-[var(--signal-bad)]"
           >
-            <Icon name="shield" className="mt-0.5 size-4 shrink-0 text-rose-300" />
-            <span>{error}</span>
+            {error}
           </div>
         )}
 
         <button
           type="submit"
           disabled={pending}
-          className="btn-accent w-full !py-3 disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-accent w-full disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? "Please wait…" : isSignup ? "Create account" : "Sign in"}
-          {!pending && <Icon name="arrow" className="size-4" />}
+          {pending
+            ? "Please wait…"
+            : isSignup
+              ? "Create account"
+              : "Sign in"}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-dense text-paper-300">
+      <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
         {isSignup ? "Already have an account? " : "New to SRE Copilot? "}
         <Link
           href={isSignup ? "/login" : "/sign-up"}
-          className="font-medium text-amber-400 transition hover:text-amber-300"
+          className="link-editorial font-medium"
         >
           {isSignup ? "Sign in" : "Create one"}
         </Link>
+      </p>
+
+      <p className="mt-6 text-center label-caps">
+        Passwords are hashed · HttpOnly session
       </p>
     </div>
   );

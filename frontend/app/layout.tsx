@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
-import { TopNav } from "@/components/TopNav";
-import { SiteFooter } from "@/components/SiteFooter";
 import { AuthProvider } from "@/lib/auth-client";
-import { clerkEnabled } from "@/lib/auth";
 
-const sans = Plus_Jakarta_Sans({
+const geistSans = Geist({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-geist-sans",
   display: "swap",
-  weight: ["400", "500", "600", "700"],
 });
 
-const mono = JetBrains_Mono({
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  variable: "--font-mono",
+  variable: "--font-geist-mono",
+  display: "swap",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-instrument-serif",
   display: "swap",
 });
 
@@ -31,30 +33,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const body = (
-    <AuthProvider>
-      <TopNav />
-      <main className="min-h-screen pt-24">{children}</main>
-      <SiteFooter />
-    </AuthProvider>
-  );
-
   return (
     <html
       lang="en"
-      className={`${sans.variable} ${mono.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}
     >
-      <body className="bg-ink-900 font-sans text-paper-100 antialiased">
-        <noscript>
-          {/* Without JS the scroll-reveal wrappers would stay at opacity: 0. */}
-          <style>{`[data-reveal]{opacity:1 !important;transform:none !important;}`}</style>
-        </noscript>
-        {clerkEnabled ? (
-          <ClerkProvider>{body}</ClerkProvider>
-        ) : (
-          // Demo mode: no auth provider, no third-party keys required.
-          body
-        )}
+      <body>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
