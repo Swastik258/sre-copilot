@@ -1,8 +1,8 @@
 # Architecture
 
 > Scope note: this document describes **what exists in the repository today**
-> (Milestone 1) and marks the intended shape of later milestones when relevant.
-> Diagrams include planned components only where explicitly labelled.
+> and marks the intended shape of later milestones when relevant. Diagrams
+> include planned components only where explicitly labelled.
 
 ## Overview
 
@@ -20,13 +20,14 @@
                                                      └─────────────────┘
 
 Planned (not yet implemented):
-  backend/app/adapters/github/*      → GitHub Actions (read-only)
   backend/app/adapters/prometheus/*  → Metrics (read-only)
-  backend/app/ai/*                   → provider-independent AI service (mock/OpenAI/Anthropic)
-  backend/app/services/*             → log analysis, terraform review, timeline
+  backend/app/services/*             → log analysis, timeline, runbooks
 
-Implemented (Milestone 2):
+Implemented:
   backend/app/adapters/kubernetes/*  → read-only Kubernetes diagnosis
+  backend/app/adapters/github/*      → read-only GitHub Actions runs/jobs/logs
+  backend/app/ai/*                   → provider-independent AI explanation
+  backend/app/services/terraform_review.py → plan parsing and blast radius
 ```
 
 ## Backend
@@ -46,7 +47,9 @@ Implemented (Milestone 2):
   later modules populate.
 - **Services** — `app/services/evidence.py` (evidence construction),
   `app/services/integrations.py` (configuration status), `app/services/audit.py`
-  (redacted audit records).
+  (redacted audit records), `app/services/kubernetes_diagnosis.py`,
+  `app/services/github_diagnosis.py`, `app/services/terraform_review.py`, and
+  `app/services/ai.py` (optional model explanation).
 - **Persistence** — `app/db/models.py` (SQLAlchemy 2.0 typed models),
   `app/db/session.py` (engine/session), Alembic migrations under
   `alembic/versions/`.
@@ -89,6 +92,10 @@ cite evidence by ID instead of restating it.
   `lib/api.ts` sends the cookie with `credentials: "include"`.
 - `components/StatusStrip.tsx` and `components/HealthPill.tsx` render live
   backend status; demo data is explicitly labelled.
+- Product consoles: `/kubernetes` (pod diagnosis), `/cicd` (read-only GitHub
+  Actions runs/jobs/diagnosis), and `/terraform` (plan blast-radius review).
+  Each renders cited evidence and keeps state-changing remediation
+  approval-gated or out of scope.
 
 ## Configuration & environments
 
@@ -98,7 +105,9 @@ cite evidence by ID instead of restating it.
 | `AUTO_CREATE_SCHEMA` | `true` | Local SQLite only; never Postgres |
 | `AI_PROVIDER` | `mock` | `openai`/`anthropic` require keys |
 | `AI_PRIVACY_MODE` | `false` | Blocks external LLM transmission |
+| `GITHUB_ENABLED` / `GITHUB_TOKEN` | `false` / empty | Read-only Actions access |
 | `*_ENABLED` integrations | `false` | All off by default |
+| Terraform review | no config | Parses supplied plan JSON only |
 
 ## Design constraints
 

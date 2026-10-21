@@ -135,13 +135,13 @@ export function Section({
             <div>
               {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
               {title && (
-                <h2 className="mt-5 font-serif text-display tracking-tight text-paper-50">
+                <h2 className="mt-5 font-serif text-display tracking-tight text-primary">
                   {title}
                 </h2>
               )}
             </div>
             {lead && (
-              <p className="max-w-prose self-end text-dense-lg text-paper-300">{lead}</p>
+              <p className="max-w-prose self-end text-dense-lg text-secondary">{lead}</p>
             )}
           </div>
         )}
@@ -179,17 +179,17 @@ export function FeatureGrid({
         const inner = (
           <Card hover className="flex h-full flex-col gap-4 p-6">
             <div className="flex items-start justify-between gap-3">
-              <span className="grid size-10 place-items-center rounded-xl border border-hairline-strong bg-ink-800 text-amber-400">
+              <span className="grid size-10 place-items-center rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] text-accent">
                 <Icon name={f.icon} />
               </span>
               {f.status && <StatusTag status={f.status} milestone={f.milestone} />}
             </div>
             <div>
-              <h3 className="font-serif text-xl text-paper-50">{f.title}</h3>
-              <p className="mt-2 text-dense text-paper-300">{f.body}</p>
+              <h3 className="font-serif text-xl text-primary">{f.title}</h3>
+              <p className="mt-2 text-dense text-secondary">{f.body}</p>
             </div>
             {f.meta && (
-              <div className="mt-auto border-t border-hairline pt-4 font-mono text-[10.5px] leading-relaxed text-paper-400">
+              <div className="mt-auto border-t border-hairline pt-4 font-mono text-[10.5px] leading-relaxed text-tertiary">
                 {f.meta}
               </div>
             )}
@@ -217,14 +217,14 @@ export function StatBand({
   items: { value: string; label: string; hint?: string }[];
 }) {
   return (
-    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-hairline-strong bg-hairline-strong lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-[var(--border-strong)] bg-[var(--border-strong)] lg:grid-cols-4">
       {items.map((s) => (
-        <div key={s.label} className="bg-ink-900 px-6 py-7">
-          <div className="font-serif text-[2.25rem] leading-none text-paper-50">{s.value}</div>
-          <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-300">
+        <div key={s.label} className="bg-[var(--bg-elevated)] px-6 py-7">
+          <div className="font-serif text-[2.25rem] leading-none text-primary">{s.value}</div>
+          <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-secondary">
             {s.label}
           </div>
-          {s.hint && <div className="mt-1.5 text-[12px] text-paper-400">{s.hint}</div>}
+          {s.hint && <div className="mt-1.5 text-[12px] text-tertiary">{s.hint}</div>}
         </div>
       ))}
     </div>
@@ -235,8 +235,8 @@ export function CheckList({ items }: { items: ReactNode[] }) {
   return (
     <ul className="space-y-3">
       {items.map((item, i) => (
-        <li key={i} className="flex items-start gap-3 text-dense text-paper-200">
-          <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+        <li key={i} className="flex items-start gap-3 text-dense text-primary">
+          <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-good bg-good-soft text-good">
             <Icon name="check" className="size-3" />
           </span>
           <span>{item}</span>
@@ -252,14 +252,14 @@ export function StepList({
   steps: { n: string; title: string; body: string; meta?: string }[];
 }) {
   return (
-    <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-hairline-strong bg-hairline-strong lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[4px] border border-[var(--border-strong)] bg-[var(--border-strong)] lg:grid-cols-3">
       {steps.map((s) => (
-        <article key={s.n} className="flex flex-col gap-4 bg-ink-900 p-6">
-          <span className="font-mono text-[11px] tracking-[0.14em] text-amber-500">{s.n}</span>
-          <h3 className="font-serif text-[1.4rem] leading-snug text-paper-50">{s.title}</h3>
-          <p className="text-dense text-paper-300">{s.body}</p>
+        <article key={s.n} className="flex flex-col gap-4 bg-[var(--bg-elevated)] p-6">
+          <span className="font-mono text-[11px] tracking-[0.14em] text-accent">{s.n}</span>
+          <h3 className="font-serif text-[1.4rem] leading-snug text-primary">{s.title}</h3>
+          <p className="text-dense text-secondary">{s.body}</p>
           {s.meta && (
-            <div className="mt-auto border-t border-hairline pt-4 font-mono text-[10.5px] leading-relaxed text-paper-400">
+            <div className="mt-auto border-t border-hairline pt-4 font-mono text-[10.5px] leading-relaxed text-tertiary">
               {s.meta}
             </div>
           )}
@@ -289,7 +289,7 @@ export function CTASection({
   note?: string;
 }) {
   return (
-    <section className="border-t border-hairline bg-ink-950/60">
+    <section className="border-t border-hairline bg-[var(--bg-subtle)]">
       <div className="shell py-20">
         <div className="grad-card relative overflow-hidden rounded-[2rem] px-7 py-14 sm:px-14 sm:py-16">
           <div
@@ -341,21 +341,21 @@ export function RoadmapList({
   items: { milestone: string; title: string; body: string; done?: boolean }[];
 }) {
   return (
-    <ol className="relative space-y-3 border-l border-hairline-strong pl-6">
+    <ol className="relative space-y-3 border-l border-[var(--border-strong)] pl-6">
       {items.map((it) => (
         <li key={it.milestone} className="relative">
           <span
-            className={`absolute -left-[1.8125rem] top-1.5 size-3 rounded-full border-2 border-ink-900 ${
-              it.done ? "bg-signal-good" : "bg-ink-500"
+            className={`absolute -left-[1.8125rem] top-1.5 size-3 rounded-full border-2 border-[var(--bg-elevated)] ${
+              it.done ? "bg-good" : "bg-[var(--text-subtle)]"
             }`}
           />
           <div className="flex flex-wrap items-center gap-3">
-            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-amber-500">
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-accent">
               {it.milestone}
             </span>
-            <span className="text-dense-lg font-medium text-paper-100">{it.title}</span>
+            <span className="text-dense-lg font-medium text-primary">{it.title}</span>
           </div>
-          <p className="mt-1 max-w-prose text-dense text-paper-400">{it.body}</p>
+          <p className="mt-1 max-w-prose text-dense text-tertiary">{it.body}</p>
         </li>
       ))}
     </ol>

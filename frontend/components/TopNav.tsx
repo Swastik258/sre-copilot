@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/lib/auth-client";
 
 type NavChild = { label: string; href: string; description?: string };
 type NavItem = { label: string; href: string; children?: NavChild[] };
@@ -95,11 +96,32 @@ const LINKS: NavItem[] = [
   { label: "Pricing", href: "/pricing" },
 ];
 
+function initials(name: string | null, email: string | null): string {
+  const source = name?.trim() || email || "SC";
+  const parts = source.split(/[\s.@_-]+/).filter(Boolean);
+  return (
+    parts
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "SC"
+  );
+}
+
 export function TopNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading, logout } = useAuth();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
+
+  async function handleSignOut() {
+    setOpenIndex(null);
+    setMobileOpen(false);
+    await logout();
+    router.push("/");
+    router.refresh();
+  }
 
   useEffect(() => {
     function onClick(event: MouseEvent) {
@@ -207,13 +229,13 @@ export function TopNav() {
 
                   {hasChildren && isOpen && (
                     <div className="absolute left-0 top-full z-50 pt-3">
-                      <div className="min-w-[280px] border border-[var(--border)] bg-[var(--bg-elevated)] p-2">
+                      <div className="dropdown-panel min-w-[280px] border border-[var(--border-strong)] bg-[var(--bg-elevated)] p-2">
                         {item.children?.map((child) => (
                           <Link
                             key={child.href}
                             href={child.href}
                             onClick={() => setOpenIndex(null)}
-                            className="block px-3 py-2.5 transition-colors hover:bg-[var(--bg-subtle)]"
+                            className="nav-dropdown-link block px-3 py-2.5 hover:bg-[var(--bg-subtle)]"
                           >
                             <div className="text-sm font-medium text-[var(--text)]">
                               {child.label}
@@ -234,15 +256,41 @@ export function TopNav() {
           </div>
         </div>
 
-        <div className="hidden shrink-0 items-center gap-4 lg:flex">
-          <Link
-            href="/login"
-            className="text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
-          >
-            Sign in
-          </Link>
-          <Link href="/assistant" className="btn-accent">
-            Start investigation
+        <div className="hidden shrink-0 items-center gap-3 lg:flex">
+          {loading ? (
+            <span className="loading-line h-3 w-20 rounded-[2px]" aria-hidden />
+          ) : user ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+                aria-label="Open your dashboard"
+              >
+                <span className="grid size-7 place-items-center border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-[10px] font-semibold text-[var(--accent)]">
+                  {initials(user.display_name, user.email)}
+                </span>
+                <span className="max-w-[8rem] truncate">
+                  {user.display_name?.trim() || user.email || "Dashboard"}
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+            >
+              Sign in
+            </Link>
+          )}
+          <Link href={user ? "/dashboard" : "/assistant"} className="btn-accent">
+            {user ? "Open console" : "Start investigation"}
           </Link>
         </div>
 
@@ -282,7 +330,7 @@ export function TopNav() {
       {mobileOpen && (
         <div
           id="mobile-navigation"
-          className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-[var(--border)] bg-[var(--bg)] lg:hidden"
+          className="mobile-panel max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-[var(--border)] bg-[var(--bg)] lg:hidden"
         >
           <div className="shell py-6">
             <div className="grid gap-6">
@@ -318,20 +366,58 @@ export function TopNav() {
             </div>
 
             <div className="mt-6 grid gap-3 border-t border-[var(--border)] pt-5">
-              <Link
-                href="/assistant"
-                onClick={() => setMobileOpen(false)}
-                className="btn-accent w-full"
-              >
-                Start investigation
-              </Link>
-              <Link
-                href="/login"
-                onClick={() => setMobileOpen(false)}
-                className="btn-ghost w-full"
-              >
-                Sign in
-              </Link>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3 border-b border-[var(--border)] pb-4">
+                    <span className="grid size-9 place-items-center border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-[var(--accent)]">
+                      {initials(user.display_name, user.email)}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium text-[var(--text)]">
+                        {user.display_name?.trim() || user.email || "Signed in"}
+                      </div>
+                      <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--text-subtle)]">
+                        read-only session
+                      </div>
+                    </div>
+                  </div>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className="btn-accent w-full"
+                  >
+                    Open console
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="btn-ghost w-full"
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <>
+                  {loading ? (
+                    <span className="loading-line h-9 w-full" aria-hidden />
+                  ) : (
+                    <Link
+                      href="/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="btn-ghost w-full"
+                    >
+                      Sign in
+                    </Link>
+                  )}
+                  <Link
+                    href="/assistant"
+                    onClick={() => setMobileOpen(false)}
+                    className="btn-accent w-full"
+                  >
+                    Start investigation
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -36,6 +36,14 @@ def test_external_ai_requires_key():
     assert (
         Settings(ai_provider="openai", openai_api_key="sk-x").external_ai_configured is True
     )
+    assert (
+        Settings(
+            ai_provider="openrouter",
+            openrouter_api_key="sk-or-x",
+            ai_model="openai/gpt-4o-mini",
+        ).external_ai_configured
+        is True
+    )
 
 
 def test_integration_status_reflects_configuration():
@@ -51,6 +59,16 @@ def test_integration_status_reflects_configuration():
     )
     by_kind2 = {i.kind: i for i in report2.integrations}
     assert by_kind2["github"].state.value == "enabled"
+
+    report3 = integration_statuses(
+        Settings(
+            ai_provider="openrouter",
+            openrouter_api_key="sk-or-x",
+            ai_model="openai/gpt-4o-mini",
+        )
+    )
+    by_kind3 = {i.kind: i for i in report3.integrations}
+    assert by_kind3["ai"].state.value == "enabled"
 
 
 def test_integration_status_never_leaks_tokens():

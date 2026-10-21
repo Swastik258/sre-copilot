@@ -33,20 +33,20 @@ export function AuthShell({ children }: { children: ReactNode }) {
           <div className="order-2 lg:order-1">
             <Link
               href="/"
-              className="inline-flex items-center gap-3 text-base font-semibold text-paper-50"
+              className="inline-flex items-center gap-3 text-base font-semibold text-primary"
             >
-              <span className="grid size-8 place-items-center rounded-lg border border-hairline-strong bg-ink-800 font-mono text-xs font-semibold text-amber-400">
+              <span className="grid size-8 place-items-center rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-accent">
                 SC
               </span>
               <span className="tracking-[-0.02em]">SRE Copilot</span>
             </Link>
 
-            <h2 className="mt-8 font-serif text-display tracking-tight text-paper-50">
+            <h2 className="mt-8 font-serif text-display tracking-tight text-primary">
               Diagnose with evidence,
               <br />
               not guesswork.
             </h2>
-            <p className="mt-5 max-w-prose text-dense-lg text-paper-300">
+            <p className="mt-5 max-w-prose text-dense-lg text-secondary">
               An AI SRE copilot for Kubernetes, logs, CI/CD, and Terraform. It reads,
               correlates, and explains — and it tells you exactly which evidence each
               conclusion rests on.
@@ -55,14 +55,14 @@ export function AuthShell({ children }: { children: ReactNode }) {
             <ul className="mt-10 space-y-5">
               {POINTS.map((point) => (
                 <li key={point.title} className="flex items-start gap-4">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-hairline-strong bg-ink-800 text-amber-400">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] text-accent">
                     <Icon name={point.icon} className="size-5" />
                   </span>
                   <div>
-                    <div className="text-dense-lg font-medium text-paper-100">
+                    <div className="text-dense-lg font-medium text-primary">
                       {point.title}
                     </div>
-                    <p className="mt-1 max-w-prose text-dense text-paper-400">
+                    <p className="mt-1 max-w-prose text-dense text-tertiary">
                       {point.body}
                     </p>
                   </div>
@@ -73,10 +73,10 @@ export function AuthShell({ children }: { children: ReactNode }) {
 
           {/* Form card */}
           <div className="order-1 lg:order-2">
-            <div className="card p-7 shadow-[0_40px_120px_-60px_rgba(0,0,0,0.9)] sm:p-9">
+            <div className="card auth-card-lift p-7 sm:p-9">
               {children}
             </div>
-            <p className="mt-4 text-center font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-400">
+            <p className="mt-4 text-center font-mono text-[10.5px] uppercase tracking-[0.14em] text-tertiary">
               Passwords are hashed · sessions use an HttpOnly cookie
             </p>
           </div>

@@ -5,13 +5,14 @@ Ask why a pod is failing or a pipeline broke and get back structured findings th
 separate **observed facts** from **hypotheses**, each with citations to the
 evidence used.
 
-> **Status: Milestones 1–2 complete.** A tested backend foundation plus
-> **read-only Kubernetes diagnosis** (verified in demo/fixture mode; live-cluster
-> verification needs a Docker-enabled host). The remaining investigation engines
-> (GitHub, Prometheus, Terraform, AI reasoning) are **not yet implemented** — see
-> [docs/ROADMAP.md](docs/ROADMAP.md). Do not treat anything here as
-> production-ready until the security controls in [docs/SECURITY.md](docs/SECURITY.md)
-> are implemented.
+> **Status: milestones 1–2.5 complete; AI, GitHub Actions, and Terraform plan
+> review implemented.** Read-only Kubernetes diagnosis is verified against a
+> local Kind cluster and labelled fixtures. GitHub Actions diagnosis is
+> read-only and requires a server-side token. Terraform plan review parses plan
+> JSON without running Terraform. **Not yet implemented:** Prometheus, log
+> analysis, investigation persistence, assistant chat, runbooks, and
+> multi-cluster selection. Do not treat anything here as production-ready until
+> the security controls in [docs/SECURITY.md](docs/SECURITY.md) are implemented.
 
 ## Principles
 
@@ -81,16 +82,33 @@ docker compose -f deploy/docker-compose.yml up --build
   Unschedulable, probe failures). The Kubernetes UI at `/kubernetes` renders the
   diagnosis, its evidence, read-only next steps, and approval-gated remediation.
   Runs against labelled demo fixtures, or a live cluster with read-only RBAC.
+- **Read-only GitHub Actions diagnosis** (`/api/v1/github/*`): list runs, load
+  jobs and steps, and diagnose failures from bounded log excerpts. The `/cicd`
+  console shows evidence, read-only next steps, and optional AI explanation.
+  Every GitHub request is a `GET`; there is no dispatch, re-run, or cancel path.
+- **Terraform plan review** (`POST /api/v1/terraform/review`): detects
+  replacements and deletions, replacement paths, attribute-name changes,
+  unknown values, and stateful-resource risk; reports blast radius. The
+  `/terraform` console accepts pasted or uploaded plan JSON. Attribute values
+  are deliberately omitted.
+- **AI explanation layer** for Kubernetes and GitHub evidence: deterministic
+  findings remain authoritative; only redacted evidence summaries are sent to
+  the configured provider. OpenRouter is supported through the
+  OpenAI-compatible adapter.
+- Self-hosted signup/login with an HttpOnly session cookie and a gated
+  `/dashboard`.
 - Frontend fetches real health and integration status; demo data is labelled.
 
 ## What does **not** work yet
 
-- No GitHub, Prometheus, or Terraform adapters (Modules C–F).
-- No AI providers beyond a configured-but-unimplemented `mock` selection
-  (Module H). No investigations/chat persistence API yet (Module A/K).
-- No log-analysis engine, metrics, timelines, or runbooks.
-- No backend authentication/authorization; do not expose the API publicly.
-- The AI/`mock` provider is a **selection placeholder**, not a working engine.
+- No Prometheus adapter, log-analysis engine, metrics/timeline correlation, or
+  runbook library.
+- No investigation/assistant chat persistence API yet.
+- Multi-cluster selection is not exposed in the UI; one cluster per backend
+  process is supported.
+- Anthropic's native Messages API adapter is not implemented.
+- Authorization/tenant isolation is not implemented; do not expose the API
+  publicly.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the milestone plan.
 
@@ -100,6 +118,8 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for the milestone plan.
 - [docs/SECURITY.md](docs/SECURITY.md) — threat model, permissions, known risks
 - [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) — setup and commands
 - [docs/API.md](docs/API.md) — endpoints and examples
+- [docs/GITHUB_SETUP.md](docs/GITHUB_SETUP.md) — read-only GitHub token and endpoints
+- [docs/TERRAFORM_REVIEW.md](docs/TERRAFORM_REVIEW.md) — plan review and blast radius
 - [docs/TESTING.md](docs/TESTING.md) — test commands and expected results
 - [docs/ROADMAP.md](docs/ROADMAP.md) — completed / in-progress / future work
 

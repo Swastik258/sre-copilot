@@ -18,7 +18,7 @@ from typing import Literal
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-AIProviderName = Literal["mock", "openai", "anthropic"]
+AIProviderName = Literal["mock", "openai", "openrouter", "anthropic"]
 
 # Integrations that, when enabled, mean the app is *not* solely in demo mode.
 _INTEGRATION_FLAGS = (
@@ -85,6 +85,13 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
     openai_base_url: str = "https://api.openai.com/v1"
 
+    # OpenRouter exposes an OpenAI-compatible chat-completions API. Model IDs
+    # are namespaced (for example ``openai/gpt-4o-mini``).
+    openrouter_api_key: str | None = None
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_http_referer: str = "http://localhost:3000"
+    openrouter_app_title: str = "SRE Copilot"
+
     anthropic_api_key: str | None = None
     anthropic_base_url: str = "https://api.anthropic.com"
 
@@ -142,6 +149,8 @@ class Settings(BaseSettings):
         """True when a non-mock provider has credentials available."""
         if self.ai_provider == "openai":
             return bool(self.openai_api_key)
+        if self.ai_provider == "openrouter":
+            return bool(self.openrouter_api_key)
         if self.ai_provider == "anthropic":
             return bool(self.anthropic_api_key)
         return False

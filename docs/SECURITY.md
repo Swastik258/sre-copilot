@@ -46,6 +46,9 @@ provenance, approval workflow, and audit logging.
 | Session tokens | `app/security/tokens.py` | 256-bit `secrets.token_urlsafe`; only the SHA-256 hash is stored. |
 | Session cookie | `app/api/v1/auth.py` | `HttpOnly`, `SameSite=Lax` (blocks cross-site POST CSRF), `Secure` off-server, 7-day TTL, revocable. |
 | Optional API enforcement | `app/api/v1/router.py` (`AUTH_REQUIRED`) | **Off by default**; when on, read-only routes require a session (health/auth stay public). |
+| GitHub read-only adapter | `app/adapters/github/client.py` | Only `GET` requests; no dispatch/re-run/cancel path. Token is stripped on cross-host log-download redirects. |
+| Terraform value omission | `app/services/terraform_review.py` | Returns attribute names and change metadata, never plan values. |
+| AI evidence minimisation | `app/services/ai.py` | Sends redacted evidence summaries and the question only; `AI_PRIVACY_MODE` blocks external providers. |
 
 ## Missing controls (must be implemented before public exposure)
 
@@ -55,13 +58,15 @@ provenance, approval workflow, and audit logging.
   without credentials. There is no authorization model (roles/permissions) and no
   verified identity on routes when the flag is off.
 - **Tenant/organization isolation** — no enforced data boundaries.
-- **CSRF/SSRF/command-injection hardening** — no URL-fetching features exist
-  yet, but must be reviewed as adapters land.
+- **CSRF/SSRF/command-injection hardening** — GitHub API access uses a
+  validated `GITHUB_API_URL` and repo names, but this area still needs a full
+  review as more adapters land.
 - **Persistent, shared rate limiting** — current limiter is per-process and
   in-memory.
 - **Dependency & image scanning** — not wired into CI yet.
-- **Prompt-injection defences** — no AI provider is implemented yet, so no
-  untrusted content reaches a model. This must be addressed with Module H.
+- **Prompt-injection defences** — AI providers receive only redacted evidence
+  summaries, but logs and summaries are untrusted data; prompt-injection
+  regression tests and stronger isolation are still needed.
 - **Encryption at rest / key management** — relies on the database layer.
 - **Retention & deletion controls** — not implemented.
 
@@ -78,9 +83,13 @@ provenance, approval workflow, and audit logging.
 
 - Integrations default to disabled.
 - Kubernetes access must use least-privilege read-only RBAC (no cluster-admin).
+- GitHub access must use a fine-grained token with `Actions: read`,
+  `Contents: read`, and `Metadata: read` only. Never grant write scopes.
 - No endpoint may create, delete, patch, restart, or scale resources as part of
   diagnosis. Infrastructure-changing actions require the explicit approval
   workflow (not yet implemented).
+- Terraform review parses supplied JSON only; it never reads state or applies a
+  plan. Values are omitted from responses and evidence.
 
 ## Reporting a vulnerability
 

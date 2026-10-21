@@ -18,6 +18,14 @@
   --signal-warn: #b45309;
   --signal-bad: #b91c1c;
   --signal-idle: #6b7280;
+  --signal-info: #0369a1;
+
+  /* Ink-mode status colors need more luminance to stay legible. */
+  --signal-good-ink: #6ee7b7;
+  --signal-warn-ink: #fbbf24;
+  --signal-bad-ink: #fca5a5;
+  --signal-idle-ink: #8b8d88;
+  --signal-info-ink: #7dd3fc;
 
   /* Paper mode — raw values */
   --bg-paper: #f5f6f3;
@@ -106,6 +114,12 @@
   --text-subtle: var(--text-subtle-ink);
   --border: var(--border-ink);
   --border-strong: var(--border-strong-ink);
+
+  --signal-good: var(--signal-good-ink);
+  --signal-warn: var(--signal-warn-ink);
+  --signal-bad: var(--signal-bad-ink);
+  --signal-idle: var(--signal-idle-ink);
+  --signal-info: var(--signal-info-ink);
 
   background-color: var(--bg-ink);
   color: var(--text-ink);
@@ -228,6 +242,59 @@ pre,
   background: var(--signal-idle);
 }
 
+/* Status text + soft surfaces */
+.text-good {
+  color: var(--signal-good);
+}
+.text-warn {
+  color: var(--signal-warn);
+}
+.text-bad {
+  color: var(--signal-bad);
+}
+.text-info {
+  color: var(--signal-info);
+}
+.bg-good {
+  background: var(--signal-good);
+}
+.bg-warn {
+  background: var(--signal-warn);
+}
+.bg-bad {
+  background: var(--signal-bad);
+}
+.bg-info {
+  background: var(--signal-info);
+}
+.bg-good-soft {
+  background: color-mix(in srgb, var(--signal-good) 12%, transparent);
+}
+.bg-warn-soft {
+  background: color-mix(in srgb, var(--signal-warn) 12%, transparent);
+}
+.bg-bad-soft {
+  background: color-mix(in srgb, var(--signal-bad) 12%, transparent);
+}
+.bg-info-soft {
+  background: color-mix(in srgb, var(--signal-info) 12%, transparent);
+}
+.border-good {
+  border-color: color-mix(in srgb, var(--signal-good) 40%, transparent);
+}
+.border-warn {
+  border-color: color-mix(in srgb, var(--signal-warn) 40%, transparent);
+}
+.border-bad {
+  border-color: color-mix(in srgb, var(--signal-bad) 40%, transparent);
+}
+.border-info {
+  border-color: color-mix(in srgb, var(--signal-info) 40%, transparent);
+}
+.border-accent-soft {
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
 /* Typography helpers */
 .label-caps {
   font-family: var(--font-mono);
@@ -259,6 +326,23 @@ pre,
   transition: background 150ms ease;
 }
 .btn-accent:hover {
+  background: var(--accent-hover);
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--accent);
+  color: #ffffff;
+  padding: 0.625rem 1.25rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: background 150ms ease;
+}
+.btn-primary:hover {
   background: var(--accent-hover);
 }
 
@@ -383,10 +467,167 @@ pre,
   background: var(--bg-subtle);
 }
 .card-hover {
-  transition: border-color 150ms ease, background 150ms ease;
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    background 180ms ease;
 }
 .card-hover:hover {
-  border-color: var(--accent);
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+}
+
+/* Elevation is centralised here so components never embed shadow values. */
+.auth-card-lift {
+  box-shadow: 0 40px 120px -60px rgba(0, 0, 0, 0.9);
+}
+.preview-lift {
+  box-shadow: 0 40px 100px -50px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* Icon tiles used by cards and navigation */
+.icon-tile {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--bg-subtle);
+  color: var(--accent);
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    background 180ms ease;
+}
+.group:hover .icon-tile {
+  transform: translateY(-2px) rotate(-2deg);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--accent-soft);
+}
+
+/* Surface grid */
+.surface-grid > * {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.surface-grid > *:nth-child(1) {
+  animation-delay: 40ms;
+}
+.surface-grid > *:nth-child(2) {
+  animation-delay: 100ms;
+}
+.surface-grid > *:nth-child(3) {
+  animation-delay: 160ms;
+}
+.surface-grid > *:nth-child(4) {
+  animation-delay: 220ms;
+}
+.surface-grid > *:nth-child(5) {
+  animation-delay: 280ms;
+}
+.surface-grid > *:nth-child(6) {
+  animation-delay: 340ms;
+}
+
+.metric-tile {
+  border-top: 1px solid var(--border);
+  padding-top: 0.875rem;
+}
+.metric-value {
+  font-family: var(--font-serif);
+  font-size: 1.85rem;
+  line-height: 1;
+  color: var(--text);
+}
+
+/* Decorative operational signal — no fabricated values, purely ornamental. */
+.signal-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 3.75rem;
+  opacity: 0.9;
+}
+.signal-bars span {
+  flex: 1 1 0;
+  min-width: 3px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  transform-origin: bottom;
+  animation: signal-breathe 4.2s ease-in-out infinite;
+}
+.signal-bars span:nth-child(2n) {
+  background: color-mix(in srgb, var(--accent) 58%, transparent);
+  animation-delay: 240ms;
+}
+.signal-bars span:nth-child(3n) {
+  background: color-mix(in srgb, var(--text) 16%, transparent);
+  animation-delay: 480ms;
+}
+.signal-bars span:nth-child(1) {
+  height: 32%;
+}
+.signal-bars span:nth-child(2) {
+  height: 54%;
+}
+.signal-bars span:nth-child(3) {
+  height: 44%;
+}
+.signal-bars span:nth-child(4) {
+  height: 70%;
+}
+.signal-bars span:nth-child(5) {
+  height: 58%;
+}
+.signal-bars span:nth-child(6) {
+  height: 86%;
+}
+.signal-bars span:nth-child(7) {
+  height: 64%;
+}
+.signal-bars span:nth-child(8) {
+  height: 92%;
+}
+.signal-bars span:nth-child(9) {
+  height: 74%;
+}
+.signal-bars span:nth-child(10) {
+  height: 100%;
+}
+.signal-bars span:nth-child(11) {
+  height: 68%;
+}
+.signal-bars span:nth-child(12) {
+  height: 48%;
+}
+
+/* Status beacon for live/read-only labels */
+.status-beacon {
+  position: relative;
+  display: inline-flex;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--accent);
+}
+.status-beacon::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: var(--accent);
+  animation: dot-ping 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Dropdown / mobile panel motion */
+.dropdown-panel {
+  animation: scale-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top left;
+}
+.mobile-panel {
+  animation: slide-down 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top;
 }
 
 /* Badges */
@@ -480,6 +721,109 @@ pre,
 }
 
 /* ------------------------------------------------------------------ *
+ * Page atmosphere
+ *
+ * These live in globals so pages can opt into an editorial wash without
+ * embedding colors or gradients in JSX.
+ * ------------------------------------------------------------------ */
+
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent 88%);
+  opacity: 0.38;
+  animation: grid-drift 28s linear infinite;
+}
+.glow {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent) 24%, transparent) 0%,
+    transparent 70%
+  );
+  filter: blur(18px);
+  opacity: 0.5;
+  animation: float-soft 16s ease-in-out infinite;
+}
+.glow-amber {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent) 28%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+/* Legacy product classes are mapped onto the semantic roles. */
+.text-signal-good {
+  color: var(--signal-good);
+}
+.text-signal-warn {
+  color: var(--signal-warn);
+}
+.text-signal-bad {
+  color: var(--signal-bad);
+}
+.bg-signal-good {
+  background: var(--signal-good);
+}
+.bg-signal-warn {
+  background: var(--signal-warn);
+}
+.bg-signal-bad {
+  background: var(--signal-bad);
+}
+.bg-hairline-strong {
+  background: var(--border-strong);
+}
+
+/* Editorial CTA */
+.grad-card {
+  background: var(--text);
+  color: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}
+.btn-light,
+.btn-glass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 4px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease;
+}
+.btn-light {
+  background: var(--bg);
+  color: var(--text);
+}
+.btn-light:hover {
+  transform: translateY(-1px);
+  background: var(--bg-subtle);
+}
+.btn-glass {
+  border: 1px solid color-mix(in srgb, var(--bg) 32%, transparent);
+  color: var(--bg);
+}
+.btn-glass:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--bg) 10%, transparent);
+}
+
+/* ------------------------------------------------------------------ *
  * Motion
  * ------------------------------------------------------------------ */
 
@@ -514,13 +858,149 @@ pre,
     opacity: 0;
   }
 }
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.97) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+@keyframes slide-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(14px, 18px, 0) scale(1.04);
+  }
+}
+@keyframes grid-drift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 56px 56px;
+  }
+}
+@keyframes signal-breathe {
+  0%,
+  100% {
+    transform: scaleY(0.72);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 0.95;
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -180% 0;
+  }
+  100% {
+    background-position: 180% 0;
+  }
+}
+@keyframes arrow-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-scale-in {
+  animation: scale-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.delay-1 {
+  animation-delay: 60ms;
+}
+.delay-2 {
+  animation-delay: 120ms;
+}
+.delay-3 {
+  animation-delay: 180ms;
+}
+.delay-4 {
+  animation-delay: 240ms;
+}
+.delay-5 {
+  animation-delay: 300ms;
+}
+.delay-6 {
+  animation-delay: 360ms;
+}
+
+/* Scroll reveal fallback for the client-side Reveal component. */
+.nav-dropdown-link {
+  transition:
+    background 140ms ease,
+    padding-left 140ms ease;
+}
+.nav-dropdown-link:hover {
+  padding-left: 0.95rem;
+}
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.link-arrow svg {
+  transition: transform 180ms ease;
+}
+.link-arrow:hover svg {
+  transform: translateX(3px);
+}
+.btn-accent svg,
+.btn-primary svg,
+.btn-ghost svg {
+  transition: transform 180ms ease;
+}
+.btn-accent:hover svg,
+.btn-primary:hover svg,
+.btn-ghost:hover svg {
+  transform: translateX(2px);
+}
+.loading-line {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--text) 8%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 180% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
+    animation-delay: 0ms !important;
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
+    transition-delay: 0ms !important;
     transition-duration: 0.001ms !important;
   }
   [data-reveal] {

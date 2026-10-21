@@ -55,6 +55,8 @@ place in the codebase where literal color values are allowed.
 - `--signal-warn`
 - `--signal-bad`
 - `--signal-idle`
+- `--signal-info`
+- Ink-mode variants `--signal-*-ink` for legibility on the dark canvas
 
 ### Paper palette
 
@@ -107,6 +109,8 @@ These are the names pages should use. They resolve to the active mode.
 - `--text-label`
 - `--animate-fade-in`
 - `--animate-fade-up`
+- `.animate-scale-in`, `.delay-1` through `.delay-6`
+- `<Reveal>` for scroll-triggered entrances (uses the existing `framer-motion` dependency)
 
 ## Semantic utilities
 
@@ -140,6 +144,7 @@ Prefer these classes over raw color utilities:
 
 - `.border-hairline`
 - `.border-strong`
+- `.border-accent-soft`
 - `.bg-accent`
 - `.bg-accent-soft`
 
@@ -150,9 +155,13 @@ the old `border-hairline` palette class. When setting a border width, use
 ### Buttons
 
 - `.btn-accent`
+- `.btn-primary`
 - `.btn-ghost`
+- `.btn-light`
+- `.btn-glass`
 
-Buttons are square with a 4px radius. They have no gradients, glows, or shadows.
+Buttons are square with a 4px radius. They have no gradients or glows, and no
+shadows of their own.
 
 ### Status
 
@@ -162,6 +171,7 @@ Buttons are square with a 4px radius. They have no gradients, glows, or shadows.
 - `.dot-bad`
 - `.dot-idle`
 - `.ring-status`
+- `.status-beacon` for live/read-only indicators
 - `.badge`
 - `.badge-good`
 - `.badge-warn`
@@ -169,6 +179,9 @@ Buttons are square with a 4px radius. They have no gradients, glows, or shadows.
 - `.badge-neutral`
 - `.tag-planned`
 - `.tag-live`
+- `.text-good`, `.text-warn`, `.text-bad`, `.text-info`
+- `.bg-good-soft`, `.bg-warn-soft`, `.bg-bad-soft`, `.bg-info-soft`
+- `.border-good`, `.border-warn`, `.border-bad`, `.border-info`
 
 ### Cards
 
@@ -176,6 +189,8 @@ Buttons are square with a 4px radius. They have no gradients, glows, or shadows.
 - `.card-soft`
 - `.card-hover`
 - `.tool-card`
+- `.icon-tile`
+- `.surface-grid` for staggered surface-card entrances
 
 ## Rules
 
@@ -188,8 +203,10 @@ Buttons are square with a 4px radius. They have no gradients, glows, or shadows.
    owns the theme.
 4. **Do not branch components on the active theme.** A shared component reads
    the CSS variables and works in both modes.
-5. **No gradients, glows, or shadows beyond a 1px border.** Hairlines are the
-   primary separation device.
+5. **Hairlines are the primary separation device.** Ambient `.glow` and
+   `.grid-overlay` decoration, and the `.auth-card-lift` / `.preview-lift`
+   shadows, must stay defined in `globals.css`; do not add gradient, glow, or
+   shadow utilities inline in components.
 6. **Corners are 4px.** Use `.card`, `.btn-accent`, `.btn-ghost`, or
    `rounded-[4px]`.
 7. **Display type is intentional.** Use `.heading-display` or `font-serif` for
@@ -239,11 +256,22 @@ Use **ink** for anything that is primarily operated:
 5. If the page needs client state, add `"use client"` to the page or a small
    client component; keep the route group layout server-rendered.
 
-## Known backlog
+## Motion
 
-The product console pages still contain the legacy palette classes
-(`bg-ink-*`, `text-paper-*`, amber utilities). They were moved under
-`app/(product)` without a rewrite in this milestone. They inherit the ink
-wrapper but their internal colors do not resolve. The next sweep should replace
-those classes with the semantic utilities in this document and remove the
-components that become unused.
+Motion is decorative and must never block information. Use the shared CSS
+animations and the existing `Reveal` component; do not add another motion
+dependency.
+
+- Reach for `.animate-fade-up` or `.animate-fade-in` for page-load entrances.
+- Wrap below-the-fold sections in `<Reveal>` for a scroll-triggered entrance.
+- Use `.surface-grid` for staggered cards; `.delay-1`–`.delay-6` stagger
+  individual elements.
+- Hover motion belongs on `.card-hover`, `.icon-tile`, and `.link-arrow`.
+- Every animation collapses under `prefers-reduced-motion: reduce`.
+
+## Legacy sweep
+
+Product console pages previously used unresolved legacy palette classes
+(`bg-ink-*`, `text-paper-*`, amber utilities). Those have been replaced with the
+semantic utilities above. If you find one, treat it as a regression and replace
+it rather than adding an alias.

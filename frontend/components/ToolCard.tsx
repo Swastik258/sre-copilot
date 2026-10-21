@@ -31,19 +31,19 @@ export function ToolCard({
   return (
     <article ref={ref} onMouseMove={onMouseMove} className="tool-card">
       <header className="flex items-baseline justify-between gap-3">
-        <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-paper-100">
+        <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-primary">
           {title}
         </h3>
-        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-paper-400">
+        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-tertiary">
           {subtitle}
         </span>
       </header>
 
-      <div className="overflow-hidden rounded-lg border border-hairline bg-[#0b0b0d]">
+      <div className="overflow-hidden rounded-[4px] border border-hairline bg-[var(--bg-subtle)]">
         {children}
       </div>
 
-      <footer className="font-mono text-[10.5px] leading-relaxed text-paper-400">
+      <footer className="font-mono text-[10.5px] leading-relaxed text-tertiary">
         {footer}
       </footer>
     </article>

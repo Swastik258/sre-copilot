@@ -50,20 +50,20 @@ const TIERS = [
 
 export function Pricing({ showHeader = true }: { showHeader?: boolean } = {}) {
   return (
-    <section id="pricing" className="border-b border-hairline bg-ink-950/30">
+    <section id="pricing" className="border-b border-hairline bg-[var(--bg-subtle)]">
       <div className="shell py-24">
         {/* Header */}
         {showHeader && (
           <div className="mb-16 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
           <div>
             <span className="label-caps">Pricing</span>
-            <h2 className="mt-4 font-serif text-display tracking-tight text-paper-50">
+            <h2 className="mt-4 font-serif text-display tracking-tight text-primary">
               Read-only is free.
               <br />
               You pay for reach.
             </h2>
           </div>
-          <p className="max-w-prose self-end text-dense-lg text-paper-300">
+          <p className="max-w-prose self-end text-dense-lg text-secondary">
             Every tier keeps the same promise: no automated changes, no
             outbound writes, and a full audit trail. Paid tiers add
             connectors, seats, and shared workspace.
@@ -72,43 +72,43 @@ export function Pricing({ showHeader = true }: { showHeader?: boolean } = {}) {
         )}
 
         {/* Tiers */}
-        <div className="grid grid-cols-1 gap-px bg-hairline-strong lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px bg-[var(--border-strong)] lg:grid-cols-3">
           {TIERS.map((t) => (
             <article
               key={t.name}
               className={`tick relative flex flex-col gap-6 p-6 ${
-                t.accent ? "bg-ink-850" : "bg-ink-900"
+                t.accent ? "bg-[var(--bg-subtle)]" : "bg-[var(--bg-elevated)]"
               }`}
             >
               {t.accent && (
-                <span className="absolute right-4 top-4 font-mono text-[10px] uppercase tracking-[0.14em] text-amber-500">
+                <span className="absolute right-4 top-4 font-mono text-[10px] uppercase tracking-[0.14em] text-accent">
                   most useful
                 </span>
               )}
 
               <header>
-                <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-paper-300">
+                <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-secondary">
                   {t.name}
                 </div>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="font-serif text-[2.75rem] leading-none tracking-tight text-paper-50">
+                  <span className="font-serif text-[2.75rem] leading-none tracking-tight text-primary">
                     {t.price}
                   </span>
-                  <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-paper-400">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-tertiary">
                     {t.period}
                   </span>
                 </div>
-                <p className="mt-4 text-dense text-paper-300">{t.blurb}</p>
+                <p className="mt-4 text-dense text-secondary">{t.blurb}</p>
               </header>
 
               <div className="rule" />
 
-              <ul className="space-y-2.5 text-dense text-paper-200">
+              <ul className="space-y-2.5 text-dense text-primary">
                 {t.features.map((f) => (
                   <li key={f} className="flex items-start gap-3">
                     <span
                       className={`mt-2 h-1 w-1 shrink-0 rounded-full ${
-                        t.accent ? "bg-amber-500" : "bg-paper-400"
+                        t.accent ? "bg-accent" : "bg-[var(--text-subtle)]"
                       }`}
                     />
                     <span>{f}</span>
@@ -129,7 +129,7 @@ export function Pricing({ showHeader = true }: { showHeader?: boolean } = {}) {
         </div>
 
         {/* Fine print */}
-        <p className="mt-8 font-mono text-[10.5px] leading-relaxed text-paper-400">
+        <p className="mt-8 font-mono text-[10.5px] leading-relaxed text-tertiary">
           Prices in USD. No card required for Free. Pro and Team can be
           cancelled any time — the audit log and saved investigations stay
           readable after cancellation.

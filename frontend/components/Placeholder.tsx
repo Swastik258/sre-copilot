@@ -3,5 +3,5 @@ type PlaceholderProps = {
 };
 
 export function Placeholder({ children }: PlaceholderProps) {
-  return <section className="rounded-lg border border-slate-700 p-6">{children}</section>;
+  return <section className="rounded-[4px] border border-[var(--border-strong)] p-6">{children}</section>;
 }

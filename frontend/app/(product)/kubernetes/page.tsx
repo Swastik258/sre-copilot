@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   api,
   ApiRequestError,
+  type AIStructuredDiagnosis,
   type K8sPod,
   type PodDiagnosisResponse,
 } from "@/lib/api";
@@ -11,11 +12,11 @@ import {
 type Phase = "loading" | "ready" | "not_configured" | "error";
 
 const SEVERITY_STYLES: Record<string, string> = {
-  info: "border-hairline-strong text-paper-300",
-  low: "border-sky-500/30 text-sky-700",
-  medium: "border-amber-500/40 text-amber-700",
-  high: "border-rose-500/40 text-rose-300",
-  critical: "border-rose-600/60 text-rose-200",
+  info: "border-[var(--border-strong)] text-secondary",
+  low: "border-info text-info",
+  medium: "border-warn text-warn",
+  high: "border-bad text-bad",
+  critical: "border-bad text-bad",
 };
 
 export default function KubernetesPage() {
@@ -65,6 +66,7 @@ export default function KubernetesPage() {
       setNamespace(ns);
       setSelected(null);
       setResult(null);
+      setMessage(null);
       try {
         const podList = await api.kubernetes.pods(ns || undefined);
         setPods(podList.pods);
@@ -78,6 +80,7 @@ export default function KubernetesPage() {
   const diagnose = useCallback(async (pod: K8sPod) => {
     setSelected(pod);
     setResult(null);
+    setMessage(null);
     setDiagnosing(true);
     try {
       const res = await api.kubernetes.diagnose(pod.namespace, pod.name);
@@ -93,16 +96,16 @@ export default function KubernetesPage() {
     <div className="relative min-h-screen">
       <div aria-hidden className="grid-overlay" />
       <div className="shell relative py-12">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 animate-fade-up">
           <div>
             <span className="label-caps">Read-only cluster diagnostics</span>
-            <h1 className="mt-3 font-serif text-display-sm text-paper-50">Kubernetes</h1>
-            <p className="mt-2 max-w-prose text-dense text-paper-400">
+            <h1 className="mt-3 font-serif text-display-sm text-primary">Kubernetes</h1>
+            <p className="mt-2 max-w-prose text-dense text-tertiary">
               Select a pod to produce an evidence-backed diagnosis. Facts are cited; nothing is changed.
             </p>
           </div>
           {demo && (
-            <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-amber-700">
+            <span className="rounded-full border border-warn bg-accent-soft px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-warn">
               demo data · fixtures
             </span>
           )}
@@ -113,15 +116,19 @@ export default function KubernetesPage() {
         )}
 
         {phase === "error" && (
-          <p className="mt-8 font-mono text-sm text-rose-300">{message}</p>
+          <p className="mt-8 font-mono text-sm text-bad">{message}</p>
         )}
 
         {phase === "loading" && (
-          <p className="mt-8 font-mono text-sm text-paper-400">Loading cluster…</p>
+          <p className="mt-8 font-mono text-sm text-tertiary">Loading cluster…</p>
+        )}
+
+        {phase === "ready" && message && (
+          <p className="mt-6 font-mono text-sm text-bad">{message}</p>
         )}
 
         {phase === "ready" && (
-          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] animate-fade-in">
             <div>
               <label className="label-caps" htmlFor="ns">
                 Namespace
@@ -130,7 +137,7 @@ export default function KubernetesPage() {
                 id="ns"
                 value={namespace}
                 onChange={(e) => void onNamespaceChange(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-hairline-strong bg-ink-850 px-3 py-2 text-sm text-paper-100"
+                className="mt-2 w-full rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-sm text-primary"
               >
                 <option value="">all namespaces</option>
                 {namespaces.map((n) => (
@@ -142,26 +149,26 @@ export default function KubernetesPage() {
 
               <div className="mt-5 space-y-2">
                 {pods.length === 0 && (
-                  <p className="font-mono text-[11px] text-paper-400">No pods found.</p>
+                  <p className="font-mono text-[11px] text-tertiary">No pods found.</p>
                 )}
                 {pods.map((pod) => (
                   <button
                     key={`${pod.namespace}/${pod.name}`}
                     type="button"
                     onClick={() => void diagnose(pod)}
-                    className={`block w-full rounded-lg border px-3 py-2 text-left transition ${
+                    className={`block w-full rounded-[4px] border px-3 py-2 text-left transition ${
                       selected?.name === pod.name
-                        ? "border-amber-500/50 bg-amber-500/[0.06]"
-                        : "border-hairline hover:border-hairline-strong hover:bg-ink-850"
+                        ? "border-warn bg-accent-soft"
+                        : "border-hairline hover:border-[var(--border-strong)] hover:bg-[var(--bg-subtle)]"
                     }`}
                   >
-                    <div className="truncate text-sm text-paper-100">{pod.name}</div>
-                    <div className="mt-0.5 flex items-center gap-2 font-mono text-[10.5px] text-paper-400">
+                    <div className="truncate text-sm text-primary">{pod.name}</div>
+                    <div className="mt-0.5 flex items-center gap-2 font-mono text-[10.5px] text-tertiary">
                       <PodDot phase={pod.phase} />
                       <span>{pod.namespace}</span>
                       <span>· {pod.phase}</span>
                       {pod.containers.some((c) => c.restart_count > 0) && (
-                        <span className="text-amber-600">
+                        <span className="text-accent">
                           · {pod.containers.reduce((a, c) => a + c.restart_count, 0)} restarts
                         </span>
                       )}
@@ -173,19 +180,19 @@ export default function KubernetesPage() {
 
             <div className="min-w-0">
               {!selected && (
-                <div className="grid h-full place-items-center rounded-xl border border-hairline bg-ink-950/40 p-12 text-center">
-                  <p className="max-w-sm font-mono text-[12px] text-paper-400">
+                <div className="grid h-full place-items-center rounded-[4px] border border-hairline bg-[var(--bg-subtle)] p-12 text-center">
+                  <p className="max-w-sm font-mono text-[12px] text-tertiary">
                     Select a pod to run a read-only diagnosis. Results cite the exact
                     evidence used; no changes are made to the cluster.
                   </p>
                 </div>
               )}
               {selected && diagnosing && (
-                <p className="font-mono text-sm text-paper-400">
+                <p className="font-mono text-sm text-tertiary">
                   Diagnosing {selected.name}…
                 </p>
               )}
-              {result && <DiagnosisView result={result} />}
+              {result && <DiagnosisView key={`${result.pod.namespace}/${result.pod.name}`} result={result} />}
             </div>
           </div>
         )}
@@ -196,19 +203,19 @@ export default function KubernetesPage() {
 
 function SetupNotice({ message }: { message: string | null }) {
   return (
-    <div className="mt-8 rounded-xl border border-amber-500/30 bg-amber-500/[0.06] p-6">
-      <h2 className="font-serif text-xl text-paper-50">Kubernetes is not configured</h2>
-      <p className="mt-2 text-sm text-paper-300">
+    <div className="mt-8 rounded-[4px] border border-warn bg-accent-soft p-6">
+      <h2 className="font-serif text-xl text-primary">Kubernetes is not configured</h2>
+      <p className="mt-2 text-sm text-secondary">
         {message ?? "The read-only Kubernetes integration is disabled."}
       </p>
-      <p className="mt-3 text-sm text-paper-300">
+      <p className="mt-3 text-sm text-secondary">
         To explore with labelled demo fixtures, set:
       </p>
-      <pre className="mt-3 overflow-x-auto rounded-lg border border-hairline-strong bg-ink-950 p-3 font-mono text-[12px] text-paper-200">
+      <pre className="mt-3 overflow-x-auto rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] p-3 font-mono text-[12px] text-primary">
 {`KUBERNETES_ENABLED=true
 KUBERNETES_DEMO_MODE=true`}
       </pre>
-      <p className="mt-3 text-xs text-paper-400">
+      <p className="mt-3 text-xs text-tertiary">
         For a live cluster, also set <code className="font-mono">KUBERNETES_KUBECONFIG</code>{" "}
         (or <code className="font-mono">KUBERNETES_IN_CLUSTER=true</code>) and apply the
         read-only RBAC in docs/KUBERNETES_SETUP.md.
@@ -233,13 +240,13 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
   const { diagnosis, evidence, pod } = result;
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-hairline bg-ink-950/40 p-6">
+      <div className="rounded-[4px] border border-hairline bg-[var(--bg-subtle)] p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-paper-400">
+            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-tertiary">
               {pod.namespace}/{pod.name}
             </div>
-            <h2 className="mt-2 font-serif text-xl text-paper-50">{diagnosis.summary}</h2>
+            <h2 className="mt-2 font-serif text-xl text-primary">{diagnosis.summary}</h2>
           </div>
           <div className="flex items-center gap-2">
             {diagnosis.model_generated ? (
@@ -252,24 +259,26 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
         </div>
 
         <div className="mt-4 flex items-center gap-3">
-          <div className="h-1.5 w-40 overflow-hidden rounded-full bg-ink-700">
+          <div className="h-1.5 w-40 overflow-hidden rounded-full bg-[var(--border-strong)]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-400"
+              className="h-full rounded-full bg-accent"
               style={{ width: `${Math.round(diagnosis.confidence * 100)}%` }}
             />
           </div>
-          <span className="text-[11px] text-paper-400">
+          <span className="text-[11px] text-tertiary">
             {Math.round(diagnosis.confidence * 100)}% confidence
             {diagnosis.confidence_basis ? ` — ${diagnosis.confidence_basis}` : ""}
           </span>
         </div>
       </div>
 
+      <AIExplanation pod={pod} evidence={evidence} />
+
       <Section title="Confirmed observations">
         <ul className="space-y-1.5">
           {diagnosis.confirmed_observations.map((o, i) => (
-            <li key={i} className="flex gap-2 text-[12.5px] text-paper-200">
-              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-emerald-500" />
+            <li key={i} className="flex gap-2 text-[12.5px] text-primary">
+              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-good" />
               <span>{o}</span>
             </li>
           ))}
@@ -278,28 +287,28 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
 
       <Section title="Hypotheses">
         {diagnosis.hypotheses.length === 0 && (
-          <p className="text-[12.5px] text-paper-400">
+          <p className="text-[12.5px] text-tertiary">
             No failure hypotheses matched the available evidence.
           </p>
         )}
         <div className="space-y-3">
           {diagnosis.hypotheses.map((h, i) => (
-            <div key={i} className="rounded-lg border border-hairline p-4">
+            <div key={i} className="rounded-[4px] border border-hairline p-4">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-[13px] text-paper-100">{h.statement}</p>
-                <span className="shrink-0 font-mono text-[11px] text-paper-400">
+                <p className="text-[13px] text-primary">{h.statement}</p>
+                <span className="shrink-0 font-mono text-[11px] text-tertiary">
                   {Math.round(h.confidence * 100)}%
                 </span>
               </div>
               {h.reasoning && (
-                <p className="mt-2 text-[12px] text-paper-300">{h.reasoning}</p>
+                <p className="mt-2 text-[12px] text-secondary">{h.reasoning}</p>
               )}
               {h.evidence_ids.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {h.evidence_ids.map((id) => (
                     <span
                       key={id}
-                      className="rounded border border-hairline-strong px-1.5 py-0.5 font-mono text-[10px] text-paper-400"
+                      className="rounded border border-[var(--border-strong)] px-1.5 py-0.5 font-mono text-[10px] text-tertiary"
                     >
                       {id.slice(0, 8)}
                     </span>
@@ -315,12 +324,12 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
         <Section title="Next diagnostic steps (read-only)">
           <ul className="space-y-2">
             {diagnosis.next_steps.map((s, i) => (
-              <li key={i} className="rounded-lg border border-hairline p-3">
-                <code className="block break-all font-mono text-[12px] text-paper-100">
+              <li key={i} className="rounded-[4px] border border-hairline p-3">
+                <code className="block break-all font-mono text-[12px] text-primary">
                   {s.action}
                 </code>
                 {s.purpose && (
-                  <p className="mt-1 text-[11.5px] text-paper-400">{s.purpose}</p>
+                  <p className="mt-1 text-[11.5px] text-tertiary">{s.purpose}</p>
                 )}
               </li>
             ))}
@@ -332,20 +341,20 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
         <Section title="Remediation (requires explicit approval)">
           <div className="space-y-3">
             {diagnosis.remediation.map((r, i) => (
-              <div key={i} className="rounded-lg border border-amber-500/30 bg-amber-500/[0.06] p-4">
+              <div key={i} className="rounded-[4px] border border-warn bg-accent-soft p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-[13px] font-medium text-paper-100">{r.title}</p>
+                  <p className="text-[13px] font-medium text-primary">{r.title}</p>
                   <Badge tone="warn">changes state · {r.risk}</Badge>
                 </div>
-                <p className="mt-2 text-[12px] text-paper-300">{r.description}</p>
+                <p className="mt-2 text-[12px] text-secondary">{r.description}</p>
                 {r.rollback && (
-                  <p className="mt-2 text-[11.5px] text-paper-400">
-                    <span className="text-paper-300">Rollback:</span> {r.rollback}
+                  <p className="mt-2 text-[11.5px] text-tertiary">
+                    <span className="text-secondary">Rollback:</span> {r.rollback}
                   </p>
                 )}
                 {r.verification && (
-                  <p className="mt-1 text-[11.5px] text-paper-400">
-                    <span className="text-paper-300">Verify:</span> {r.verification}
+                  <p className="mt-1 text-[11.5px] text-tertiary">
+                    <span className="text-secondary">Verify:</span> {r.verification}
                   </p>
                 )}
               </div>
@@ -356,7 +365,7 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
 
       {diagnosis.missing_evidence.length > 0 && (
         <Section title="Missing evidence">
-          <ul className="space-y-1 text-[12px] text-paper-400">
+          <ul className="space-y-1 text-[12px] text-tertiary">
             {diagnosis.missing_evidence.map((m, i) => (
               <li key={i}>· {m}</li>
             ))}
@@ -367,7 +376,7 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
       <Section title={`Evidence (${evidence.length})`}>
         <div className="space-y-2">
           {evidence.map((e) => (
-            <div key={e.id} className="rounded-lg border border-hairline p-3">
+            <div key={e.id} className="rounded-[4px] border border-hairline p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className={`rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase ${
@@ -376,17 +385,17 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
                 >
                   {e.severity}
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-paper-400">
+                <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-tertiary">
                   {e.source_type}
                 </span>
                 {e.demo && <Badge tone="warn">demo</Badge>}
-                <span className="font-mono text-[10px] text-paper-400">
+                <span className="font-mono text-[10px] text-tertiary">
                   {e.provenance}
                 </span>
               </div>
-              <p className="mt-2 break-words text-[12px] text-paper-200">{e.summary}</p>
+              <p className="mt-2 break-words text-[12px] text-primary">{e.summary}</p>
               {e.integrity && (
-                <p className="mt-1 font-mono text-[10px] text-paper-400">
+                <p className="mt-1 font-mono text-[10px] text-tertiary">
                   sha256: {e.integrity.slice(0, 16)}…
                 </p>
               )}
@@ -394,6 +403,192 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
           ))}
         </div>
       </Section>
+    </div>
+  );
+}
+
+function AIExplanation({
+  pod,
+  evidence,
+}: {
+  pod: K8sPod;
+  evidence: PodDiagnosisResponse["evidence"];
+}) {
+  const [ai, setAi] = useState<AIStructuredDiagnosis | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function explain() {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await api.ai.diagnose({
+        question: `Explain the likely cause and the safest next diagnostic steps for ${pod.namespace}/${pod.name}.`,
+        surface: "kubernetes",
+        // Payloads can contain large log excerpts. The backend prompt uses the
+        // already-redacted summaries, so do not send the payloads themselves.
+        evidence: evidence.map((item) => ({ ...item, payload: undefined })),
+      });
+      setAi(result);
+    } catch (err) {
+      setError(
+        err instanceof ApiRequestError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "AI explanation failed",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="rounded-[4px] border border-hairline bg-[var(--bg-subtle)] p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="label-caps">AI explanation</div>
+          <p className="mt-1 max-w-prose text-[12px] text-tertiary">
+            Optional model-generated summary. The deterministic findings above
+            remain authoritative, and nothing is executed.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void explain()}
+          disabled={loading || evidence.length === 0}
+          className="btn-ghost text-[12px] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loading ? "Asking model…" : ai ? "Ask again" : "Explain with AI"}
+        </button>
+      </div>
+
+      {error && (
+        <p className="mt-3 font-mono text-[11.5px] text-bad" role="alert">
+          {error}
+        </p>
+      )}
+
+      {!ai && !loading && !error && (
+        <p className="mt-3 font-mono text-[11.5px] text-tertiary">
+          {evidence.length === 0
+            ? "No evidence is available to send."
+            : "Sends only the cited evidence summaries to the configured AI provider."}
+        </p>
+      )}
+
+      {ai && (
+        <div className="mt-4 space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="warn">AI-generated</Badge>
+            <span className="font-mono text-[10.5px] text-tertiary">
+              {ai.model_provider ?? "provider"}/{ai.model_name ?? "model"}
+            </span>
+            <span className="font-mono text-[10.5px] text-tertiary">
+              · {Math.round(ai.confidence * 100)}% confidence
+            </span>
+          </div>
+
+          <p className="text-[13px] leading-relaxed text-primary">{ai.summary}</p>
+
+          {ai.hypotheses.length > 0 && (
+            <div>
+              <div className="mb-2 label-caps">Model hypotheses</div>
+              <div className="space-y-2">
+                {ai.hypotheses.map((hypothesis, index) => (
+                  <div key={index} className="rounded-[4px] border border-hairline p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-[12.5px] text-primary">
+                        {hypothesis.explanation}
+                      </p>
+                      <span className="shrink-0 font-mono text-[10.5px] text-tertiary">
+                        {Math.round(hypothesis.confidence * 100)}%
+                      </span>
+                    </div>
+                    {hypothesis.evidence_ids.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {hypothesis.evidence_ids.map((id) => (
+                          <span
+                            key={id}
+                            className="rounded border border-[var(--border-strong)] px-1.5 py-0.5 font-mono text-[10px] text-tertiary"
+                          >
+                            {id.slice(0, 8)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {ai.next_steps.length > 0 && (
+            <div>
+              <div className="mb-2 label-caps">Suggested read-only steps</div>
+              <ul className="space-y-1.5">
+                {ai.next_steps.map((step, index) => (
+                  <li key={index} className="flex gap-2 text-[12.5px] text-primary">
+                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {ai.proposed_remediation.length > 0 && (
+            <div>
+              <div className="mb-2 label-caps">Proposed remediation</div>
+              <div className="space-y-2">
+                {ai.proposed_remediation.map((action, index) => (
+                  <div
+                    key={index}
+                    className="rounded-[4px] border border-warn bg-accent-soft p-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[12.5px] text-primary">{action.description}</p>
+                      <Badge tone="warn">
+                        {action.changes_state ? "changes state" : "read-only"} · {action.risk}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-[11px] text-tertiary">
+                      {action.requires_approval
+                        ? "Requires explicit human approval; never executed automatically."
+                        : "Review before acting."}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(ai.risks.length > 0 || ai.unknowns.length > 0) && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {ai.risks.length > 0 && (
+                <div>
+                  <div className="mb-2 label-caps">Risks</div>
+                  <ul className="space-y-1 text-[11.5px] text-tertiary">
+                    {ai.risks.map((risk, index) => (
+                      <li key={index}>· {risk}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {ai.unknowns.length > 0 && (
+                <div>
+                  <div className="mb-2 label-caps">Unknowns</div>
+                  <ul className="space-y-1 text-[11.5px] text-tertiary">
+                    {ai.unknowns.map((unknown, index) => (
+                      <li key={index}>· {unknown}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -415,9 +610,9 @@ function Badge({
   children: React.ReactNode;
 }) {
   const styles = {
-    good: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-    warn: "border-amber-500/30 bg-amber-500/10 text-amber-700",
-    neutral: "border-hairline-strong text-paper-300",
+    good: "border-good bg-good-soft text-good",
+    warn: "border-warn bg-accent-soft text-warn",
+    neutral: "border-[var(--border-strong)] text-secondary",
   }[tone];
   return (
     <span

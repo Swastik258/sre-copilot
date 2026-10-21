@@ -35,16 +35,16 @@ export function HealthPill() {
 
   const color =
     state === "ok"
-      ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
+      ? "border-good bg-good-soft text-good"
       : state === "degraded"
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+        ? "border-warn bg-accent-soft text-accent"
         : state === "error"
-          ? "border-rose-500/25 bg-rose-500/10 text-rose-300"
-          : "border-hairline-strong bg-ink-800 text-paper-300";
+          ? "border-bad bg-bad-soft text-bad"
+          : "border-[var(--border-strong)] bg-[var(--bg-subtle)] text-secondary";
 
   return (
     <div
-      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${color}`}
+      className={`inline-flex items-center gap-2 rounded-[4px] border px-3 py-2 text-xs ${color}`}
       role="status"
       aria-live="polite"
       title={error ?? undefined}
@@ -52,12 +52,12 @@ export function HealthPill() {
       <span
         className={`size-1.5 rounded-full ${
           state === "ok"
-            ? "bg-emerald-500"
+            ? "bg-good"
             : state === "degraded"
-              ? "bg-amber-500"
+              ? "bg-accent"
               : state === "error"
-                ? "bg-rose-500"
-                : "bg-paper-400"
+                ? "bg-bad"
+                : "bg-[var(--text-subtle)]"
         }`}
       />
       <span className="font-medium">API</span>

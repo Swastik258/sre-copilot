@@ -45,21 +45,21 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-hairline bg-ink-900">
+    <footer className="border-t border-hairline bg-[var(--bg-elevated)]">
       <div className="shell py-16">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)]">
           <div>
-            <Link href="/" className="flex items-center gap-3 text-base font-semibold text-paper-50">
-              <span className="grid size-8 place-items-center rounded-lg border border-hairline-strong bg-ink-800 font-mono text-xs font-semibold text-amber-500">
+            <Link href="/" className="flex items-center gap-3 text-base font-semibold text-primary">
+              <span className="grid size-8 place-items-center rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-accent">
                 SC
               </span>
               SRE Copilot
             </Link>
-            <p className="mt-4 max-w-sm text-dense text-paper-400">
+            <p className="mt-4 max-w-sm text-dense text-tertiary">
               Read-only investigation for Kubernetes, logs, CI/CD, and Terraform.
               Evidence-backed diagnoses you can act on — never guesses.
             </p>
-            <div className="mt-6 flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-400">
+            <div className="mt-6 flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-tertiary">
               <span className="dot dot-idle" />
               Read-only · demo environment
             </div>
@@ -74,7 +74,7 @@ export function SiteFooter() {
                     <li key={l.href}>
                       <Link
                         href={l.href}
-                        className="text-dense text-paper-300 transition hover:text-paper-100"
+                        className="text-dense text-secondary transition hover:text-primary"
                       >
                         {l.label}
                       </Link>
@@ -87,10 +87,10 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-14 flex flex-col justify-between gap-4 border-t border-hairline pt-6 sm:flex-row sm:items-center">
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-400">
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-tertiary">
             SRE Copilot · v0.2 · diagnose infrastructure with evidence, not guesses
           </div>
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-400">
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-tertiary">
             No API key required to run locally
           </div>
         </div>

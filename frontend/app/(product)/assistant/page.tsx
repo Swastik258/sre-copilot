@@ -21,21 +21,21 @@ export default function AssistantPage() {
             <div className="space-y-4 text-[12.5px]">
               <div>
                 <PreviewLabel>you</PreviewLabel>
-                <p className="mt-1 text-paper-100">
+                <p className="mt-1 text-primary">
                   Why did the checkout deployment start failing after the 18:02 deploy?
                 </p>
               </div>
               <div className="border-t border-hairline pt-3">
                 <PreviewLabel>observed</PreviewLabel>
-                <ul className="mt-1.5 space-y-1 font-mono text-[11.5px] text-paper-200">
+                <ul className="mt-1.5 space-y-1 font-mono text-[11.5px] text-primary">
                   <li>· deploy checkout@v412 rolled out 18:02:11Z</li>
                   <li>· 3/3 pods CrashLoopBackOff within 90s</li>
-                  <li>· previous logs end at <span className="text-signal-bad">connect ECONNREFUSED redis:6379</span></li>
+                  <li>· previous logs end at <span className="text-bad">connect ECONNREFUSED redis:6379</span></li>
                 </ul>
               </div>
               <div className="border-t border-hairline pt-3">
                 <PreviewLabel>hypothesis · 0.72</PreviewLabel>
-                <p className="mt-1 text-paper-200">
+                <p className="mt-1 text-primary">
                   The release likely points at a Redis service the new pod cannot reach
                   (wrong namespace or missing Service). The DB dependency is healthy.
                 </p>
@@ -44,7 +44,7 @@ export default function AssistantPage() {
                 {["ev_9f21", "ev_b7c0", "ev_44ae"].map((id) => (
                   <span
                     key={id}
-                    className="rounded border border-hairline-strong px-1.5 py-0.5 font-mono text-[10px] text-paper-400"
+                    className="rounded border border-[var(--border-strong)] px-1.5 py-0.5 font-mono text-[10px] text-tertiary"
                   >
                     {id}
                   </span>

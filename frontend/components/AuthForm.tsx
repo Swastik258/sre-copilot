@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ApiRequestError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-client";
@@ -12,6 +13,7 @@ const inputClass =
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const { setUser } = useAuth();
+  const router = useRouter();
   const isSignup = mode === "signup";
 
   const [name, setName] = useState("");
@@ -46,7 +48,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
         : await api.auth.login({ email, password });
 
       setUser(result.user);
-      window.location.href = "/dashboard";
+      router.replace("/dashboard");
+      router.refresh();
     } catch (err) {
       setError(
         err instanceof ApiRequestError

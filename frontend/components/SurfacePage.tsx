@@ -63,7 +63,7 @@ export function SurfacePage({ config }: { config: SurfaceConfig }) {
                 <span className="label-caps">
                   {config.previewLabel ?? "Preview · labelled sample data"}
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-paper-400">
+                <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-tertiary">
                   illustrative
                 </span>
               </div>

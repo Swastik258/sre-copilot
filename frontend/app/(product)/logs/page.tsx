@@ -19,13 +19,13 @@ export default function LogsPage() {
             badge={<Badge tone="neutral">illustrative</Badge>}
           >
             <div className="space-y-1 font-mono text-[11.5px] leading-relaxed">
-              <div className="text-paper-400">18:02:09Z INFO  server boot · commit 9f21c4</div>
-              <div className="text-signal-bad">
+              <div className="text-tertiary">18:02:09Z INFO  server boot · commit 9f21c4</div>
+              <div className="text-bad">
                 18:02:11Z ERROR connect redis: ECONNREFUSED redis:6379
               </div>
-              <div className="text-paper-400">    at Pool.connect (ioredis/redis.js:190)</div>
-              <div className="text-signal-bad">18:02:11Z ERROR process exited code=1</div>
-              <div className="pt-2 text-[10.5px] text-paper-400">
+              <div className="text-tertiary">    at Pool.connect (ioredis/redis.js:190)</div>
+              <div className="text-bad">18:02:11Z ERROR process exited code=1</div>
+              <div className="pt-2 text-[10.5px] text-tertiary">
                 grouped · 47 occurrences · first seen 18:02:11Z · trace 3 frames
               </div>
             </div>

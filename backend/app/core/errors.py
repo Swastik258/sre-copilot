@@ -74,6 +74,20 @@ class NotConfiguredError(AppError):
     code = "not_configured"
 
 
+class AIProviderError(AppError):
+    """Raised when an external AI provider fails or returns unusable output."""
+
+    status_code = 502
+    code = "ai_provider_error"
+
+
+class GitHubAPIError(AppError):
+    """Raised when GitHub rejects or fails a read-only API request."""
+
+    status_code = 502
+    code = "github_api_error"
+
+
 class PermissionDeniedError(AppError):
     status_code = 403
     code = "permission_denied"

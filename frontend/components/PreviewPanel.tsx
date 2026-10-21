@@ -16,12 +16,12 @@ export function PreviewPanel({
   className?: string;
 }) {
   return (
-    <div className={`card overflow-hidden rounded-2xl ${className}`}>
-      <div className="flex items-center gap-2 border-b border-hairline bg-ink-850 px-4 py-3">
-        <span className="size-2 rounded-full bg-signal-bad/80" />
-        <span className="size-2 rounded-full bg-signal-warn/80" />
-        <span className="size-2 rounded-full bg-signal-good/80" />
-        <span className="ml-2 truncate font-mono text-[10.5px] text-paper-400">{title}</span>
+    <div className={`card overflow-hidden rounded-[4px] ${className}`}>
+      <div className="flex items-center gap-2 border-b border-hairline bg-[var(--bg-subtle)] px-4 py-3">
+        <span className="size-2 rounded-full bg-bad" />
+        <span className="size-2 rounded-full bg-warn" />
+        <span className="size-2 rounded-full bg-good" />
+        <span className="ml-2 truncate font-mono text-[10.5px] text-tertiary">{title}</span>
         {badge && <span className="ml-auto">{badge}</span>}
       </div>
       <div className="p-4 sm:p-5">{children}</div>
@@ -31,7 +31,7 @@ export function PreviewPanel({
 
 export function PreviewLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-paper-400">
+    <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-tertiary">
       {children}
     </div>
   );

@@ -1,88 +1,540 @@
-import { SurfacePage } from "@/components/SurfacePage";
-import { PreviewPanel } from "@/components/PreviewPanel";
+"use client";
+
+import { useState, type ChangeEvent, type ReactNode } from "react";
 import { Badge } from "@/components/ui";
+import {
+  api,
+  ApiRequestError,
+  type EvidenceRecord,
+  type TerraformChange,
+  type TerraformFinding,
+  type TerraformReviewResponse,
+} from "@/lib/api";
+
+const SAMPLE_PLAN = {
+  format_version: "1.2",
+  terraform_version: "1.9.0",
+  resource_changes: [
+    {
+      address: "aws_s3_bucket.assets",
+      type: "aws_s3_bucket",
+      name: "assets",
+      provider_name: "registry.terraform.io/hashicorp/aws",
+      change: {
+        actions: ["create"],
+        before: null,
+        after: {
+          bucket: "demo-assets",
+          tags: { team: "sre", environment: "staging" },
+        },
+        after_unknown: { arn: true },
+      },
+    },
+    {
+      address: "aws_db_instance.primary",
+      type: "aws_db_instance",
+      name: "primary",
+      provider_name: "registry.terraform.io/hashicorp/aws",
+      change: {
+        actions: ["delete", "create"],
+        before: { engine_version: "15.4", storage_gb: 100 },
+        after: { engine_version: "15.6", storage_gb: 200 },
+        replace_paths: [["engine_version"]],
+        after_unknown: {},
+      },
+    },
+    {
+      address: "aws_db_snapshot.legacy",
+      type: "aws_db_snapshot",
+      name: "legacy",
+      change: {
+        actions: ["delete"],
+        before: { identifier: "legacy-snapshot" },
+        after: null,
+      },
+    },
+    {
+      address: "aws_instance.web",
+      type: "aws_instance",
+      name: "web",
+      change: {
+        actions: ["update"],
+        before: { ami: "ami-old" },
+        after: { ami: "ami-new" },
+      },
+    },
+  ],
+};
+
+const SEVERITY_STYLES: Record<string, string> = {
+  info: "border-[var(--border-strong)] text-secondary",
+  low: "border-info text-info",
+  medium: "border-warn text-warn",
+  high: "border-bad text-bad",
+  critical: "border-bad text-bad",
+};
 
 export default function TerraformPage() {
+  const [planText, setPlanText] = useState("");
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [isSample, setIsSample] = useState(false);
+  const [result, setResult] = useState<TerraformReviewResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function reviewPlan() {
+    setError(null);
+    setResult(null);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(planText);
+    } catch (err) {
+      setError(
+        `Plan is not valid JSON: ${err instanceof Error ? err.message : "parse error"}`,
+      );
+      return;
+    }
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      setError("Plan JSON must be an object, not an array or primitive.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await api.terraform.review(parsed);
+      setResult(response);
+    } catch (err) {
+      if (err instanceof ApiRequestError) {
+        setError(err.message);
+      } else {
+        setError(err instanceof Error ? err.message : "Plan review failed");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      setPlanText(text);
+      setFileName(file.name);
+      setIsSample(false);
+      setResult(null);
+      setError(null);
+    } catch {
+      setError("Could not read the selected file.");
+    }
+  }
+
+  function loadSample() {
+    setPlanText(JSON.stringify(SAMPLE_PLAN, null, 2));
+    setFileName("sample-plan.json");
+    setIsSample(true);
+    setResult(null);
+    setError(null);
+  }
+
+  function clearPlan() {
+    setPlanText("");
+    setFileName(null);
+    setIsSample(false);
+    setResult(null);
+    setError(null);
+  }
+
   return (
-    <SurfacePage
-      config={{
-        eyebrow: "Terraform",
-        title: "Know what a plan will destroy before you apply it",
-        subtitle:
-          "Turn a Terraform plan into plain language: what is created, changed, replaced, or destroyed, the blast radius of each replacement, and a review checklist for the risky ones.",
-        status: "planned",
-        milestone: "M6",
-        previewLabel: "Preview · illustrative plan explanation",
-        preview: (
-          <PreviewPanel
-            title="terraform · plan.json"
-            badge={<Badge tone="neutral">illustrative</Badge>}
-          >
-            <div className="space-y-1 font-mono text-[11.5px] leading-relaxed">
-              <div className="text-signal-warn">
-                <span className="opacity-70">-/+</span> aws_db_instance.primary{" "}
-                <span className="text-paper-400">(replaced)</span>
+    <div className="relative min-h-screen">
+      <div aria-hidden className="grid-overlay" />
+      <div className="shell relative py-12">
+        <div className="flex flex-wrap items-start justify-between gap-4 animate-fade-up">
+          <div>
+            <span className="label-caps">Read-only plan review</span>
+            <h1 className="mt-3 font-serif text-display-sm text-primary">
+              Terraform blast radius
+            </h1>
+            <p className="mt-2 max-w-prose text-dense text-tertiary">
+              Paste a plan JSON document to detect replacements and deletions,
+              surface stateful-resource risk, and see the blast radius before
+              anyone applies it. This never runs Terraform or reads credentials.
+            </p>
+          </div>
+          <Badge tone="good">no apply · values not returned</Badge>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] animate-fade-up delay-1">
+          <div className="rounded-[4px] border border-hairline bg-[var(--bg-subtle)] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="label-caps">Plan JSON</div>
+                <p className="mt-1 text-[11.5px] text-tertiary">
+                  From <code className="font-mono">terraform show -json</code> or a
+                  saved plan converted to JSON.
+                </p>
               </div>
-              <div className="pl-4 text-paper-400">~ engine_version: "15.4" → "15.6"</div>
-              <div className="pl-4 text-paper-400">~ storage_gb: 100 → 200</div>
-              <div className="pl-4 text-signal-bad">! replacement destroys primary before recreate</div>
-              <div className="pt-2 text-signal-bad">
-                <span className="opacity-70">-</span> aws_db_snapshot.legacy{" "}
-                <span className="text-paper-400">(destroy)</span>
-              </div>
-              <div className="pt-2 text-[10.5px] text-paper-400">
-                1 replacement · 1 deletion · 0 additions · high blast radius
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="btn-ghost cursor-pointer text-[12px]">
+                  Upload JSON
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    onChange={(event) => void onFileChange(event)}
+                    className="sr-only"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={loadSample}
+                  className="btn-ghost text-[12px]"
+                >
+                  Load sample
+                </button>
               </div>
             </div>
-          </PreviewPanel>
-        ),
-        capabilitiesTitle: "What plan analysis will do",
-        capabilities: [
-          {
-            icon: "terraform",
-            title: "Explain every change",
-            body: "Describe each create, update, replace, and destroy in plain language, with the attribute-level diff behind it.",
-            meta: "create · update · replace · destroy",
-          },
-          {
-            icon: "bolt",
-            title: "Flag destructive changes",
-            body: "Call out replacements and deletions prominently, including resources that will be destroyed before they are recreated.",
-            meta: "replace · force-new · delete",
-          },
-          {
-            icon: "compass",
-            title: "Blast radius",
-            body: "Show what depends on a resource so you understand what a change takes down with it.",
-            meta: "dependencies · impact",
-          },
-          {
-            icon: "check",
-            title: "Review checklist",
-            body: "A short, specific checklist for the risky changes — data loss, downtime, cost, and drift — before anyone runs apply.",
-            meta: "data loss · downtime · cost",
-          },
-        ],
-        roadmapTitle: "Where plan analysis lands",
-        roadmap: [
-          { milestone: "M6", title: "Plan parser", body: "Parse a plan file into normalized resource changes, no cloud credentials required." },
-          { milestone: "M6", title: "Diff explainer", body: "Translate attribute diffs into impact statements." },
-          { milestone: "M6", title: "Destructive-change detection", body: "Rank replacements and deletions by data-loss and downtime risk." },
-          { milestone: "M6", title: "Review checklist", body: "Generate a targeted checklist per plan." },
-        ],
-        ctaTitle: (
-          <>
-            Review the plan.
-            <br />
-            Never run apply.
-          </>
-        ),
-        ctaBody:
-          "Terraform analysis parses plans; it never runs apply and needs no cloud credentials. Until it ships, Kubernetes diagnosis is live on demo fixtures.",
-        primary: { label: "See what's live", href: "/product" },
-        secondary: { label: "Read the docs", href: "/docs" },
-        ctaNote: "parses plan.json · never executes terraform",
-      }}
-    />
+
+            <textarea
+              value={planText}
+              onChange={(event) => {
+                setPlanText(event.target.value);
+                setFileName(null);
+                setIsSample(false);
+                setResult(null);
+                setError(null);
+              }}
+              rows={18}
+              spellCheck={false}
+              placeholder={'{\n  "format_version": "1.2",\n  "resource_changes": []\n}'}
+              className="mt-3 w-full resize-y rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] p-3 font-mono text-[11.5px] leading-relaxed text-primary placeholder:text-tertiary"
+            />
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2 font-mono text-[10.5px] text-tertiary">
+                {fileName && <span>{fileName}</span>}
+                {isSample && <Badge tone="warn">sample · illustrative</Badge>}
+                {!fileName && <span>No file selected</span>}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={clearPlan}
+                  disabled={loading || (!planText && !result)}
+                  className="btn-ghost text-[12px] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void reviewPlan()}
+                  disabled={loading || !planText.trim()}
+                  className="btn-primary text-[12px] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {loading ? "Reviewing…" : "Review plan"}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <p className="mt-3 font-mono text-[11.5px] text-bad" role="alert">
+                {error}
+              </p>
+            )}
+          </div>
+
+          <div className="min-w-0">
+            {!result && !loading && (
+              <div className="grid h-full min-h-[320px] place-items-center rounded-[4px] border border-hairline bg-[var(--bg-subtle)] p-12 text-center">
+                <p className="max-w-sm font-mono text-[12px] text-tertiary">
+                  Review a plan to see replacements, deletions, stateful-resource
+                  risk, attribute-name changes, and the evidence behind every
+                  finding. Values are deliberately omitted.
+                </p>
+              </div>
+            )}
+            {loading && (
+              <p className="font-mono text-sm text-tertiary">Reviewing plan…</p>
+            )}
+            {result && <ReviewView result={result} />}
+          </div>
+        </div>
+      </div>
+    </div>
   );
+}
+
+function ReviewView({ result }: { result: TerraformReviewResponse }) {
+  const { summary, findings, changes, evidence } = result;
+  return (
+    <div className="space-y-6">
+      <div className="rounded-[4px] border border-hairline bg-[var(--bg-subtle)] p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-tertiary">
+              terraform {result.terraform_version ?? "unknown"} · format{" "}
+              {result.format_version ?? "unknown"}
+            </div>
+            <h2 className="mt-2 font-serif text-xl text-primary">
+              {summary.headline}
+            </h2>
+          </div>
+          <Badge tone={blastTone(summary.blast_radius)}>
+            blast radius: {summary.blast_radius}
+          </Badge>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Count label="total" value={summary.total} />
+          <Count label="create" value={summary.create} tone="good" />
+          <Count label="update" value={summary.update} tone="warn" />
+          <Count label="replace" value={summary.replace} tone="bad" />
+          <Count label="destroy" value={summary.destroy} tone="bad" />
+          <Count label="read" value={summary.read} />
+          <Count label="no-op" value={summary.no_op} />
+          <Count label="unknown" value={summary.unknown} tone="warn" />
+        </div>
+      </div>
+
+      <Section title={`Findings (${findings.length})`}>
+        {findings.length === 0 && (
+          <p className="text-[12.5px] text-tertiary">
+            No high-risk replacements, deletions, stateful updates, or unknown
+            values were found.
+          </p>
+        )}
+        <div className="space-y-3">
+          {findings.map((finding, index) => (
+            <FindingRow key={`${finding.address ?? "finding"}-${index}`} finding={finding} />
+          ))}
+        </div>
+      </Section>
+
+      <Section title={`Resource changes (${changes.length})`}>
+        <div className="space-y-2">
+          {changes.length === 0 && (
+            <p className="font-mono text-[11.5px] text-tertiary">
+              This plan contains no resource changes.
+            </p>
+          )}
+          {changes.map((change) => (
+            <ChangeRow key={change.address} change={change} />
+          ))}
+        </div>
+      </Section>
+
+      <Section title={`Evidence (${evidence.length})`}>
+        <div className="space-y-2">
+          {evidence.map((item) => (
+            <EvidenceRow key={item.id} item={item} />
+          ))}
+        </div>
+      </Section>
+    </div>
+  );
+}
+
+function Count({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: number;
+  tone?: "good" | "warn" | "bad" | "neutral";
+}) {
+  const color = {
+    good: "text-good",
+    warn: "text-warn",
+    bad: "text-bad",
+    neutral: "text-primary",
+  }[tone];
+  return (
+    <div className="rounded-[4px] border border-hairline px-2 py-2 text-center">
+      <div className={`font-serif text-lg leading-none ${color}`}>{value}</div>
+      <div className="mt-1 font-mono text-[9.5px] uppercase tracking-[0.12em] text-tertiary">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function FindingRow({ finding }: { finding: TerraformFinding }) {
+  return (
+    <div className="rounded-[4px] border border-hairline p-3">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="flex items-start gap-2">
+          <span
+            className={`mt-0.5 rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase ${
+              SEVERITY_STYLES[finding.severity] ?? SEVERITY_STYLES.info
+            }`}
+          >
+            {finding.severity}
+          </span>
+          <p className="text-[13px] text-primary">{finding.title}</p>
+        </div>
+        {finding.address && (
+          <span className="max-w-full truncate font-mono text-[10px] text-tertiary">
+            {finding.address}
+          </span>
+        )}
+      </div>
+      <p className="mt-2 text-[12px] leading-relaxed text-secondary">
+        {finding.detail}
+      </p>
+      {finding.evidence_id && (
+        <p className="mt-1 font-mono text-[10px] text-tertiary">
+          evidence: {finding.evidence_id.slice(0, 8)}…
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ChangeRow({ change }: { change: TerraformChange }) {
+  return (
+    <div className="rounded-[4px] border border-hairline p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="truncate font-mono text-[12px] text-primary">
+            {change.address}
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-[10px] text-tertiary">
+            <span>{change.type ?? "resource"}</span>
+            {change.provider && <span>· {change.provider}</span>}
+            {change.stateful && <span>· stateful</span>}
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge tone={actionTone(change.action)}>{change.action}</Badge>
+          <Badge tone={riskTone(change.risk)}>risk: {change.risk}</Badge>
+        </div>
+      </div>
+
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-tertiary">
+        <span>actions: {change.actions.join(" → ") || "none"}</span>
+        {change.action_reason && <span>reason: {change.action_reason}</span>}
+      </div>
+
+      {change.replace_paths.length > 0 && (
+        <AttributeList
+          label="replacement paths"
+          values={change.replace_paths}
+          tone="bad"
+        />
+      )}
+      {change.changed_attributes.length > 0 && (
+        <AttributeList
+          label="changed attributes"
+          values={change.changed_attributes}
+          tone="neutral"
+        />
+      )}
+      {change.unknown_attributes.length > 0 && (
+        <AttributeList
+          label="unknown attributes"
+          values={change.unknown_attributes}
+          tone="warn"
+        />
+      )}
+    </div>
+  );
+}
+
+function AttributeList({
+  label,
+  values,
+  tone,
+}: {
+  label: string;
+  values: string[];
+  tone: "good" | "warn" | "bad" | "neutral";
+}) {
+  const chip = {
+    good: "border-good text-good",
+    warn: "border-warn text-warn",
+    bad: "border-bad text-bad",
+    neutral: "border-[var(--border-strong)] text-secondary",
+  }[tone];
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-tertiary">
+        {label}:
+      </span>
+      {values.slice(0, 8).map((value) => (
+        <span
+          key={value}
+          className={`rounded border px-1.5 py-0.5 font-mono text-[10px] ${chip}`}
+        >
+          {value}
+        </span>
+      ))}
+      {values.length > 8 && (
+        <span className="font-mono text-[10px] text-tertiary">
+          +{values.length - 8} more
+        </span>
+      )}
+    </div>
+  );
+}
+
+function EvidenceRow({ item }: { item: EvidenceRecord }) {
+  return (
+    <div className="rounded-[4px] border border-hairline p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className={`rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase ${
+            SEVERITY_STYLES[item.severity] ?? SEVERITY_STYLES.info
+          }`}
+        >
+          {item.severity}
+        </span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-tertiary">
+          {item.source_type}
+        </span>
+        <span className="max-w-full truncate font-mono text-[10px] text-tertiary">
+          {item.provenance}
+        </span>
+      </div>
+      <p className="mt-2 break-words text-[12px] text-primary">{item.summary}</p>
+      {item.integrity && (
+        <p className="mt-1 font-mono text-[10px] text-tertiary">
+          sha256: {item.integrity.slice(0, 16)}…
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div>
+      <div className="mb-2 label-caps">{title}</div>
+      {children}
+    </div>
+  );
+}
+
+function blastTone(
+  blast: TerraformReviewResponse["summary"]["blast_radius"],
+): "good" | "warn" | "bad" | "neutral" {
+  if (blast === "critical" || blast === "high") return "bad";
+  if (blast === "medium") return "warn";
+  if (blast === "low") return "neutral";
+  return "good";
+}
+
+function actionTone(
+  action: TerraformChange["action"],
+): "good" | "warn" | "bad" | "neutral" {
+  if (action === "create") return "good";
+  if (action === "update" || action === "unknown") return "warn";
+  if (action === "replace" || action === "destroy") return "bad";
+  return "neutral";
+}
+
+function riskTone(risk: TerraformChange["risk"]): "good" | "warn" | "bad" | "neutral" {
+  if (risk === "critical" || risk === "high") return "bad";
+  if (risk === "medium") return "warn";
+  if (risk === "low") return "neutral";
+  return "good";
 }

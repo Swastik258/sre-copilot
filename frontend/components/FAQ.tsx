@@ -39,19 +39,19 @@ export function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="bg-ink-900">
+    <section id="faq" className="bg-[var(--bg-elevated)]">
       <div className="shell py-24">
         {/* Header */}
         <div className="mb-14 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
           <div>
             <span className="label-caps">FAQ</span>
-            <h2 className="mt-4 font-serif text-display tracking-tight text-paper-50">
+            <h2 className="mt-4 font-serif text-display tracking-tight text-primary">
               Questions,
               <br />
               answered.
             </h2>
           </div>
-          <p className="max-w-prose self-end text-dense-lg text-paper-300">
+          <p className="max-w-prose self-end text-dense-lg text-secondary">
             The short answers below are the same ones the code enforces. If
             something here contradicts what you find in the repo, the repo wins.
           </p>
@@ -65,17 +65,17 @@ export function FAQ() {
               <div key={i} className="border-b border-hairline">
                 <button
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full items-baseline gap-6 px-1 py-6 text-left transition hover:bg-ink-850/50"
+                  className="flex w-full items-baseline gap-6 px-1 py-6 text-left transition hover:bg-[var(--bg-subtle)]"
                   aria-expanded={isOpen}
                 >
-                  <span className="font-mono text-[11px] tracking-[0.14em] text-paper-400">
+                  <span className="font-mono text-[11px] tracking-[0.14em] text-tertiary">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="flex-1 text-dense-lg font-medium text-paper-100">
+                  <span className="flex-1 text-dense-lg font-medium text-primary">
                     {item.q}
                   </span>
                   <span
-                    className={`font-mono text-[13px] text-paper-400 transition-transform ${
+                    className={`font-mono text-[13px] text-tertiary transition-transform ${
                       isOpen ? "rotate-45" : ""
                     }`}
                     aria-hidden
@@ -87,7 +87,7 @@ export function FAQ() {
                 {isOpen && (
                   <div className="grid grid-cols-1 gap-6 pl-[2.75rem] pr-10 pb-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
                     <div />
-                    <p className="max-w-prose text-dense text-paper-300">
+                    <p className="max-w-prose text-dense text-secondary">
                       {item.a}
                     </p>
                   </div>
@@ -99,7 +99,7 @@ export function FAQ() {
 
         {/* Footer note */}
         <div className="mt-10 flex flex-wrap items-baseline justify-between gap-3 border-t border-hairline pt-6">
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-paper-400">
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-tertiary">
             Something not answered here?
           </span>
           <a href="/support" className="link-editorial text-dense">

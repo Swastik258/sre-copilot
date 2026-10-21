@@ -231,6 +231,154 @@ export type PodDiagnosisResponse = {
   evidence: EvidenceRecord[];
 };
 
+// ---- GitHub Actions (read-only) ----
+
+export type GitHubRun = {
+  id: number;
+  name?: string | null;
+  display_title?: string | null;
+  run_number?: number | null;
+  run_attempt?: number | null;
+  event?: string | null;
+  status: string;
+  conclusion?: string | null;
+  branch?: string | null;
+  head_sha?: string | null;
+  actor?: string | null;
+  workflow_path?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  html_url?: string | null;
+  demo: boolean;
+};
+
+export type GitHubStep = {
+  number?: number | null;
+  name: string;
+  status: string;
+  conclusion?: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+};
+
+export type GitHubJob = {
+  id: number;
+  name: string;
+  status: string;
+  conclusion?: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  runner_name?: string | null;
+  html_url?: string | null;
+  steps: GitHubStep[];
+};
+
+export type GitHubRunsResponse = {
+  repo: string;
+  runs: GitHubRun[];
+  demo: boolean;
+};
+
+export type GitHubRunResponse = {
+  repo: string;
+  run: GitHubRun;
+  jobs: GitHubJob[];
+  demo: boolean;
+};
+
+export type GitHubDiagnosisResponse = {
+  repo: string;
+  run: GitHubRun;
+  jobs: GitHubJob[];
+  diagnosis: Diagnosis;
+  evidence: EvidenceRecord[];
+  demo: boolean;
+};
+
+// ---- Terraform plan review ----
+
+export type TerraformSummary = {
+  total: number;
+  create: number;
+  update: number;
+  replace: number;
+  destroy: number;
+  read: number;
+  no_op: number;
+  unknown: number;
+  blast_radius: "none" | "low" | "medium" | "high" | "critical";
+  headline: string;
+};
+
+export type TerraformChange = {
+  address: string;
+  type?: string | null;
+  name?: string | null;
+  provider?: string | null;
+  module?: string | null;
+  actions: string[];
+  action: "create" | "update" | "replace" | "destroy" | "read" | "no-op" | "unknown";
+  action_reason?: string | null;
+  replace_paths: string[];
+  changed_attributes: string[];
+  unknown_attributes: string[];
+  stateful: boolean;
+  risk: "low" | "medium" | "high" | "critical";
+  risk_reasons: string[];
+};
+
+export type TerraformFinding = {
+  severity: string;
+  title: string;
+  detail: string;
+  address?: string | null;
+  action: string;
+  evidence_id?: string | null;
+};
+
+export type TerraformReviewResponse = {
+  format_version?: string | null;
+  terraform_version?: string | null;
+  summary: TerraformSummary;
+  changes: TerraformChange[];
+  findings: TerraformFinding[];
+  evidence: EvidenceRecord[];
+  demo: boolean;
+};
+
+// ---- AI-assisted diagnosis ----
+
+export type AIHypothesis = {
+  explanation: string;
+  confidence: number;
+  evidence_ids: string[];
+};
+
+export type AIProposedAction = {
+  description: string;
+  changes_state: boolean;
+  risk: "low" | "medium" | "high";
+  requires_approval: boolean;
+};
+
+export type AIStructuredDiagnosis = {
+  summary: string;
+  confidence: number;
+  confidence_basis?: string | null;
+  hypotheses: AIHypothesis[];
+  evidence_ids: string[];
+  next_steps: string[];
+  proposed_remediation: AIProposedAction[];
+  risks: string[];
+  unknowns: string[];
+  observed_evidence: EvidenceRecord[];
+  risk_level: string;
+  model_generated: boolean;
+  model_provider?: string | null;
+  model_name?: string | null;
+  demo: boolean;
+};
+
 export const api = {
   health: () => request<Health>("/api/v1/health"),
   integrations: () => request<IntegrationsResponse>("/api/v1/integrations"),
@@ -274,6 +422,44 @@ export const api = {
         `/api/v1/kubernetes/pods/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/diagnose`,
         { method: "POST" },
       ),
+  },
+  github: {
+    runs: (repo: string, branch?: string, limit = 20) => {
+      const params = new URLSearchParams({ repo, limit: String(limit) });
+      if (branch) params.set("branch", branch);
+      return request<GitHubRunsResponse>(`/api/v1/github/runs?${params.toString()}`);
+    },
+    run: (repo: string, runId: number) => {
+      const params = new URLSearchParams({ repo });
+      return request<GitHubRunResponse>(
+        `/api/v1/github/runs/${runId}?${params.toString()}`,
+      );
+    },
+    diagnose: (repo: string, runId: number) => {
+      const params = new URLSearchParams({ repo });
+      return request<GitHubDiagnosisResponse>(
+        `/api/v1/github/runs/${runId}/diagnose?${params.toString()}`,
+        { method: "POST" },
+      );
+    },
+  },
+  terraform: {
+    review: (plan: unknown) =>
+      request<TerraformReviewResponse>("/api/v1/terraform/review", {
+        method: "POST",
+        body: JSON.stringify({ plan }),
+      }),
+  },
+  ai: {
+    diagnose: (payload: {
+      question: string;
+      surface: "kubernetes" | "logs" | "cicd" | "terraform" | "unknown";
+      evidence: EvidenceRecord[];
+    }) =>
+      request<AIStructuredDiagnosis>("/api/v1/ai/diagnose", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
   },
 };
 

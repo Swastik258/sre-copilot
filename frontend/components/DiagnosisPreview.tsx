@@ -8,11 +8,11 @@ import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 
 /* Evidence typed in character by character, with per-segment styling kept. */
 const EVIDENCE: { text: string; className?: string }[] = [
-  { text: "CrashLoopBackOff", className: "text-signal-bad" },
+  { text: "CrashLoopBackOff", className: "text-bad" },
   { text: " — 14 restarts in 6m\n" },
-  { text: "Last state: ", className: "text-paper-400" },
+  { text: "Last state: ", className: "text-tertiary" },
   { text: "exit code 1 · OOMKilled=false\n" },
-  { text: "Event: ", className: "text-paper-400" },
+  { text: "Event: ", className: "text-tertiary" },
   { text: "Back-off restarting failed container" },
 ];
 
@@ -59,16 +59,16 @@ export function DiagnosisPreview() {
     <div ref={rootRef} className="relative w-full">
       <div aria-hidden className="glow glow-amber -inset-x-10 -top-8 h-40 opacity-70" />
 
-      <div className="card relative overflow-hidden rounded-2xl shadow-[0_40px_100px_-50px_rgba(139,92,246,0.55)]">
+      <div className="card preview-lift relative overflow-hidden rounded-[4px]">
         {/* window chrome */}
-        <div className="flex items-center gap-2 border-b border-hairline bg-ink-850 px-4 py-3.5">
-          <span className="size-2 rounded-full bg-signal-bad/80" />
-          <span className="size-2 rounded-full bg-signal-warn/80" />
-          <span className="size-2 rounded-full bg-signal-good/80" />
-          <span className="ml-2 truncate font-mono text-[10px] text-paper-400 sm:text-[11px]">
+        <div className="flex items-center gap-2 border-b border-hairline bg-[var(--bg-subtle)] px-4 py-3.5">
+          <span className="size-2 rounded-full bg-bad" />
+          <span className="size-2 rounded-full bg-warn" />
+          <span className="size-2 rounded-full bg-good" />
+          <span className="ml-2 truncate font-mono text-[10px] text-tertiary sm:text-[11px]">
             diagnosis · namespace=prod · pod=api-7d9f8b6c4-x2k9p
           </span>
-          <span className="ml-auto hidden rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-amber-400 sm:inline">
+          <span className="ml-auto hidden rounded-full border border-warn bg-accent-soft px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-accent sm:inline">
             demo
           </span>
         </div>
@@ -77,18 +77,18 @@ export function DiagnosisPreview() {
         <div className="grid gap-5 p-5 text-left sm:grid-cols-[1.2fr_1fr] sm:p-6">
           <div className="space-y-4">
             <Section label="Observed evidence">
-              <pre className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-paper-200">
+              <pre className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-primary">
                 {renderEvidence(shown)}
                 {typing && (
-                  <span className="ml-0.5 inline-block h-3 w-[6px] translate-y-[1px] animate-pulse bg-amber-400 align-middle" />
+                  <span className="ml-0.5 inline-block h-3 w-[6px] translate-y-[1px] animate-pulse bg-accent align-middle" />
                 )}
               </pre>
             </Section>
 
             <Section label="Hypothesis">
-              <p className="text-[12.5px] leading-relaxed text-paper-300">
+              <p className="text-[12.5px] leading-relaxed text-secondary">
                 Container exits before the readiness probe passes. Likely missing
-                <code className="mx-1 rounded bg-ink-800 px-1 py-0.5 font-mono text-[11px] text-amber-400">
+                <code className="mx-1 rounded bg-[var(--bg-subtle)] px-1 py-0.5 font-mono text-[11px] text-accent">
                   DATABASE_URL
                 </code>
                 — process fails on first DB connect.
@@ -97,9 +97,9 @@ export function DiagnosisPreview() {
 
             <Section label="Confidence">
               <div className="flex flex-wrap items-center gap-3">
-                <div className="h-1.5 w-40 overflow-hidden rounded-full bg-ink-700">
+                <div className="h-1.5 w-40 overflow-hidden rounded-full bg-[var(--border-strong)]">
                   <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400"
+                    className="h-full rounded-full bg-accent"
                     initial={{ width: 0 }}
                     animate={{ width: reduce || inView ? "78%" : 0 }}
                     transition={
@@ -109,7 +109,7 @@ export function DiagnosisPreview() {
                     }
                   />
                 </div>
-                <span className="text-[11px] text-paper-400">
+                <span className="text-[11px] text-tertiary">
                   78% — based on 3 signals
                 </span>
               </div>
@@ -118,17 +118,17 @@ export function DiagnosisPreview() {
 
           <div className="space-y-4 border-t border-hairline pt-5 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
             <Section label="Next steps">
-              <ul className="space-y-2 font-mono text-[11.5px] text-paper-200">
+              <ul className="space-y-2 font-mono text-[11.5px] text-primary">
                 <li className="flex gap-2">
-                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-500" />
+                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
                   kubectl describe pod api-7d9f8b6c4-x2k9p -n prod
                 </li>
                 <li className="flex gap-2">
-                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-500" />
+                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
                   kubectl logs --previous -n prod api-7d9f8b6c4-x2k9p
                 </li>
                 <li className="flex gap-2">
-                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-500" />
+                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
                   Verify Secret refs in Deployment spec
                 </li>
               </ul>
@@ -150,7 +150,7 @@ export function DiagnosisPreview() {
 function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-paper-400">
+      <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-tertiary">
         {label}
       </div>
       {children}

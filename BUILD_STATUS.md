@@ -1,6 +1,6 @@
 # Build status
 
-Last updated: Milestone 2.5 (self-hosted accounts & dashboard) + paper/ink UI migration.
+Last updated: GitHub Actions read-only diagnosis + Terraform plan review.
 
 ## Design system: paper + ink (2026-10-21)
 
@@ -39,9 +39,25 @@ Last updated: Milestone 2.5 (self-hosted accounts & dashboard) + paper/ink UI mi
   `app/security/*`): signup/login/logout/me, scrypt-hashed passwords, and
   server-side sessions in an HttpOnly cookie. API-wide enforcement is available
   via `AUTH_REQUIRED` (off by default).
+- **AI explanation layer** (`app/ai/providers/*`, `app/services/ai.py`,
+  `app/api/v1/ai.py`): provider-independent interface, deterministic mock,
+  OpenAI-compatible adapter, OpenRouter support, strict validated JSON output,
+  privacy-mode enforcement, and `POST /api/v1/ai/{diagnose,summarize}`. Evidence
+  summaries are redacted before transmission; remediation is never executed.
+- **GitHub Actions read-only diagnosis** (`app/adapters/github/*`,
+  `app/services/github_diagnosis.py`, `app/api/v1/github.py`): structurally
+  read-only client, normalized runs/jobs/steps, bounded log excerpts,
+  deterministic failure rules, evidence, and `GET /api/v1/github/*` +
+  `POST /api/v1/github/runs/{id}/diagnose`. The token is stripped on cross-host
+  log-download redirects.
+- **Terraform plan review** (`app/services/terraform_review.py`,
+  `app/api/v1/terraform.py`): parses `terraform show -json`, detects
+  replacements/deletions, replacement paths, attribute-name changes, unknown
+  values, and stateful-resource risk; classifies blast radius and returns
+  findings/evidence. Attribute values are omitted.
 - Local SQLite databases from an older milestone are upgraded additively on
   startup (`app/db/local_schema.py`), since `create_all()` cannot add columns.
-- Tests: **82 passing** (`pytest`); lint clean (`ruff check .`).
+- Tests: **138 passing** (`pytest`); lint clean (`ruff check .`).
 
 ## Frontend
 
@@ -49,7 +65,14 @@ Last updated: Milestone 2.5 (self-hosted accounts & dashboard) + paper/ink UI mi
 - Typed API client (`lib/api.ts`); live health + integration status.
 - **Kubernetes console** (`/kubernetes`): namespace filter, pod list, and an
   evidence-backed diagnosis view with read-only next steps and approval-gated
-  remediation.
+  remediation. An optional "Explain with AI" panel calls the backend with the
+  cited evidence summaries and labels the result as model-generated.
+- **GitHub Actions console** (`/cicd`): repository/branch lookup, run list, job
+  and step inspection, deterministic failure diagnosis, evidence, and optional
+  AI explanation. Shows a setup notice when the integration is not configured.
+- **Terraform plan console** (`/terraform`): paste or upload plan JSON, load an
+  illustrative sample, and review blast radius, findings, resource changes, and
+  evidence. Attribute values are not displayed.
 - **Auth pages + dashboard** (`/sign-up`, `/login`, `/dashboard`): self-hosted
   signup/login with an HttpOnly session cookie; the dashboard is gated and shows
   live integration status plus quick links to each diagnosis surface.
@@ -65,7 +88,10 @@ Last updated: Milestone 2.5 (self-hosted accounts & dashboard) + paper/ink UI mi
 
 ## Not yet implemented
 
-GitHub / Prometheus / Terraform adapters; AI providers; the investigation,
-log-analysis, metrics, timeline and runbook modules; authorization and tenant
-isolation (API-wide auth is off by default).
-Live Kubernetes verification needs a Docker-enabled host. See `docs/ROADMAP.md`.
+Prometheus adapter; Anthropic's native provider; investigation/assistant
+persistence, log analysis, metrics/timeline correlation, runbooks, and
+multi-cluster selection; authorization and tenant isolation (API-wide auth is
+off by default). Live Kubernetes was verified against a local kind cluster on
+the user's Windows host. GitHub requires a server-side token in the user's
+environment; the code path is covered by mocked clients in CI. See
+`docs/ROADMAP.md`.

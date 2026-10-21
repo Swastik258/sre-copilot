@@ -26,11 +26,11 @@ export default function SettingsPage() {
                 { name: "AI provider", state: "mock", tone: "dot-good", detail: "no key required" },
               ].map((r) => (
                 <div key={r.name} className="flex items-center justify-between py-2.5">
-                  <span className="flex items-center gap-2 text-paper-200">
+                  <span className="flex items-center gap-2 text-primary">
                     <span className={`dot ${r.tone}`} />
                     {r.name}
                   </span>
-                  <span className="text-paper-400">{r.detail}</span>
+                  <span className="text-tertiary">{r.detail}</span>
                 </div>
               ))}
             </div>

@@ -30,10 +30,10 @@ export default function AuditPage() {
                   key={r.t + r.action}
                   className="grid grid-cols-[3.5rem_2.5rem_1fr_3.5rem] gap-3 py-2"
                 >
-                  <span className="text-paper-400">{r.t}</span>
-                  <span className="text-paper-400">{r.actor}</span>
-                  <span className="truncate text-paper-200">{r.action}</span>
-                  <span className={r.decision === "allow" ? "text-signal-good" : "text-signal-bad"}>
+                  <span className="text-tertiary">{r.t}</span>
+                  <span className="text-tertiary">{r.actor}</span>
+                  <span className="truncate text-primary">{r.action}</span>
+                  <span className={r.decision === "allow" ? "text-good" : "text-bad"}>
                     {r.decision}
                   </span>
                 </div>

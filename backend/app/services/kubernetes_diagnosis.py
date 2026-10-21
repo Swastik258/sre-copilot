@@ -527,7 +527,21 @@ def diagnose_pod(
 
     pod = client.get_pod(namespace, name)
     events = client.list_events(namespace, involved_object=name)
-    logs = client.get_pod_logs(namespace, name, tail_lines=log_tail_lines)
+
+    # Logs are supporting evidence, not a prerequisite for diagnosis. Pods
+    # that have never started (for example ImagePullBackOff) have no readable
+    # container logs, and the Kubernetes API rejects the request. Continue
+    # with pod status and events instead of failing the whole diagnosis.
+    try:
+        logs = client.get_pod_logs(namespace, name, tail_lines=log_tail_lines)
+    except Exception:
+        logs = PodLogs(
+            namespace=namespace,
+            pod=name,
+            lines=[],
+            truncated=False,
+            demo=demo,
+        )
 
     all_evidence: list[Evidence] = []
     findings: list[Finding] = []

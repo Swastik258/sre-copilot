@@ -36,10 +36,10 @@ Statuses: **Done** · **In progress** · **Planned** · **Blocked**
 - Tests: structural read-only guarantees, fixture client, every rule, redaction,
   and the API surface.
 
-> **Live-cluster verification pending:** this development container has no Docker
-> daemon, so kind / Minikube / live-cluster runs must happen on a Docker-enabled
-> host. The real client is import-verified but not exercised against a live API
-> here.
+> **Live-cluster verification:** the real client was verified against a local
+> Kind cluster (`kind-tws-cluster`) on the user's Windows host, including a
+> pending/ImagePullBackOff pod with unavailable logs. This development container
+> still has no Docker daemon, so live tests are run on the Docker-enabled host.
 
 ## Milestone 2.5 — Self-hosted accounts & dashboard ✅ Done
 
@@ -56,19 +56,66 @@ Statuses: **Done** · **In progress** · **Planned** · **Blocked**
 - Tests: signup/login/logout/me, duplicate email, weak password, cookie flags,
   hashing-at-rest, bearer-token auth, and the `AUTH_REQUIRED` gate.
 
-## Milestone 3 — Investigation engine (Planned)
+## Milestone 3 — Investigation engine (In progress)
+
+### Milestone 3a — AI explanation layer ✅ Done
 
 - Shared evidence model end-to-end; evidence-backed structured diagnoses.
+- Provider-independent interface with a deterministic mock and an
+  OpenAI-compatible adapter; OpenRouter is supported via configuration.
+- Strict Pydantic validation, timeouts, explicit provider errors, privacy mode,
+  and redaction before transmission.
+- `POST /api/v1/ai/diagnose` and `/api/v1/ai/summarize`; the Kubernetes console
+  has an optional "Explain with AI" panel.
+- Provider/model metadata is returned; keys stay server-side.
+- Tests: schema, provider selection, JSON validation, privacy mode, unknown
+  citation filtering, endpoint errors.
+
+### Remaining
+
 - Investigation persistence + messages API.
-- Mock provider implemented; OpenAI-compatible and Anthropic providers behind one
-  interface, with schema validation, timeouts, and a privacy mode.
+- Anthropic's native Messages API adapter.
 - Vertical "core investigation flow" slice in demo mode.
 
-## Milestone 4 — GitHub Actions integration (Planned)
+## Milestone 4 — GitHub Actions integration ✅ Done (read-only)
+
+- Structurally read-only adapter (`GitHubReadClient`) with only list/get
+  operations; every request is a `GET`. No dispatch, re-run, cancel, secret, or
+  write path.
+- Normalized runs, jobs, steps, and bounded log excerpts.
+- Deterministic failure correlation: failed jobs, first failed step, and
+  conservative log patterns for dependency, import, test, permission, command,
+  image-pull, timeout, OOM, and missing-path failures.
+- Evidence-backed diagnosis with missing-log handling; cross-host log-download
+  redirects strip the GitHub token.
+- Endpoints: `/api/v1/github/{runs,runs/{id},runs/{id}/diagnose}`.
+- Frontend `/cicd` console: repository/branch lookup, run and job inspection,
+  failure diagnosis, evidence, and optional AI explanation.
+- Tests: read-only structure, repo validation, failure rules, log patterns,
+  missing logs, successful runs, and redirect token stripping.
 
 ## Milestone 5 — Metrics & correlation (Planned)
 
-## Milestone 6 — Terraform review & runbooks (Planned)
+## Milestone 6 — Terraform review & runbooks (In progress)
+
+### 6a — Terraform plan review ✅ Done
+
+- `POST /api/v1/terraform/review` parses `terraform show -json` plan data.
+- Detects replacements and deletions, replacement paths, attribute-name changes,
+  unknown values, and stateful-resource risk.
+- Reports create/update/replace/destroy/read/no-op counts and a blast-radius
+  classification.
+- Returns findings and shared evidence; **values are omitted** because plan JSON
+  can contain secrets.
+- Frontend `/terraform` console: paste or upload a plan, load an illustrative
+  sample, and review blast radius, findings, changes, and evidence.
+- Tests: action classification, replacement order, stateful risk, unknown values,
+  malformed plans, empty plans, and value non-disclosure.
+
+### Remaining
+
+- Runbook library and plan-review-to-runbook links.
+- Optional AI explanation for plan findings.
 
 ## Milestone 7 — Security & multi-user readiness (Planned)
 
@@ -80,5 +127,6 @@ Statuses: **Done** · **In progress** · **Planned** · **Blocked**
   (self-hosted auth exists — see Milestone 2.5 — but `AUTH_REQUIRED` is off by
   default and there is no role/permission model).
 - Any infrastructure-mutating action (only recommendations are planned first).
-- AI providers beyond a configuration placeholder.
-- Log analysis, metrics, timelines, runbooks, Terraform review.
+- Anthropic's native provider.
+- Log analysis, Prometheus metrics, timelines, runbooks, investigation
+  persistence, and multi-cluster selection.

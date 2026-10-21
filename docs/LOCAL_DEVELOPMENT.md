@@ -74,8 +74,21 @@ land on `/dashboard`. No third-party credentials are required.
 
 Authentication is **not enforced by default** so the demo and tests run without
 credentials. Set `AUTH_REQUIRED=true` on the backend to require a valid session
-on the read-only routes (`/api/v1/integrations`, `/api/v1/kubernetes/*`); health
-and `/api/v1/auth/*` stay public. See docs/SECURITY.md.
+on the read-only routes (`/api/v1/integrations`, `/api/v1/kubernetes/*`,
+`/api/v1/github/*`, `/api/v1/terraform/*`, `/api/v1/ai/*`); health and
+`/api/v1/auth/*` stay public. See docs/SECURITY.md.
+
+### Optional: GitHub Actions
+
+Set `GITHUB_ENABLED=true` and a fine-grained read-only `GITHUB_TOKEN` in the
+backend `.env`, then open `/cicd`. Use `Actions: read`, `Contents: read`, and
+`Metadata: read` only. See docs/GITHUB_SETUP.md.
+
+### Terraform plan review
+
+Open `/terraform` and paste or upload the output of `terraform show -json
+tfplan`. No backend credentials are required. Attribute values are omitted; see
+docs/TERRAFORM_REVIEW.md.
 
 ### Optional: Clerk
 

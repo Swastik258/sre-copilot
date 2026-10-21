@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.api.deps import enforce_auth
-from app.api.v1 import auth, health, integrations, kubernetes
+from app.api.v1 import ai, auth, github, health, integrations, kubernetes, terraform
 
 api_router = APIRouter()
 
@@ -15,3 +15,6 @@ api_router.include_router(
     integrations.router, tags=["integrations"], dependencies=[Depends(enforce_auth)]
 )
 api_router.include_router(kubernetes.router, dependencies=[Depends(enforce_auth)])
+api_router.include_router(github.router, dependencies=[Depends(enforce_auth)])
+api_router.include_router(terraform.router, dependencies=[Depends(enforce_auth)])
+api_router.include_router(ai.router, dependencies=[Depends(enforce_auth)])

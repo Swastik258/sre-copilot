@@ -47,8 +47,8 @@ export function SolutionPage({ config }: { config: SolutionConfig }) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {config.problems.map((p) => (
               <Card key={p.title} className="p-6">
-                <h3 className="font-serif text-lg text-paper-50">{p.title}</h3>
-                <p className="mt-2 text-dense text-paper-300">{p.body}</p>
+                <h3 className="font-serif text-lg text-primary">{p.title}</h3>
+                <p className="mt-2 text-dense text-secondary">{p.body}</p>
               </Card>
             ))}
           </div>

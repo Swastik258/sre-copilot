@@ -19,16 +19,16 @@ export default function InfraCodePage() {
             badge={<Badge tone="neutral">illustrative</Badge>}
           >
             <div className="space-y-1 font-mono text-[11.5px] leading-relaxed">
-              <div className="text-paper-400">deployments/checkout.yaml</div>
-              <div className="text-signal-good">+ resources:</div>
-              <div className="text-signal-good">+   requests: {"{"} cpu: 100m, memory: 128Mi {"}"}</div>
-              <div className="text-signal-good">+   limits:   {"{"} memory: 256Mi {"}"}</div>
-              <div className="text-signal-good">+ readinessProbe:</div>
-              <div className="text-signal-good">+   httpGet: {"{"} path: /healthz, port: 8080 {"}"}</div>
-              <div className="pt-2 text-signal-warn">
+              <div className="text-tertiary">deployments/checkout.yaml</div>
+              <div className="text-good">+ resources:</div>
+              <div className="text-good">+   requests: {"{"} cpu: 100m, memory: 128Mi {"}"}</div>
+              <div className="text-good">+   limits:   {"{"} memory: 256Mi {"}"}</div>
+              <div className="text-good">+ readinessProbe:</div>
+              <div className="text-good">+   httpGet: {"{"} path: /healthz, port: 8080 {"}"}</div>
+              <div className="pt-2 text-warn">
                 policy: container has no livenessProbe — recommended
               </div>
-              <div className="text-[10.5px] text-paper-400">
+              <div className="text-[10.5px] text-tertiary">
                 generated diff · 2 policy notes · not applied
               </div>
             </div>

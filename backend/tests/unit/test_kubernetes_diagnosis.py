@@ -50,6 +50,17 @@ def test_healthy_pod_has_no_hypotheses(client):
     assert result.diagnosis.evidence_ids  # status evidence still collected
 
 
+class _NoLogsClient(FixtureKubernetesClient):
+    def get_pod_logs(self, *args, **kwargs):
+        raise RuntimeError("logs are unavailable for a container that has not started")
+
+
+def test_pending_pod_without_logs_still_diagnoses():
+    no_logs = _NoLogsClient.from_file(DEFAULT_FIXTURE)
+    result = diagnose_pod(no_logs, "staging", "reporting-6c4b7d-i9p2")
+    assert "pull" in _statements(result).lower()
+
+
 def test_diagnosis_is_deterministic(client):
     a = diagnose_pod(client, "prod", "api-7d9f8b6c4-x2k9p")
     b = diagnose_pod(client, "prod", "api-7d9f8b6c4-x2k9p")
