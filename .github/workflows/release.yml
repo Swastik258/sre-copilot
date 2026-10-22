@@ -74,14 +74,15 @@ jobs:
             type=raw,value=${{ steps.version.outputs.value }}
             type=sha,prefix=sha-
 
-      - name: Require frontend API URL
+      - name: Require frontend public URLs
         if: matrix.component == 'frontend'
         env:
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
         run: |
           set -eu
-          if [ -z "$NEXT_PUBLIC_API_URL" ]; then
-            echo "Repository variable NEXT_PUBLIC_API_URL is required for frontend image builds." >&2
+          if [ -z "$NEXT_PUBLIC_API_URL" ] || [ -z "$NEXT_PUBLIC_SITE_URL" ]; then
+            echo "Repository variables NEXT_PUBLIC_API_URL and NEXT_PUBLIC_SITE_URL are required for frontend image builds." >&2
             exit 1
           fi
 
@@ -114,6 +115,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}
+            NEXT_PUBLIC_SUPPORT_EMAIL=${{ vars.NEXT_PUBLIC_SUPPORT_EMAIL }}
           provenance: mode=max
           sbom: true
           cache-from: type=gha,scope=frontend

@@ -139,8 +139,10 @@ services:
     build:
       context: ../frontend
       args:
-        # Bake the API URL into the client bundle at build time.
+        # Public values are baked into the client bundle at build time.
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_SUPPORT_EMAIL: ${NEXT_PUBLIC_SUPPORT_EMAIL:-}
     init: true
     restart: unless-stopped
     read_only: true

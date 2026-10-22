@@ -49,6 +49,14 @@ jobs:
               raise SystemExit("\n".join(errors))
           print(f"production example valid: {settings.environment}")
           PY
+      - name: Validate migration parity
+        env:
+          DATABASE_URL: sqlite:////tmp/sre-copilot-alembic.db
+          AUTO_CREATE_SCHEMA: "false"
+        run: |
+          alembic upgrade head
+          alembic check
+
       - name: Tests with coverage
         # Tests use SQLite + fixtures; no production credentials required.
         run: pytest --cov=app --cov-branch --cov-report=term --cov-fail-under=80
@@ -179,6 +187,7 @@ jobs:
           tags: sre-copilot-frontend:ci
           build-args: |
             NEXT_PUBLIC_API_URL=http://localhost:8000
+            NEXT_PUBLIC_SITE_URL=http://localhost:3000
           cache-from: type=gha,scope=ci-frontend
           cache-to: type=gha,mode=max,scope=ci-frontend
 

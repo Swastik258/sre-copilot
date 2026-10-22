@@ -7,6 +7,7 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        exclude: ^deploy/helm/.*/templates/
       - id: check-json
       - id: check-merge-conflict
       - id: check-added-large-files
@@ -27,13 +28,13 @@ repos:
     hooks:
       - id: backend-mypy
         name: backend type check (mypy)
-        entry: sh -c 'cd backend && python -m mypy app'
+        entry: sh -c 'cd backend && .venv/bin/python -m mypy app'
         language: system
         pass_filenames: false
         files: ^backend/app/.*\.py$
       - id: backend-bandit
         name: backend security scan (bandit)
-        entry: sh -c 'cd backend && python -m bandit -q -c pyproject.toml -r app'
+        entry: sh -c 'cd backend && .venv/bin/python -m bandit -q -c pyproject.toml -r app'
         language: system
         pass_filenames: false
         files: ^backend/app/.*\.py$

@@ -12,8 +12,10 @@ SRE Copilot has been installed.
    kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "sre-copilot.backend.fullname" . }}
    kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "sre-copilot.frontend.fullname" . }}
 
-3. The frontend API origin is compiled into the frontend image. Build it with:
+3. Public frontend values are compiled into the image. Build it with:
    NEXT_PUBLIC_API_URL=https://{{ .Values.ingress.host }}
+   NEXT_PUBLIC_SITE_URL=https://{{ .Values.ingress.host }}
+   NEXT_PUBLIC_SUPPORT_EMAIL=<operator support address, optional>
 
 4. Migrations run as a pre-install/pre-upgrade Job when
    migrations.enabled=true. The backend does not migrate at startup.
