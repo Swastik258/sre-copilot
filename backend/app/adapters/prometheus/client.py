@@ -78,14 +78,14 @@ class RealPrometheusClient:
             method="GET",
         )
         try:
-            with urllib.request.urlopen(request, timeout=self._timeout) as response:
+            with urllib.request.urlopen(request, timeout=self._timeout) as response:  # nosec B310
                 raw = response.read(5_000_000)
         except urllib.error.HTTPError as exc:
             message = ""
             try:
                 message = exc.read().decode("utf-8", "replace")[:300]
             except Exception:
-                pass
+                message = ""
             raise PrometheusAPIError(
                 f"Prometheus returned HTTP {exc.code}.",
                 details={
@@ -135,7 +135,8 @@ class RealPrometheusClient:
         for item in result:
             if not isinstance(item, dict):
                 continue
-            metric = item.get("metric") if isinstance(item.get("metric"), dict) else {}
+            raw_metric = item.get("metric")
+            metric: dict[str, Any] = raw_metric if isinstance(raw_metric, dict) else {}
             labels = {str(key): str(value) for key, value in metric.items() if key != "__name__"}
             name = str(metric.get("__name__") or labels.get("job") or "metric")
             raw_points = item.get("values") or []

@@ -24,6 +24,14 @@ EXPECTED_TABLES = {
     "app_settings",
     "account_settings",
     "user_api_keys",
+    "organizations",
+    "organization_memberships",
+    "email_tokens",
+    "subscriptions",
+    "usage_events",
+    "billing_webhook_events",
+    "background_jobs",
+    "idempotency_records",
 }
 
 
@@ -47,17 +55,15 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
     con = sqlite3.connect(db_path)
     try:
         tables = {
-            row[0]
-            for row in con.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            row[0] for row in con.execute("SELECT name FROM sqlite_master WHERE type='table'")
         }
-        user_columns = {
-            row[1] for row in con.execute("PRAGMA table_info(users)")
-        }
-        investigation_columns = {
-            row[1] for row in con.execute("PRAGMA table_info(investigations)")
-        }
-        audit_columns = {
-            row[1] for row in con.execute("PRAGMA table_info(audit_events)")
+        user_columns = {row[1] for row in con.execute("PRAGMA table_info(users)")}
+        investigation_columns = {row[1] for row in con.execute("PRAGMA table_info(investigations)")}
+        audit_columns = {row[1] for row in con.execute("PRAGMA table_info(audit_events)")}
+        session_columns = {row[1]: row for row in con.execute("PRAGMA table_info(sessions)")}
+        job_columns = {row[1] for row in con.execute("PRAGMA table_info(background_jobs)")}
+        idempotency_columns = {
+            row[1] for row in con.execute("PRAGMA table_info(idempotency_records)")
         }
     finally:
         con.close()
@@ -66,6 +72,9 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
     assert {"role", "tenant_id"} <= user_columns
     assert "tenant_id" in investigation_columns
     assert "tenant_id" in audit_columns
+    assert session_columns["last_used_at"][3] == 1
+    assert {"encrypted_payload", "status", "available_at"} <= job_columns
+    assert {"scope_hash", "idempotency_key", "response_body"} <= idempotency_columns
 
 
 def test_upgrade_keeps_existing_accounts_as_members(tmp_path):
@@ -126,8 +135,16 @@ def test_upgrade_keeps_existing_accounts_as_members(tmp_path):
     try:
         roles = dict(con.execute("SELECT id, role FROM users ORDER BY created_at"))
         tenants = dict(con.execute("SELECT id, tenant_id FROM users ORDER BY created_at"))
+        memberships = {
+            (row[0], row[1])
+            for row in con.execute("SELECT organization_id, role FROM organization_memberships")
+        }
+        verified = dict(con.execute("SELECT id, email_verified_at FROM users ORDER BY created_at"))
     finally:
         con.close()
 
     assert roles == {"first-user": "member", "second-user": "member"}
     assert tenants == {"first-user": "default", "second-user": "default"}
+    assert memberships == {("default", "member")}
+    assert verified["first-user"] is not None
+    assert verified["second-user"] is not None

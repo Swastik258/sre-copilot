@@ -1,0 +1,41 @@
+# Copy to terraform.tfvars (ignored by Git) and replace every CHANGE_ME value.
+# Terraform state contains sensitive values. Use an encrypted remote backend.
+
+kubeconfig_path = "~/.kube/config"
+kube_context    = null
+namespace       = "sre-copilot"
+release_name    = "sre-copilot"
+
+backend_image_repository  = "ghcr.io/swastik258/sre-copilot-backend"
+backend_image_tag         = "0.2.0"
+frontend_image_repository = "ghcr.io/swastik258/sre-copilot-frontend"
+frontend_image_tag        = "0.2.0"
+
+backend_replicas  = 2
+frontend_replicas = 2
+
+manage_secret = true
+database_url  = "postgresql+psycopg://sre_copilot:CHANGE_ME@db.example.internal:5432/sre_copilot"
+secret_data = {
+  CREDENTIAL_ENCRYPTION_KEY = "CHANGE_ME_FERNET_KEY"
+  METRICS_BEARER_TOKEN      = "CHANGE_ME_LONG_RANDOM_TOKEN"
+}
+
+backend_env = {
+  CORS_ORIGINS    = "https://app.example.com"
+  APP_BASE_URL    = "https://app.example.com"
+  EMAIL_DELIVERY  = "disabled"
+  AI_PROVIDER     = "mock"
+}
+
+ingress_enabled        = true
+ingress_class_name     = "nginx"
+ingress_host           = "app.example.com"
+ingress_tls_secret_name = "sre-copilot-tls"
+ingress_annotations = {
+  "cert-manager.io/cluster-issuer" = "letsencrypt-prod"
+}
+
+autoscaling_enabled    = false
+network_policy_enabled = false
+migrations_enabled     = true

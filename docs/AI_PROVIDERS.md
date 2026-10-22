@@ -83,9 +83,9 @@ diagnosis remains authoritative, and the response is labelled
 ## Privacy mode
 
 Set `AI_PRIVACY_MODE=true` to **prevent any external LLM transmission**. When
-enabled, external providers are rejected at call time. Admins can also set a
-per-tenant privacy override in `/admin/settings`; `AI_PRIVACY_MODE` is the environment
-default when no tenant override exists.
+enabled, external providers are rejected at call time. Workspace owners/admins
+can also set a per-workspace privacy override in `/admin/settings`;
+`AI_PRIVACY_MODE` is the environment default when no workspace override exists.
 
 ## Cost and data handling
 

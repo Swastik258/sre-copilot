@@ -18,7 +18,7 @@ class AdminUserListResponse(BaseModel):
 
 
 class AdminUserUpdate(BaseModel):
-    role: Literal["admin", "member"] | None = None
+    role: Literal["owner", "admin", "member", "viewer"] | None = None
     tenant_id: str | None = Field(default=None, min_length=1, max_length=36)
     is_active: bool | None = None
 
@@ -38,6 +38,7 @@ class AdminUserUpdate(BaseModel):
 
 class TenantSummary(BaseModel):
     tenant_id: str
+    name: str | None = None
     user_count: int
 
 

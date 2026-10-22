@@ -1,70 +1,38 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PLAN_CATALOG } from "@/lib/plans";
+
 export const metadata: Metadata = {
+  alternates: { canonical: "/pricing" },
   title: "Pricing — SRE Copilot",
   description:
-    "Three flat tiers for a local-first, read-only SRE investigation tool.",
+    "Every live SRE Copilot capability is free during launch. Paid tiers are planned, not sold.",
 };
 
-const TIERS = [
-  {
-    name: "Free",
-    price: "$0",
-    cadence: "forever",
-    description: "For individuals evaluating a local-first diagnosis workflow.",
-    features: [
-      "Local accounts",
-      "Kubernetes diagnosis",
-      "Labelled demo fixtures",
-      "Documentation and source",
-    ],
-    cta: "Start free",
-    href: "/sign-up",
-    highlight: false,
-  },
-  {
-    name: "Pro",
-    price: "$29",
-    cadence: "per month",
-    description: "For an engineer who wants the full investigation workspace.",
-    features: [
-      "Everything in Free",
-      "Log analysis when it ships",
-      "Terraform plan explainer when it ships",
-      "Priority support",
-    ],
-    cta: "Start free",
-    href: "/sign-up",
-    highlight: true,
-  },
-  {
-    name: "Team",
-    price: "Contact",
-    cadence: "custom",
-    description: "For a team standardizing evidence across environments.",
-    features: [
-      "Everything in Pro",
-      "Shared workspaces when they ship",
-      "SSO when it ships",
-      "Onboarding support",
-    ],
-    cta: "Talk to us",
-    href: "mailto:hello@srecopilot.dev",
-    highlight: false,
-  },
-];
+const TIERS = PLAN_CATALOG.map((plan) => ({
+  name: plan.name,
+  price: plan.price,
+  cadence: plan.period,
+  description: plan.blurb,
+  features: plan.features,
+  cta: plan.cta.label,
+  href: plan.cta.href,
+  status: plan.status,
+  highlight: plan.accent,
+}));
 
 export default function Page() {
   return (
     <div className="shell py-24">
       <span className="label-caps">Pricing</span>
       <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
-        Flat tiers. No usage metering.
+        Every live feature is free.
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        Start with the live Kubernetes surface. Paid tiers are reserved for
-        capabilities that are actually shipped, not for promises.
+        Kubernetes, CI/CD, investigations, audit export, organizations, and API
+        keys are available at no cost. Pro and Team are planned, not sold, and
+        not presented as shipped.
       </p>
 
       <div className="mt-12 grid gap-4 lg:grid-cols-3">
@@ -77,8 +45,10 @@ export default function Page() {
               <h2 className="text-base font-semibold text-[var(--text)]">
                 {tier.name}
               </h2>
-              {tier.highlight && (
-                <span className="badge badge-neutral">Recommended</span>
+              {tier.status === "available" ? (
+                <span className="badge badge-neutral">Free today</span>
+              ) : (
+                <span className="badge badge-neutral">Planned · not for sale</span>
               )}
             </div>
             <div className="mt-6 flex items-baseline gap-2">
@@ -115,8 +85,8 @@ export default function Page() {
       </div>
 
       <p className="mt-8 text-xs leading-5 text-[var(--text-subtle)]">
-        Pricing is illustrative for this reference implementation. No billing is
-        wired up, and no paid feature is presented as shipped before it exists.
+        No billing is wired up and no payment is collected. Paid tiers remain
+        planned until the features and purchase flow actually exist.
       </p>
 
       <div className="card mt-24 p-8">
@@ -124,7 +94,8 @@ export default function Page() {
         <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
           Need a self-hosted deployment, a security review, or a design-partner
           arrangement? Use the support page and tell us what you are trying to
-          run.
+          run. We do not claim certifications or customer outcomes that have not
+          been independently verified.
         </p>
         <Link href="/support" className="btn-ghost mt-6">
           Contact support

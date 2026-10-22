@@ -105,11 +105,17 @@ def _eval_container(
             f"Container {container.name}: state={container.state.value}"
             f" reason={container.reason or 'none'} restarts={container.restart_count}"
             + (f" lastReason={container.last_reason}" if container.last_reason else "")
-            + (f" lastExit={container.last_exit_code}" if container.last_exit_code is not None else "")
+            + (
+                f" lastExit={container.last_exit_code}"
+                if container.last_exit_code is not None
+                else ""
+            )
         ),
         source_resource=f"{pod.namespace}/{pod.name}/{container.name}",
         payload=container.model_dump(mode="json"),
-        severity=Severity.high if (container.restart_count and container.restart_count > 0) else Severity.info,
+        severity=Severity.high
+        if (container.restart_count and container.restart_count > 0)
+        else Severity.info,
         provenance="pod.status.containerStatuses",
         demo=demo,
     )
@@ -243,7 +249,9 @@ def _eval_container(
                         ),
                         changes_state=True,
                         risk=RiskLevel.medium,
-                        preconditions=["The failing image reference or missing secret is confirmed."],
+                        preconditions=[
+                            "The failing image reference or missing secret is confirmed."
+                        ],
                         rollback="Revert the workload spec to the previous revision.",
                         verification="The pod's image pulls successfully and the container starts.",
                     )
@@ -315,9 +323,7 @@ def _eval_pod_phase(
     )
     evidence.append(phase_ev)
 
-    scheduling_events = [
-        e for e in events if e.reason in {"FailedScheduling", "Unschedulable"}
-    ]
+    scheduling_events = [e for e in events if e.reason in {"FailedScheduling", "Unschedulable"}]
     if pod.phase == "Pending":
         if scheduling_events:
             ev = _ev(
@@ -364,7 +370,9 @@ def _eval_pod_phase(
                             ),
                             changes_state=True,
                             risk=RiskLevel.medium,
-                            preconditions=["The specific constraint from the scheduler message is confirmed."],
+                            preconditions=[
+                                "The specific constraint from the scheduler message is confirmed."
+                            ],
                             rollback="Revert the scheduling or resource change.",
                             verification="The node scheduler message clears and the pod is assigned to a node.",
                         )
@@ -392,7 +400,9 @@ def _eval_pod_phase(
     return findings, evidence
 
 
-def _eval_events(events: list[EventInfo], pod: PodInfo, demo: bool) -> tuple[list[Finding], list[Evidence]]:
+def _eval_events(
+    events: list[EventInfo], pod: PodInfo, demo: bool
+) -> tuple[list[Finding], list[Evidence]]:
     evidence: list[Evidence] = []
     findings: list[Finding] = []
 
@@ -594,19 +604,19 @@ def diagnose_pod(
 
     next_steps: list[RecommendedStep] = []
     seen_steps: set[str] = set()
-    for f in findings:
-        for step in f.steps:
+    for finding in findings:
+        for step in finding.steps:
             if step.action not in seen_steps:
                 seen_steps.add(step.action)
                 next_steps.append(step)
 
     remediation: list[Remediation] = []
     seen_remediation: set[str] = set()
-    for f in findings:
-        for r in f.remediations:
-            if r.title not in seen_remediation:
-                seen_remediation.add(r.title)
-                remediation.append(r)
+    for finding in findings:
+        for item in finding.remediations:
+            if item.title not in seen_remediation:
+                seen_remediation.add(item.title)
+                remediation.append(item)
 
     missing: list[str] = []
     if not settings.prometheus_enabled:

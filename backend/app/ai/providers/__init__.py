@@ -35,9 +35,7 @@ def build_provider(settings: Settings) -> AIProvider:
 
     if provider == "openrouter":
         if not settings.openrouter_api_key:
-            raise NotConfiguredError(
-                "OpenRouter is selected but OPENROUTER_API_KEY is not set."
-            )
+            raise NotConfiguredError("OpenRouter is selected but OPENROUTER_API_KEY is not set.")
         if "/" not in settings.ai_model:
             raise NotConfiguredError(
                 "OpenRouter model ids are namespaced; set AI_MODEL to a value "
@@ -58,9 +56,7 @@ def build_provider(settings: Settings) -> AIProvider:
 
     if provider == "openai":
         if not settings.openai_api_key:
-            raise NotConfiguredError(
-                "OpenAI is selected but OPENAI_API_KEY is not set."
-            )
+            raise NotConfiguredError("OpenAI is selected but OPENAI_API_KEY is not set.")
         return OpenAICompatibleProvider(
             name="openai",
             model=settings.ai_model,
@@ -84,9 +80,7 @@ def build_provider(settings: Settings) -> AIProvider:
 
     if provider == "anthropic":
         if not settings.anthropic_api_key:
-            raise NotConfiguredError(
-                "Anthropic is selected but ANTHROPIC_API_KEY is not set."
-            )
+            raise NotConfiguredError("Anthropic is selected but ANTHROPIC_API_KEY is not set.")
         return AnthropicProvider(
             model=settings.ai_model,
             api_key=settings.anthropic_api_key,

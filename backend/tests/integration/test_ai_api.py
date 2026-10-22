@@ -32,9 +32,7 @@ def _body() -> dict[str, object]:
 def test_ai_diagnose_endpoint_returns_validated_shape(
     client, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(
-        ai_service, "get_settings", lambda: Settings(ai_provider="mock")
-    )
+    monkeypatch.setattr(ai_service, "get_settings", lambda: Settings(ai_provider="mock"))
 
     response = client.post("/api/v1/ai/diagnose", json=_body())
 

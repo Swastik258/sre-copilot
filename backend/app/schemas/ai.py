@@ -77,8 +77,8 @@ class StructuredDiagnosis(Diagnosis):
     """
 
     observed_evidence: list[EvidenceRef] = Field(default_factory=list)
-    hypotheses: list[Hypothesis] = Field(default_factory=list)
-    next_steps: list[str] = Field(default_factory=list)
+    hypotheses: list[Hypothesis] = Field(default_factory=list)  # type: ignore[assignment]
+    next_steps: list[str] = Field(default_factory=list)  # type: ignore[assignment]
     proposed_remediation: list[ProposedAction] = Field(default_factory=list)
     risks: list[str] = Field(default_factory=list)
     unknowns: list[str] = Field(default_factory=list)

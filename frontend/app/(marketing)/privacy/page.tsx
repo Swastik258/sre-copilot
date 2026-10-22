@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/privacy" },
   title: "Privacy — SRE Copilot",
   description:
-    "No analytics, no tracking, and local handling of keys and investigation data.",
+    "What this deployment stores, where investigation data goes, and how to exercise retention controls.",
 };
 
 export default function Page() {
@@ -12,11 +13,13 @@ export default function Page() {
     <div className="shell py-24">
       <span className="label-caps">Privacy</span>
       <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
-        No analytics. No tracking. Keys stay local.
+        No ad analytics. Keys stay server-side.
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        This page describes the reference implementation. It is deliberately
-        short because the data practices are deliberately small.
+        This page describes the data handled by a self-hosted deployment. The
+        operator of this instance is responsible for its retention settings,
+        AI-provider configuration, and any legal notices required in their
+        jurisdiction.
       </p>
 
       <div className="mt-12 grid gap-4 md:grid-cols-3">
@@ -26,8 +29,9 @@ export default function Page() {
             None
           </h2>
           <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            The app does not ship an analytics SDK or a third-party tracking
-            script.
+            The app does not ship an analytics SDK, advertising pixel, or
+            third-party tracking script. Account and operational data are not
+            sold.
           </p>
         </div>
         <div className="card p-6">
@@ -36,8 +40,9 @@ export default function Page() {
             Backend only
           </h2>
           <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            Integration secrets are read on the backend and are never returned
-            to the browser bundle.
+            Integration and AI credentials are read on the backend and are never
+            returned to the browser bundle. Queued email tokens are encrypted at
+            rest with the operator-managed job key.
           </p>
         </div>
         <div className="card p-6">
@@ -46,16 +51,22 @@ export default function Page() {
             Local by default
           </h2>
           <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            Demo mode stays local. With privacy mode enabled, investigation
-            content is not sent to an external AI provider.
+            Account details, saved investigations, evidence, and audit events are
+            stored in the deployment database. Raw log-analysis pastes are not
+            persisted by the analysis endpoint. Audit retention is configurable.
           </p>
         </div>
       </div>
 
       <p className="mt-8 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
-        If you deploy this for a team, you are responsible for the privacy
-        policy, retention rules, and data-processing agreements that apply to
-        your environment.
+        Authentication uses an HttpOnly session cookie and a readable CSRF
+        cookie. OAuth, when enabled, uses a short-lived state cookie. External AI
+        providers are contacted only when configured; redacted evidence summaries
+        and the operator's question are sent, and AI privacy mode blocks that
+        transmission. Accounts can be deleted from settings. Audit retention and
+        database backups are controlled by the deployment operator. Optional
+        error/trace exporters are configured by the operator and carry
+        operational metadata, not advertising identifiers.
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">

@@ -21,7 +21,21 @@ npm-debug.log*
 .env
 .env.*
 !.env.example
+deploy/production.env
 *.db
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example
+tfplan
+crash.log
+
+# Tracked by mistake in earlier revisions; never commit virtual environments.
+.venv-wsl/
 
 # Editors and operating systems
 .vscode/
@@ -31,3 +45,4 @@ Thumbs.db
 
 # Local build/report artifacts
 frontend/public/SRE_Copilot_Build_Report.pdf
+docs/SRE_Copilot_Build_Report.pdf

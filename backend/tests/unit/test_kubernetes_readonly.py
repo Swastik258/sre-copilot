@@ -30,9 +30,7 @@ MUTATING_PREFIXES = (
 
 def _public_callables(cls: type) -> list[str]:
     return [
-        name
-        for name in dir(cls)
-        if not name.startswith("_") and callable(getattr(cls, name, None))
+        name for name in dir(cls) if not name.startswith("_") and callable(getattr(cls, name, None))
     ]
 
 

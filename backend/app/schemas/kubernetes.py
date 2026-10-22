@@ -22,14 +22,23 @@ class ClustersResponse(BaseModel):
 
 class NamespacesResponse(BaseModel):
     namespaces: list[NamespaceInfo] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 500
+    offset: int = 0
 
 
 class WorkloadsResponse(BaseModel):
     workloads: list[WorkloadInfo] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 500
+    offset: int = 0
 
 
 class PodsResponse(BaseModel):
     pods: list[PodInfo] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 500
+    offset: int = 0
 
 
 class PodDetailResponse(BaseModel):

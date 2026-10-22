@@ -180,8 +180,9 @@ export default function AssistantPage() {
             <span className="label-caps">Evidence-backed assistant</span>
             <h1 className="mt-3 font-serif text-display-sm text-primary">Assistant</h1>
             <p className="mt-2 max-w-prose text-dense text-tertiary">
-              Ask a question, attach cited evidence through the connected
-              surfaces, and keep the conversation in a persisted investigation.
+              Ask about evidence attached to a saved investigation and keep the
+              conversation in the persisted history. When no evidence is
+              attached, the assistant says so.
             </p>
           </div>
           <div className="flex items-center gap-2">

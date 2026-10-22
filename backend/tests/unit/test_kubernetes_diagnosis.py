@@ -65,7 +65,9 @@ def test_diagnosis_is_deterministic(client):
     a = diagnose_pod(client, "prod", "api-7d9f8b6c4-x2k9p")
     b = diagnose_pod(client, "prod", "api-7d9f8b6c4-x2k9p")
     assert a.diagnosis.summary == b.diagnosis.summary
-    assert [h.statement for h in a.diagnosis.hypotheses] == [h.statement for h in b.diagnosis.hypotheses]
+    assert [h.statement for h in a.diagnosis.hypotheses] == [
+        h.statement for h in b.diagnosis.hypotheses
+    ]
 
 
 def test_next_steps_are_read_only(client):

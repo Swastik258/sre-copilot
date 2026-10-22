@@ -33,7 +33,7 @@ export function DemoVideo() {
           <span className="home-window-dot" />
           <span className="home-window-dot" />
         </div>
-        <span className="demo-video-address">srecopilot.dev / product walkthrough</span>
+        <span className="demo-video-address">SRE Copilot / product walkthrough</span>
         <span className="font-mono text-[10px] text-white/50">DEMO</span>
       </div>
       <div className="demo-video-screen">
@@ -46,7 +46,7 @@ export function DemoVideo() {
           muted
           playsInline
           controls
-          aria-label="SRE Copilot product walkthrough placeholder video"
+          aria-label="SRE Copilot product walkthrough"
           onPause={() => setIsPlaying(false)}
           onPlay={() => setIsPlaying(true)}
           onError={() => setError(true)}
@@ -63,7 +63,7 @@ export function DemoVideo() {
         </button>
         {error && (
           <p className="demo-video-error" role="status">
-            Walkthrough video placeholder — replace the source file to enable playback.
+            Walkthrough unavailable. Check that the media file is present and encoded for the web.
           </p>
         )}
       </div>

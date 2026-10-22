@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/docs" },
   title: "Documentation — SRE Copilot",
   description:
     "Local setup, API reference, architecture, security, Kubernetes, and the investigation engine.",
@@ -30,7 +31,7 @@ const SECTIONS = [
     id: "security",
     title: "Security",
     description:
-      "Read-only Kubernetes access, scrypt password hashing, session handling, and secret redaction.",
+      "Read-only adapters, Argon2id passwords, session and CSRF handling, and secret redaction.",
   },
   {
     id: "kubernetes",
@@ -55,9 +56,9 @@ export default function Page() {
       </h1>
       <div className="prose-copilot mt-6 max-w-2xl">
         <p>
-          These notes describe the implementation as it exists, including the
-          parts that are still planned. If a capability is not live, it is
-          labelled that way.
+          These notes describe the implementation as it exists. Live product
+          surfaces are identified as live; paid plans and future work remain
+          explicitly labelled as planned.
         </p>
       </div>
 
@@ -122,8 +123,8 @@ export default function Page() {
             Read-only is a structural property.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
-            The Kubernetes client has no mutating methods. Passwords are scrypt
-            hashed, session tokens are stored hashed, and sensitive values are
+            Infrastructure adapters expose no mutating operations. Passwords use
+            Argon2id, session tokens are stored hashed, and sensitive values are
             removed before they enter the evidence trail.
           </p>
         </section>

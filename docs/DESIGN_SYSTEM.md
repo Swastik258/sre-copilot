@@ -268,9 +268,10 @@ dependency.
 - Hover motion belongs on `.card-hover`, `.icon-tile`, and `.link-arrow`.
 - The landing hero's animated product preview is a CSS illustration, not a
   recording of a live investigation.
-- Client logos, testimonials, sample workflow metrics, the incident terminal,
-  and the walkthrough video are placeholders; they must be replaced with
-  approved real content before being presented as customer proof or results.
+- Customer logos, testimonials, and outcome metrics require approved real
+  content and a source. The incident terminal is explicitly labelled sample
+  data. The walkthrough section renders only when a real
+  `public/media/sre-copilot-walkthrough.mp4` exists at build time.
 - Every animation collapses under `prefers-reduced-motion: reduce`.
 
 ## Legacy sweep

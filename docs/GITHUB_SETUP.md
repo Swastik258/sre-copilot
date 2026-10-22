@@ -57,7 +57,7 @@ uses `GET`.
    test failures, permissions, missing commands, image pulls, timeouts, OOM,
    and missing paths.
 5. Returns confirmed observations, hypotheses with evidence IDs, read-only next
-   steps, and approval-gated remediation suggestions. Logs are optional; a
+   steps, and review-only remediation suggestions. Logs are optional; a
    missing or inaccessible log becomes `missing_evidence` rather than a 500.
 
 Evidence is built through the shared model with provenance, redaction, and an

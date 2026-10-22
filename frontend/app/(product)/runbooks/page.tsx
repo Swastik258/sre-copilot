@@ -70,8 +70,8 @@ export default function RunbooksPage() {
           <h1 className="mt-3 font-serif text-display-sm text-primary">Runbooks</h1>
           <p className="mt-2 max-w-prose text-dense text-tertiary">
             Read-only triage sequences for evidence-backed findings. Every step is
-            safe to inspect; any state-changing remediation stays a separate,
-            human-approved action.
+            safe to inspect; any state-changing remediation is outside this
+            product and remains an operator decision.
           </p>
         </div>
 

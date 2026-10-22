@@ -98,9 +98,7 @@ def test_list_runs_accepts_and_normalizes_github_url(
 
 
 def test_run_detail_includes_jobs(client: TestClient, fake_client: FakeClient) -> None:
-    response = client.get(
-        "/api/v1/github/runs/101", params={"repo": "acme/demo"}
-    )
+    response = client.get("/api/v1/github/runs/101", params={"repo": "acme/demo"})
 
     assert response.status_code == 200
     body = response.json()

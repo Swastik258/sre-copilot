@@ -1,0 +1,31 @@
+SRE Copilot has been installed.
+
+1. Verify the required Secret exists in namespace {{ .Release.Namespace }}:
+   {{ include "sre-copilot.secretName" . }}
+
+   Required key: DATABASE_URL
+   Optional keys: CREDENTIAL_ENCRYPTION_KEY, METRICS_BEARER_TOKEN,
+   SMTP_USERNAME, SMTP_PASSWORD, SENTRY_DSN, OAuth client secrets,
+   AI provider keys, GITHUB_TOKEN, Stripe secrets.
+
+2. Check the rollout:
+   kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "sre-copilot.backend.fullname" . }}
+   kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "sre-copilot.frontend.fullname" . }}
+
+3. Public frontend values are compiled into the image. Build it with:
+   NEXT_PUBLIC_API_URL=https://{{ .Values.ingress.host }}
+   NEXT_PUBLIC_SITE_URL=https://{{ .Values.ingress.host }}
+   NEXT_PUBLIC_SUPPORT_EMAIL=<operator support address, optional>
+
+4. Migrations run as a pre-install/pre-upgrade Job when
+   migrations.enabled=true. The backend does not migrate at startup.
+
+{{- if not .Values.ingress.enabled }}
+Ingress is disabled. Port-forward for local access:
+   kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "sre-copilot.frontend.fullname" . }} 3000:{{ .Values.frontend.service.port }}
+{{- end }}
+
+{{- if .Values.backend.createSecret }}
+WARNING: createSecret=true stores secret values in the Helm release. Use an
+external secret manager and backend.existingSecret for production.
+{{- end }}

@@ -13,9 +13,7 @@ from app.schemas.integrations import IntegrationInfo, IntegrationsResponse, Inte
 
 
 def _kubernetes(settings: Settings) -> IntegrationInfo:
-    has_live_target = bool(
-        settings.kubernetes_kubeconfig or settings.kubernetes_in_cluster
-    )
+    has_live_target = bool(settings.kubernetes_kubeconfig or settings.kubernetes_in_cluster)
     if not settings.kubernetes_enabled:
         state = IntegrationState.disabled
         detail = "Read-only Kubernetes diagnosis is disabled."

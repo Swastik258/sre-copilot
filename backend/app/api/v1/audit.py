@@ -1,8 +1,8 @@
 """Audit trail read, export, and retention endpoints.
 
 Audit records are redacted before persistence. These routes never return
-credentials. Members see their own events in their tenant; admins can inspect
-across tenants, and only admins may apply retention.
+credentials. Members and viewers see their own events. Owners and admins see
+all events in their active workspace. Retention is always workspace-scoped.
 """
 
 from __future__ import annotations
@@ -33,10 +33,11 @@ def list_events(
     before: datetime | None = None,
     after: datetime | None = None,
 ) -> AuditEventListResponse:
+    privileged = user.role in {"owner", "admin"}
     return service.list_events(
         db,
-        user_id=None if user.role == "admin" else user.id,
-        tenant_id=None if user.role == "admin" else user.tenant_id,
+        user_id=None if privileged else user.id,
+        tenant_id=user.tenant_id,
         action=action,
         actor=actor,
         decision=decision,
@@ -49,10 +50,11 @@ def list_events(
 
 @router.get("/export.csv")
 def export_events(db: DbSession, user: RequiredUser) -> Response:
+    privileged = user.role in {"owner", "admin"}
     rows = service.export_rows(
         db,
-        user_id=None if user.role == "admin" else user.id,
-        tenant_id=None if user.role == "admin" else user.tenant_id,
+        user_id=None if privileged else user.id,
+        tenant_id=user.tenant_id,
         limit=10_000,
     )
     buffer = io.StringIO()
@@ -97,7 +99,7 @@ def apply_retention(
     user: AdminUser,
     older_than_days: Annotated[int, Query(ge=1, le=3650)] = 30,
 ) -> AuditRetentionResponse:
-    result = service.apply_retention(db, older_than_days)
+    result = service.apply_retention(db, older_than_days, tenant_id=user.tenant_id)
     service.record_event(
         db,
         action="audit.retention",

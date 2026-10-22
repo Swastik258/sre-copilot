@@ -36,16 +36,12 @@ def get_audit_retention_days(db: Session, tenant_id: str = "default") -> int:
     return DEFAULT_AUDIT_RETENTION_DAYS
 
 
-def get_ai_privacy_override(
-    db: Session, tenant_id: str = "default"
-) -> bool | None:
+def get_ai_privacy_override(db: Session, tenant_id: str = "default") -> bool | None:
     value = _preferences(db, tenant_id).get("ai_privacy_mode")
     return value if isinstance(value, bool) else None
 
 
-def get_default_environment(
-    db: Session, tenant_id: str = "default"
-) -> str | None:
+def get_default_environment(db: Session, tenant_id: str = "default") -> str | None:
     value = _preferences(db, tenant_id).get("default_environment")
     return value.strip() if isinstance(value, str) and value.strip() else None
 

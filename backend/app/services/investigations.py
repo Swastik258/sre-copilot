@@ -17,7 +17,7 @@ from app.core.errors import NotFoundError
 from app.db.models import Evidence as EvidenceModel
 from app.db.models import Investigation, User
 from app.schemas.ai import AIRequest, StructuredDiagnosis
-from app.schemas.evidence import Evidence, EvidenceSource
+from app.schemas.evidence import Evidence, EvidenceSource, Severity
 from app.schemas.investigation import (
     Diagnosis,
     Hypothesis,
@@ -37,6 +37,7 @@ from app.schemas.investigation import (
 )
 from app.services.ai import summarize
 from app.services.audit import record_event
+from app.services.billing import record_usage
 from app.services.settings_store import get_ai_privacy_override
 
 
@@ -94,15 +95,14 @@ def _message_out(message: dict) -> MessageOut:
 
 
 def _tenant_filters(user: User) -> list:
-    """Admins can inspect every tenant; members see only their own records.
+    """Owners/admins can inspect every investigation in their workspace.
 
-    The tenant predicate keeps a member's records inside their workspace even
-    if their account is later moved, while the user predicate preserves the
-    stricter "own investigations" behavior for non-admin accounts.
+    Members and viewers see only their own records, always bounded by the
+    active tenant. Cross-tenant access is never granted by role.
     """
 
-    if user.role == "admin":
-        return []
+    if user.role in {"owner", "admin"}:
+        return [Investigation.tenant_id == user.tenant_id]
     return [
         Investigation.user_id == user.id,
         Investigation.tenant_id == user.tenant_id,
@@ -149,6 +149,14 @@ def create_investigation(
         tenant_id=user.tenant_id,
         resource={"investigation_id": investigation.id, "kind": investigation.kind},
     )
+    record_usage(
+        db,
+        organization_id=user.tenant_id,
+        user_id=user.id,
+        metric="investigation.created",
+        idempotency_key=f"investigation:{investigation.id}",
+        properties={"kind": investigation.kind},
+    )
     return _to_detail(db, investigation)
 
 
@@ -183,9 +191,7 @@ def list_investigations(
     )
 
 
-def get_messages(
-    db: Session, user: User, investigation_id: str
-) -> InvestigationMessagesResponse:
+def get_messages(db: Session, user: User, investigation_id: str) -> InvestigationMessagesResponse:
     investigation = get_investigation(db, user, investigation_id)
     return InvestigationMessagesResponse(
         investigation_id=investigation.id,
@@ -211,7 +217,7 @@ def _db_evidence(db: Session, investigation_id: str) -> list[Evidence]:
             environment=row.environment,
             timestamp=row.event_timestamp,
             collected_at=row.collected_at,
-            severity=row.severity,
+            severity=Severity(row.severity),
             summary=row.summary,
             payload=row.payload,
             provenance=row.provenance,
@@ -265,13 +271,18 @@ def _as_diagnosis(ai: StructuredDiagnosis) -> Diagnosis:
 def add_message(db: Session, user: User, investigation_id: str, content: str) -> MessageExchange:
     investigation = get_investigation(db, user, investigation_id)
     evidence = _db_evidence(db, investigation.id)
-    surface = investigation.kind if investigation.kind in {
-        "kubernetes",
-        "logs",
-        "cicd",
-        "terraform",
-        "unknown",
-    } else "unknown"
+    surface = (
+        investigation.kind
+        if investigation.kind
+        in {
+            "kubernetes",
+            "logs",
+            "cicd",
+            "terraform",
+            "unknown",
+        }
+        else "unknown"
+    )
     ai = summarize(
         AIRequest(question=content, surface=surface, evidence=evidence),  # type: ignore[arg-type]
         privacy_mode=get_ai_privacy_override(db, user.tenant_id),

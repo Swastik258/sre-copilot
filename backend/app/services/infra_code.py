@@ -299,8 +299,7 @@ def _findings(request: InfraGenerateRequest) -> list[InfraPolicyFinding]:
                 severity=Severity.medium,
                 rule="image-tag",
                 message=(
-                    "Use an explicit immutable tag or digest instead of latest or "
-                    "an implicit tag."
+                    "Use an explicit immutable tag or digest instead of latest or an implicit tag."
                 ),
                 path="deployment.yaml" if request.kind != "terraform_module" else "variables.tf",
             )

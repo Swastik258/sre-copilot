@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { api, type Investigation } from "@/lib/api";
+import { api, type IntegrationsResponse, type Investigation } from "@/lib/api";
 import { useAuth } from "@/lib/auth-client";
 
 export default function DashboardPage() {
@@ -10,6 +10,8 @@ export default function DashboardPage() {
   const [recent, setRecent] = useState<Investigation[]>([]);
   const [loading, setLoading] = useState(true);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [integrations, setIntegrations] = useState<IntegrationsResponse | null>(null);
+  const [integrationError, setIntegrationError] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -28,7 +30,53 @@ export default function DashboardPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    api.integrations()
+      .then((result) => {
+        if (active) setIntegrations(result);
+      })
+      .catch(() => {
+        if (active) setIntegrationError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const displayName = user?.display_name?.trim() || user?.email?.split("@")[0] || "there";
+  const kubernetes = integrations?.integrations.find((item) => item.kind === "kubernetes");
+  const kubernetesValue = integrationError
+    ? "Unavailable"
+    : !integrations
+      ? "Checking"
+      : kubernetes?.state === "connected" || kubernetes?.state === "enabled"
+        ? "Live"
+        : kubernetes?.state === "demo"
+          ? "Demo"
+          : kubernetes?.state === "disabled"
+            ? "Disabled"
+            : "Not configured";
+  const kubernetesDetail = integrationError
+    ? "Status endpoint unreachable"
+    : kubernetes?.state === "demo"
+      ? "Labelled fixtures · read-only"
+      : kubernetes?.state === "connected" || kubernetes?.state === "enabled"
+        ? "Read-only diagnostics"
+        : "Set by the operator";
+  const connected = integrations?.integrations.filter(
+    (item) => item.state === "connected" || item.state === "enabled",
+  ).length;
+  const integrationValue = integrationError
+    ? "Unavailable"
+    : !integrations
+      ? "Checking"
+      : `${connected ?? 0}/${integrations.integrations.length}`;
+  const integrationDetail = integrationError
+    ? "Status endpoint unreachable"
+    : !integrations
+      ? "Loading backend status"
+      : `${connected ?? 0} read-only · operator-configured`;
 
   return (
     <div className="dashboard-content space-y-8">
@@ -45,12 +93,12 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section aria-label="Workspace status" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Workspace status" aria-live="polite" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { title: "Plan", value: "Free access", detail: "All features enabled" },
-          { title: "Kubernetes", value: "Live", detail: "Read-only diagnostics" },
-          { title: "Integrations", value: "Configure", detail: "Connect in settings" },
-          { title: "Write actions", value: "0", detail: "No changes made" },
+          { title: "Plan", value: "Free access", detail: "All live features enabled" },
+          { title: "Kubernetes", value: kubernetesValue, detail: kubernetesDetail },
+          { title: "Integrations", value: integrationValue, detail: integrationDetail },
+          { title: "Write actions", value: "0", detail: "No infrastructure changes made" },
         ].map((item) => (
           <article key={item.title} className="dashboard-stat card p-5 transition hover:-translate-y-0.5">
             <p className="font-mono text-[10px] uppercase tracking-wide text-[var(--text-muted)]">{item.title}</p>

@@ -71,7 +71,7 @@ class AnthropicProvider:
         )
 
         try:
-            with urllib.request.urlopen(request, timeout=self._timeout) as response:
+            with urllib.request.urlopen(request, timeout=self._timeout) as response:  # nosec B310
                 data = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             log.warning("AI provider anthropic returned HTTP %s", exc.code)

@@ -2,24 +2,29 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/security" },
   title: "Security — SRE Copilot",
   description:
     "The security controls that exist in SRE Copilot, and the gaps that do not.",
 };
 
 const CONTROLS = [
-  "Read-only Kubernetes client with no mutating methods.",
-  "Passwords hashed with scrypt.",
-  "Session tokens stored hashed, delivered in an HttpOnly cookie.",
-  "Secret redaction before logs and evidence are persisted.",
-  "Uniform JSON error envelope across the API.",
-  "Request IDs on API responses for traceability.",
+  "Structurally read-only infrastructure adapters; generated code is proposal-only.",
+  "Argon2id password hashing with rehashing of legacy hashes on sign-in.",
+  "Hashed session tokens in HttpOnly, SameSite cookies with idle and absolute expiry.",
+  "Owner, admin, member, and viewer roles with tenant-scoped queries and audit records.",
+  "CSRF protection, trusted-proxy rate limits, idempotency, and request-size caps.",
+  "Secret redaction before logs, evidence, audit records, or optional AI calls.",
+  "Encrypted, retrying background jobs and configurable audit retention.",
+  "CI gates for tests, coverage, static analysis, dependency audits, image builds, and manifests.",
 ];
 
 const GAPS = [
-  "No roles or per-resource authorization yet.",
-  "No MFA.",
-  "No email verification.",
+  "No MFA, SSO, SAML, or SCIM.",
+  "No SOC 2, ISO 27001, or third-party penetration-test claim.",
+  "Rate limiting is per process; use an edge or shared limiter for multiple replicas.",
+  "Job encryption uses an operator-managed key, not KMS/HSM rotation.",
+  "No DNS pinning or network egress allow-list is enforced by the app.",
 ];
 
 export default function Page() {
@@ -30,9 +35,9 @@ export default function Page() {
         What is protected, and what is not.
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        SRE Copilot is a reference implementation, not a certified platform. The
-        controls below are implemented; the gaps below are real and should be
-        treated as blockers for a production deployment.
+        SRE Copilot is a self-hosted product, not a certified platform. The
+        controls below are implemented and tested; the gaps below are real.
+        Review them against your own risk model before exposing a deployment.
       </p>
 
       <div className="mt-12 grid gap-4 lg:grid-cols-2">
@@ -59,8 +64,9 @@ export default function Page() {
             ))}
           </ul>
           <p className="mt-6 text-sm leading-6 text-[var(--text-muted)]">
-            API-wide authentication is available through configuration, but
-            tenant isolation and role-based access are not implemented.
+            Production always requires authentication. A deployment still needs
+            its own monitoring, backup, key-management, and incident-response
+            procedures.
           </p>
         </div>
       </div>

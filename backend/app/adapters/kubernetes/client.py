@@ -50,7 +50,9 @@ class KubernetesReadClient(Protocol):
     def list_workloads(self, namespace: str | None = None) -> list[WorkloadInfo]: ...
     def list_pods(self, namespace: str | None = None) -> list[PodInfo]: ...
     def get_pod(self, namespace: str, name: str) -> PodInfo: ...
-    def list_events(self, namespace: str, involved_object: str | None = None) -> list[EventInfo]: ...
+    def list_events(
+        self, namespace: str, involved_object: str | None = None
+    ) -> list[EventInfo]: ...
     def get_pod_logs(
         self,
         namespace: str,
@@ -110,7 +112,9 @@ class FixtureKubernetesClient:
                 return pod
         from app.core.errors import NotFoundError
 
-        raise NotFoundError(f"Pod {namespace}/{name} not found", details={"namespace": namespace, "name": name})
+        raise NotFoundError(
+            f"Pod {namespace}/{name} not found", details={"namespace": namespace, "name": name}
+        )
 
     def list_events(self, namespace: str, involved_object: str | None = None) -> list[EventInfo]:
         events = [EventInfo(**e) for e in self._snapshot.get("events", [])]
@@ -186,9 +190,7 @@ class RealKubernetesClient:
                     context=self._settings.kubernetes_context,
                 )
         except Exception as exc:  # pragma: no cover - environment dependent
-            raise NotConfiguredError(
-                f"Unable to load Kubernetes configuration: {exc}"
-            ) from exc
+            raise NotConfiguredError(f"Unable to load Kubernetes configuration: {exc}") from exc
 
         self._core = client.CoreV1Api()
         self._apps = client.AppsV1Api()
@@ -290,13 +292,25 @@ class RealKubernetesClient:
         self._ensure_clients()
         target = namespace
         if target:
-            deployments = self._apps.list_namespaced_deployment(target, _request_timeout=self._timeout)
-            statefulsets = self._apps.list_namespaced_stateful_set(target, _request_timeout=self._timeout)
-            daemonsets = self._apps.list_namespaced_daemon_set(target, _request_timeout=self._timeout)
+            deployments = self._apps.list_namespaced_deployment(
+                target, _request_timeout=self._timeout
+            )
+            statefulsets = self._apps.list_namespaced_stateful_set(
+                target, _request_timeout=self._timeout
+            )
+            daemonsets = self._apps.list_namespaced_daemon_set(
+                target, _request_timeout=self._timeout
+            )
         else:
-            deployments = self._apps.list_deployment_for_all_namespaces(_request_timeout=self._timeout)
-            statefulsets = self._apps.list_stateful_set_for_all_namespaces(_request_timeout=self._timeout)
-            daemonsets = self._apps.list_daemon_set_for_all_namespaces(_request_timeout=self._timeout)
+            deployments = self._apps.list_deployment_for_all_namespaces(
+                _request_timeout=self._timeout
+            )
+            statefulsets = self._apps.list_stateful_set_for_all_namespaces(
+                _request_timeout=self._timeout
+            )
+            daemonsets = self._apps.list_daemon_set_for_all_namespaces(
+                _request_timeout=self._timeout
+            )
 
         workloads: list[WorkloadInfo] = []
         for d in deployments.items:

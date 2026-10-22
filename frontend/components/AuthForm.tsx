@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ApiRequestError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-client";
 
@@ -22,18 +22,32 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [providers, setProviders] = useState<string[]>([]);
+
+  useEffect(() => {
+    api.auth
+      .providers()
+      .then((result) => setProviders(result.providers))
+      .catch(() => setProviders([]));
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("oauth_error")) {
+      setError("OAuth sign-in could not be completed. Try again or use email.");
+    }
+  }, []);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setNotice(null);
 
     if (isSignup && password !== confirm) {
       setError("Passwords do not match.");
       return;
     }
-    if (isSignup && password.length < 8) {
-      setError("Choose a password of at least 8 characters.");
+    if (isSignup && password.length < 12) {
+      setError("Choose a password of at least 12 characters.");
       return;
     }
 
@@ -47,6 +61,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
           })
         : await api.auth.login({ email, password });
 
+      if (result.verification_required) {
+        setNotice(
+          "Check your email to verify your address before signing in.",
+        );
+        setPending(false);
+        return;
+      }
       setUser(result.user);
       router.replace("/dashboard");
       router.refresh();
@@ -121,9 +142,19 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </div>
 
         <div>
-          <label htmlFor="password" className="label-caps mb-2 block">
-            Password
-          </label>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <label htmlFor="password" className="label-caps block">
+              Password
+            </label>
+            {!isSignup && (
+              <Link
+                href="/forgot-password"
+                className="text-xs text-[var(--text-muted)] transition hover:text-[var(--text)]"
+              >
+                Forgot password?
+              </Link>
+            )}
+          </div>
           <div className="relative">
             <input
               id="password"
@@ -133,7 +164,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               autoComplete={isSignup ? "new-password" : "current-password"}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder={isSignup ? "At least 8 characters" : "Your password"}
+              placeholder={isSignup ? "At least 12 characters" : "Your password"}
               className={`${inputClass} pr-16`}
             />
             <button
@@ -166,6 +197,15 @@ export function AuthForm({ mode }: { mode: Mode }) {
           </div>
         )}
 
+        {notice && (
+          <div
+            role="status"
+            className="border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3.5 py-3 text-sm leading-6 text-[var(--text-muted)]"
+          >
+            {notice}
+          </div>
+        )}
+
         {error && (
           <div
             role="alert"
@@ -187,6 +227,25 @@ export function AuthForm({ mode }: { mode: Mode }) {
               : "Sign in"}
         </button>
       </form>
+
+      {providers.length > 0 && (
+        <div className="mt-5 space-y-3">
+          <div className="flex items-center gap-3 text-xs text-[var(--text-subtle)]">
+            <span className="h-px flex-1 bg-[var(--border)]" />
+            or
+            <span className="h-px flex-1 bg-[var(--border)]" />
+          </div>
+          {providers.map((provider) => (
+            <a
+              key={provider}
+              href={api.auth.oauthUrl(provider)}
+              className="btn-ghost w-full justify-center capitalize"
+            >
+              Continue with {provider}
+            </a>
+          ))}
+        </div>
+      )}
 
       <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
         {isSignup ? "Already have an account? " : "New to SRE Copilot? "}

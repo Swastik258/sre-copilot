@@ -26,9 +26,7 @@ def _response(db: Session, tenant_id: str) -> SettingsResponse:
     return SettingsResponse(
         ai_provider=settings.ai_provider,
         ai_model=settings.ai_model,
-        ai_privacy_mode=(
-            settings.ai_privacy_mode if override is None else override
-        ),
+        ai_privacy_mode=(settings.ai_privacy_mode if override is None else override),
         ai_privacy_source="override" if override is not None else "environment",
         audit_retention_days=settings_store.get_audit_retention_days(db, tenant_id),
         default_environment=settings_store.get_default_environment(db, tenant_id),
@@ -59,8 +57,7 @@ def update_settings(
         ai_privacy_mode=payload.ai_privacy_mode,
         default_environment=payload.default_environment,
         clear_default_environment=(
-            "default_environment" in changes
-            and payload.default_environment is None
+            "default_environment" in changes and payload.default_environment is None
         ),
     )
     audit_service.record_event(

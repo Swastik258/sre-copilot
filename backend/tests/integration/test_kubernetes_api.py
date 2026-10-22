@@ -32,6 +32,27 @@ def test_demo_mode_lists_pods_and_flag(client, monkeypatch):
     assert {"api-7d9f8b6c4-x2k9p", "worker-5f8c9d-oom1", "web-6b7c8d-ok01"} <= names
 
 
+def test_list_endpoints_are_paginated(client, monkeypatch):
+    _enable_demo(monkeypatch)
+    full = client.get("/api/v1/kubernetes/pods", params={"namespace": "prod"})
+    assert full.status_code == 200
+    body = full.json()
+    assert body["total"] == len(body["pods"])
+
+    page = client.get(
+        "/api/v1/kubernetes/pods",
+        params={"namespace": "prod", "limit": 1, "offset": 1},
+    )
+    assert page.status_code == 200
+    paged = page.json()
+    assert paged["limit"] == 1
+    assert paged["offset"] == 1
+    assert paged["total"] == body["total"]
+    assert len(paged["pods"]) == min(1, max(0, body["total"] - 1))
+    if paged["pods"]:
+        assert paged["pods"][0]["name"] == body["pods"][1]["name"]
+
+
 def test_diagnose_endpoint_returns_evidence(client, monkeypatch):
     _enable_demo(monkeypatch)
     r = client.post("/api/v1/kubernetes/pods/prod/api-7d9f8b6c4-x2k9p/diagnose")

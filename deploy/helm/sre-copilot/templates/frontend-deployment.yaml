@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sre-copilot.frontend.fullname" . }}
+  labels:
+    {{- include "sre-copilot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.frontend.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: 5
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      {{- include "sre-copilot.frontend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sre-copilot.frontend.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- include "sre-copilot.imagePullSecrets" . | nindent 6 }}
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: {{ .Values.frontend.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.frontend.podSecurityContext | nindent 8 }}
+      containers:
+        - name: frontend
+          image: {{ include "sre-copilot.image" (dict "image" .Values.frontend.image "appVersion" .Chart.AppVersion) }}
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: {{ .Values.frontend.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.frontend.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.frontend.probes.startup.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: {{ .Values.frontend.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.frontend.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.frontend.probes.readiness.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: {{ .Values.frontend.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.frontend.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.frontend.probes.liveness.failureThreshold }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.frontend.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: next-cache
+              mountPath: /app/.next/cache
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+        - name: next-cache
+          emptyDir:
+            sizeLimit: 64Mi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    {{- include "sre-copilot.frontend.selectorLabels" . | nindent 20 }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              {{- include "sre-copilot.frontend.selectorLabels" . | nindent 14 }}

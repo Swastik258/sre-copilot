@@ -11,7 +11,7 @@ export default function AuthLayout({
       className="min-h-screen bg-[var(--bg)] text-[var(--text)]"
     >
       <AuthHeader />
-      <main className="grid min-h-screen place-items-center px-6 py-24">
+      <main id="main-content" className="grid min-h-screen place-items-center px-6 py-24">
         {children}
       </main>
     </div>

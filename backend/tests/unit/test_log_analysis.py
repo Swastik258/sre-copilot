@@ -32,9 +32,7 @@ def test_groups_repeated_lines_and_keeps_stack_frames() -> None:
 
 
 def test_redacts_secrets_before_returning_samples() -> None:
-    text = (
-        "2026-10-21T18:02:11Z ERROR auth failed token=sk-abcdef0123456789abcdef0123456789"
-    )
+    text = "2026-10-21T18:02:11Z ERROR auth failed token=sk-abcdef0123456789abcdef0123456789"
 
     result = analyze_logs(LogAnalyzeRequest(text=text))
 

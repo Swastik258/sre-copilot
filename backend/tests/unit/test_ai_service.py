@@ -42,9 +42,7 @@ class FakeProvider:
 
 
 def test_mock_provider_returns_labelled_demo_diagnosis(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        ai_service, "get_settings", lambda: Settings(ai_provider="mock")
-    )
+    monkeypatch.setattr(ai_service, "get_settings", lambda: Settings(ai_provider="mock"))
 
     result = ai_service.summarize(
         AIRequest(
@@ -116,9 +114,7 @@ def test_valid_model_json_is_validated_and_citations_filtered(
 
 def test_json_fences_are_tolerated(monkeypatch: pytest.MonkeyPatch) -> None:
     provider = FakeProvider(
-        "```json\n"
-        + json.dumps({"summary": "Fenced result.", "confidence": 0.4})
-        + "\n```"
+        "```json\n" + json.dumps({"summary": "Fenced result.", "confidence": 0.4}) + "\n```"
     )
     monkeypatch.setattr(ai_service, "build_provider", lambda _: provider)
     monkeypatch.setattr(
@@ -175,9 +171,7 @@ def test_openrouter_without_key_is_not_configured() -> None:
 
 def test_openrouter_requires_namespaced_model() -> None:
     with pytest.raises(NotConfiguredError, match="namespaced"):
-        ai_service.build_provider(
-            Settings(ai_provider="openrouter", openrouter_api_key="test-key")
-        )
+        ai_service.build_provider(Settings(ai_provider="openrouter", openrouter_api_key="test-key"))
 
 
 def test_groq_configuration_uses_openai_compatible_provider() -> None:
@@ -195,9 +189,7 @@ def test_groq_configuration_uses_openai_compatible_provider() -> None:
 
 def test_groq_without_api_key_is_not_configured() -> None:
     with pytest.raises(NotConfiguredError, match="GROQ_API_KEY"):
-        ai_service.build_provider(
-            Settings(ai_provider="groq", ai_model="llama-3.3-70b-versatile")
-        )
+        ai_service.build_provider(Settings(ai_provider="groq", ai_model="llama-3.3-70b-versatile"))
 
 
 def test_unknown_citation_is_removed_from_result(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -212,9 +204,7 @@ def test_unknown_citation_is_removed_from_result(monkeypatch: pytest.MonkeyPatch
             }
         ],
     }
-    monkeypatch.setattr(
-        ai_service, "build_provider", lambda _: FakeProvider(json.dumps(response))
-    )
+    monkeypatch.setattr(ai_service, "build_provider", lambda _: FakeProvider(json.dumps(response)))
     monkeypatch.setattr(
         ai_service,
         "get_settings",

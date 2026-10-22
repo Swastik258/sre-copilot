@@ -33,9 +33,7 @@ def test_demo_mode_is_false_when_any_integration_enabled():
 
 def test_external_ai_requires_key():
     assert Settings(ai_provider="openai").external_ai_configured is False
-    assert (
-        Settings(ai_provider="openai", openai_api_key="sk-x").external_ai_configured is True
-    )
+    assert Settings(ai_provider="openai", openai_api_key="sk-x").external_ai_configured is True
     assert (
         Settings(
             ai_provider="openrouter",
@@ -56,9 +54,7 @@ def test_integration_status_reflects_configuration():
     assert by_kind["ai"].state.value == "demo"
     assert by_kind["github"].state.value == "disabled"
 
-    report2 = integration_statuses(
-        Settings(github_enabled=True, github_token="ghp_x")
-    )
+    report2 = integration_statuses(Settings(github_enabled=True, github_token="ghp_x"))
     by_kind2 = {i.kind: i for i in report2.integrations}
     assert by_kind2["github"].state.value == "enabled"
 
@@ -72,15 +68,15 @@ def test_integration_status_reflects_configuration():
     by_kind3 = {i.kind: i for i in report3.integrations}
     assert by_kind3["ai"].state.value == "enabled"
 
-    report4 = integration_statuses(
-        Settings(ai_provider="groq", groq_api_key="gsk-test")
-    )
+    report4 = integration_statuses(Settings(ai_provider="groq", groq_api_key="gsk-test"))
     by_kind4 = {i.kind: i for i in report4.integrations}
     assert by_kind4["ai"].name == "AI provider (groq)"
     assert by_kind4["ai"].state.value == "enabled"
 
 
 def test_integration_status_never_leaks_tokens():
-    report = integration_statuses(Settings(github_enabled=True, github_token="ghp_supersecret0000000000"))
+    report = integration_statuses(
+        Settings(github_enabled=True, github_token="ghp_supersecret0000000000")
+    )
     dumped = report.model_dump_json()
     assert "ghp_supersecret0000000000" not in dumped

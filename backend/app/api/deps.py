@@ -64,15 +64,41 @@ RequiredUser = Annotated[User, Depends(require_user)]
 
 
 def require_admin(user: RequiredUser) -> User:
-    if user.role != "admin":
+    if user.role not in {"owner", "admin"}:
         raise ForbiddenError(
             "Administrator role required.",
-            details={"required_role": "admin", "current_role": user.role},
+            details={"required_role": "owner or admin", "current_role": user.role},
         )
     return user
 
 
 AdminUser = Annotated[User, Depends(require_admin)]
+
+
+def require_owner(user: RequiredUser) -> User:
+    if user.role != "owner":
+        raise ForbiddenError(
+            "Workspace owner role required.",
+            details={"required_role": "owner", "current_role": user.role},
+        )
+    return user
+
+
+OwnerUser = Annotated[User, Depends(require_owner)]
+
+
+def require_operator(user: RequiredUser) -> User:
+    """Members and above may change investigation state; viewers are read-only."""
+
+    if user.role not in {"owner", "admin", "member"}:
+        raise ForbiddenError(
+            "Your workspace role is read-only.",
+            details={"required_role": "member or above", "current_role": user.role},
+        )
+    return user
+
+
+OperatorUser = Annotated[User, Depends(require_operator)]
 
 
 def enforce_auth(user: CurrentUser) -> None:

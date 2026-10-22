@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/customers/case-studies" },
   title: "Case studies — SRE Copilot",
   description:
     "Case studies will be published only when a real team has a measured result.",

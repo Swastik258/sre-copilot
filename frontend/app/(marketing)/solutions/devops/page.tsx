@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/solutions/devops" },
   title: "DevOps — SRE Copilot",
   description:
     "Review failing pipelines and risky infrastructure plans before production.",
@@ -28,7 +29,7 @@ export default function Page() {
           </h2>
           <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
             Surface the exact failing step and log line, then correlate it with
-            the commit that introduced it. Read-only on your repository.
+            the triggering branch and commit. Read-only on your repository.
           </p>
         </div>
         <div className="card p-6">

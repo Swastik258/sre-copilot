@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/resources" },
   title: "Resources — SRE Copilot",
   description:
     "Documentation, engineering notes, changelog, and support for SRE Copilot.",

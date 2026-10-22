@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/solutions/sre" },
   title: "SRE on-call — SRE Copilot",
   description:
-    "Get to the evidence before the third tab with ranked hypotheses and safe next steps.",
+    "Get to the evidence before the third tab with ranked hypotheses and cited next steps.",
 };
 
 export default function Page() {
@@ -17,8 +18,8 @@ export default function Page() {
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
         At 03:00 you do not need another dashboard. You need the two or three
         facts that explain the page. SRE Copilot turns a failing state into
-        observed facts, ranked hypotheses, and read-only next steps you can run
-        immediately.
+        observed facts, ranked hypotheses, and cited next steps you can review
+        immediately. Nothing is executed on your infrastructure.
       </p>
 
       <div className="mt-12 grid gap-4 md:grid-cols-2">
@@ -35,11 +36,11 @@ export default function Page() {
         <div className="card p-6">
           <span className="label-caps">Next steps</span>
           <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
-            Safe to run at any hour
+            Safe to review at any hour
           </h2>
           <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            Proposed commands only read. Any remediation is separate,
-            approval-gated, and includes a rollback and verification step.
+            Proposed next steps are review-only. The product does not execute
+            remediation or apply infrastructure changes.
           </p>
         </div>
       </div>

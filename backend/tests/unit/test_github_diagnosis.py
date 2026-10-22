@@ -193,10 +193,7 @@ def test_diagnose_failed_job_and_dependency_log() -> None:
     assert "failed in job 'test'" in result.diagnosis.summary
     assert "Run tests" in result.diagnosis.summary
     assert any(h.statement == "Job 'test' failed." for h in result.diagnosis.hypotheses)
-    assert any(
-        "Dependency installation failed" in h.statement
-        for h in result.diagnosis.hypotheses
-    )
+    assert any("Dependency installation failed" in h.statement for h in result.diagnosis.hypotheses)
     assert result.diagnosis.remediation
     assert result.diagnosis.remediation[0].requires_approval is True
     assert result.diagnosis.evidence_ids

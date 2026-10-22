@@ -7,6 +7,12 @@ from datetime import UTC, datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.security.password_policy import (
+    MAX_PASSWORD_LENGTH,
+    MIN_PASSWORD_LENGTH,
+    validate_password_strength,
+)
+
 # Deliberately simple, dependency-free email check. It rejects the obvious
 # mistakes (no "@", no domain dot, whitespace) without pretending to be full
 # RFC 5322 validation.
@@ -15,7 +21,7 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 class SignupRequest(BaseModel):
     email: str = Field(min_length=3, max_length=320)
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
     display_name: str | None = Field(default=None, max_length=120)
 
     @field_validator("email")
@@ -25,6 +31,11 @@ class SignupRequest(BaseModel):
         if not _EMAIL_RE.match(cleaned):
             raise ValueError("Enter a valid email address.")
         return cleaned
+
+    @field_validator("password")
+    @classmethod
+    def _strong_password(cls, value: str) -> str:
+        return validate_password_strength(value)
 
     @field_validator("display_name")
     @classmethod
@@ -37,12 +48,44 @@ class SignupRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     email: str = Field(min_length=3, max_length=320)
-    password: str = Field(min_length=1, max_length=128)
+    password: str = Field(min_length=1, max_length=MAX_PASSWORD_LENGTH)
 
     @field_validator("email")
     @classmethod
     def _normalize_email(cls, value: str) -> str:
         return value.strip().lower()
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+
+    @field_validator("email")
+    @classmethod
+    def _normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=512)
+    password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
+
+    @field_validator("password")
+    @classmethod
+    def _strong_password(cls, value: str) -> str:
+        return validate_password_strength(value)
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=512)
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+class AuthProvidersResponse(BaseModel):
+    providers: list[str]
+    email_password: bool = True
 
 
 class UserOut(BaseModel):
@@ -54,6 +97,7 @@ class UserOut(BaseModel):
     role: str = "member"
     tenant_id: str = "default"
     is_active: bool = True
+    email_verified_at: datetime | None = None
     created_at: datetime
 
     @field_validator("created_at")
@@ -68,3 +112,4 @@ class AuthResponse(BaseModel):
     cookie and is never exposed in the response body."""
 
     user: UserOut
+    verification_required: bool = False

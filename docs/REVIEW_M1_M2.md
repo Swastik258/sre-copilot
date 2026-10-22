@@ -141,7 +141,7 @@ asserts no create/update/patch/delete/restart/scale methods exist.
 Each diagnosis separates:
 - **Confirmed observations** (facts from the cluster, each with an evidence id), from
 - **Hypotheses** (ranked, with confidence), plus read-only **next steps** and
-  **human-approval-gated** remediation suggestions.
+  **review-only** remediation suggestions with no execution path.
 
 ### API (all under `/api/v1/kubernetes`, `tags=["kubernetes"]`)
 | Method | Path | Purpose |

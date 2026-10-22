@@ -49,12 +49,16 @@ backend/app/ai/*                         → provider-independent AI explanation
   - `app/core/security.py` — response security headers and production HSTS.
   - `app/core/redaction.py` — best-effort credential redaction.
 - **Authentication and authorization**
-  - `app/services/auth.py` — local accounts, scrypt hashes, sessions.
+  - `app/services/auth.py` — local accounts, Argon2id hashes, sessions, CSRF,
+    recovery, and email verification.
   - `app/api/v1/account.py` — owner-scoped profile/settings and revocable API keys.
   - `app/api/deps.py` — optional/required user, admin dependency, production
     authentication gate.
-  - `app/services/admin.py` — user/tenant administration and last-admin lockout.
+  - `app/services/admin.py` — workspace-scoped user/tenant administration and
+    last-administrator lockout.
   - `app/services/settings_store.py` — per-tenant non-secret preferences.
+  - `app/services/jobs.py` — durable, encrypted, retrying background jobs.
+  - `app/core/observability.py` — request metrics, tracing hooks, and readiness.
 - **Customer workspace** — `frontend/components/WorkspaceLayout.tsx` is the
   authenticated shell; `frontend/lib/feature-access.ts` maps features to plans.
   The Free plan currently includes all features. Account preferences and API
@@ -95,12 +99,14 @@ HTTP request
 `demo=true` marks fixture-derived evidence. Diagnoses cite evidence by ID instead
 of restating it.
 
-Investigations, audit events, and settings carry a `tenant_id`. Members are
-restricted to their own investigations and the audit events they created;
-settings are read per tenant and written by admins. Admins can inspect across
-tenants and apply audit retention workspace-wide. Moving a member migrates their
-investigations. The `admin`/`member` model is intentionally simple;
-finer-grained permissions are future work.
+Investigations, audit events, and settings carry a `tenant_id`. Members and
+viewers are restricted to their own investigations and the audit events they
+created. Owners and admins can inspect all events and apply retention within
+their active workspace; audit reads, exports, and retention never cross a tenant
+boundary. Settings are read per tenant and written by owners/admins. Membership
+changes do not move investigation ownership between workspaces: records remain
+with the workspace where they were created. The owner/admin/member/viewer model
+is intentionally simple; finer-grained per-resource policy is future work.
 
 ## Frontend
 
@@ -108,9 +114,8 @@ finer-grained permissions are future work.
 - `lib/api.ts` is the single typed API client (base URL, error unwrapping).
 - Authentication is self-hosted. `lib/auth-client.tsx` mirrors the signed-in user
   for the UI; the session token lives only in an `HttpOnly` cookie. `lib/api.ts`
-  sends `credentials: "include"`.
-- Clerk remains installed but is **not imported or wired into the UI**. There is
-  no Clerk provider or modal.
+  sends `credentials: "include"` and handles CSRF and error envelopes.
+- Clerk is not present in the dependency tree or runtime path.
 - Product consoles:
   - `/dashboard` — account and live integration state
   - `/kubernetes` — cluster selector, pod diagnosis, evidence, AI explanation
@@ -121,12 +126,17 @@ finer-grained permissions are future work.
   - `/metrics` — Prometheus query and correlation
   - `/runbooks` — searchable operator catalog
   - `/audit` — audit filters, CSV export, admin retention
-  - `/admin/settings` — per-tenant policy and admin user/tenant controls
+  - `/admin/settings` — active-workspace policy and user controls
   - `/infra-code` — proposal-only Deployment/Service/Terraform generation
 - `components/StatusStrip.tsx` and `components/HealthPill.tsx` render live
   backend status; demo data is labelled.
 - Motion uses shared semantic utilities and collapses under
   `prefers-reduced-motion: reduce`.
+- `app/robots.ts`, `app/sitemap.ts`, the root metadata, and `NEXT_PUBLIC_SITE_URL`
+  provide public SEO metadata. Auth/workspace routes are excluded from indexing.
+- Marketing status copy is generated from the same feature mapping used by the
+  workspace. Customer logos, testimonials, and operational metrics must not be
+  fabricated; labelled fixtures remain allowed.
 
 ## Configuration & environments
 
@@ -135,7 +145,7 @@ finer-grained permissions are future work.
 | `DATABASE_URL` | `sqlite:///./sre_copilot.db` | Postgres in Compose |
 | `AUTO_CREATE_SCHEMA` | `true` | Local SQLite only; never Postgres |
 | `AUTH_REQUIRED` | `false` | Off for local demo; production always enforces |
-| `DEFAULT_TENANT_ID` | `default` | Tenant for newly created accounts |
+| `DEFAULT_TENANT_ID` | `default` | `default` gives each signup a personal workspace; a non-default ID creates a shared workspace for new members |
 | `RATE_LIMIT_PER_MINUTE` | `0` | `0` disables locally; production defaults to 120 |
 | `AI_PROVIDER` | `mock` | `mock`, `openai`, `groq`, `openrouter`, or `anthropic` |
 | `GROQ_API_KEY` / `GROQ_BASE_URL` | empty / Groq OpenAI-compatible endpoint | Server-side Groq chat completions |
@@ -144,6 +154,27 @@ finer-grained permissions are future work.
 | `PROMETHEUS_ENABLED` / `PROMETHEUS_URL` | `false` / empty | Fixture mode when enabled without a URL |
 | `KUBERNETES_CLUSTERS` | empty | JSON array of named read-only targets; legacy single-target settings are fallback |
 | Terraform review | no config | Parses supplied plan JSON only |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Frontend build-time API origin |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Frontend build-time canonical origin |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | empty | Optional public support address |
+| `BACKGROUND_JOBS_ENABLED` | `false` | Required for SMTP delivery and durable outbox work |
+| `CREDENTIAL_ENCRYPTION_KEY` | empty | Fernet key for encrypted queued payloads |
+| `METRICS_BEARER_TOKEN` | empty | Required unless metrics are explicitly unauthenticated |
+
+## Deployment topology
+
+- **Local**: `deploy/docker-compose.yml` runs PostgreSQL, backend, and frontend.
+- **Production Compose**: `deploy/docker-compose.prod.yml` runs only app
+  containers and expects an external PostgreSQL database.
+- **Kubernetes**: `deploy/helm/sre-copilot` references an existing Secret by
+  default, runs migrations in a pre-install/pre-upgrade Job, and starts backend
+  replicas without migration races.
+- **Terraform**: optional wrapper around the Kubernetes/Helm deployment, not a
+  cloud provisioning module. State can contain secrets and needs protected remote
+  storage.
+- **Release**: GitHub Actions builds non-root images, then uses protected
+  environments for deploy/rollback. Approval is enforced only after repository
+  operators configure required reviewers.
 
 ## Design constraints
 

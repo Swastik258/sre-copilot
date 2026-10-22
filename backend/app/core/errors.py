@@ -17,6 +17,7 @@ Internal exceptions never leak stack traces or secrets to clients.
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -132,7 +133,7 @@ def _envelope(
     }
 
 
-def _safe_validation_errors(errors: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _safe_validation_errors(errors: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
     """Make pydantic's error list JSON-serializable.
 
     Pydantic puts the raised exception object (e.g. ``ValueError``) into the

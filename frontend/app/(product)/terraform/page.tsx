@@ -398,7 +398,7 @@ function ExplanationView({
                 <p className="text-[12px] text-secondary">{action.description}</p>
                 <p className="mt-1 font-mono text-[10px] text-tertiary">
                   risk {action.risk} · {action.changes_state ? "changes state" : "read-only"} ·
-                  approval required
+                  human review required
                 </p>
               </div>
             ))}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/solutions" },
   title: "Solutions — SRE Copilot",
   description:
     "Evidence-backed diagnosis for platform teams, SRE on-call, and DevOps review.",
@@ -16,7 +17,7 @@ const AUDIENCES = [
   },
   {
     title: "SRE on-call",
-    body: "Get to the two or three facts that explain the page, with ranked hypotheses and safe next steps you can run at 03:00.",
+    body: "Get to the two or three facts that explain the page, with ranked hypotheses and cited next steps to review at 03:00.",
     href: "/solutions/sre",
     label: "For SRE on-call",
   },

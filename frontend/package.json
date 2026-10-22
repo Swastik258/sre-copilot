@@ -7,10 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "smoke": "node scripts/release-smoke.mjs"
+    "smoke": "node scripts/release-smoke.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.9.14",
     "framer-motion": "^14.3.0",
     "next": "16.4.0",
     "react": "^19.0.0",

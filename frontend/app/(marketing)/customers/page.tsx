@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/customers" },
   title: "Customers — SRE Copilot",
   description:
     "An honest look at early adoption: no invented logos, no fabricated testimonials.",
@@ -22,18 +23,19 @@ export default function Page() {
       <div className="mt-12 grid gap-4 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
         <div className="card p-8">
           <div className="font-serif text-7xl leading-none text-[var(--text)]">
-            0
+            —
           </div>
-          <div className="label-caps mt-4">Production users</div>
+          <div className="label-caps mt-4">Published customers</div>
           <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            As of this build, there are no production customers to name.
+            No customer names, logos, or outcome metrics are published for this
+            build. A named reference requires a real deployment and permission.
           </p>
         </div>
 
         <div className="card p-8">
           <p className="font-serif text-2xl leading-snug text-[var(--text)] md:text-3xl">
-            &ldquo;We&rsquo;re not going to invent logos or testimonials. When
-            real teams use this, they&rsquo;ll be here.&rdquo;
+            We will not invent logos or testimonials. When real teams use this,
+            their approved words will appear here.
           </p>
           <p className="mt-5 text-sm leading-6 text-[var(--text-muted)]">
             The same rule applies to case studies and quotes. A named result

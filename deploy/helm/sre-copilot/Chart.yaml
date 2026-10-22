@@ -1,0 +1,12 @@
+apiVersion: v2
+name: sre-copilot
+description: Read-only SRE diagnosis API and web console
+type: application
+version: 0.2.0
+appVersion: "0.2.0"
+kubeVersion: ">=1.27.0-0"
+home: https://github.com/Swastik258/sre-copilot
+sources:
+  - https://github.com/Swastik258/sre-copilot
+maintainers:
+  - name: SRE Copilot maintainers

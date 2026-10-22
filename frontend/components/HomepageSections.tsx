@@ -1,45 +1,37 @@
 import Link from "next/link";
-import { CLIENTS, TESTIMONIALS } from "@/data/clients";
+import { DESIGN_PARTNER_QUESTIONS, INTEGRATION_SURFACES } from "@/data/homepage";
 import { DemoVideo } from "@/components/DemoVideo";
 import { FAQ } from "@/components/FAQ";
 import { Reveal } from "@/components/Reveal";
 import { SampleMetrics } from "@/components/SampleMetrics";
 import { TerminalDiagnosis } from "@/components/TerminalDiagnosis";
 
-const INTEGRATIONS = [
-  "Kubernetes",
-  "GitHub Actions",
-  "Prometheus",
-  "Grafana",
-  "Loki",
-  "ArgoCD",
-  "Terraform",
-  "AWS",
-  "Azure",
-];
-
-export function TrustedTeams() {
+export function IntegrationSurfaces() {
   return (
-    <section className="trusted-teams" aria-label="Placeholder engineering teams">
+    <section className="trusted-teams" aria-label="Integration surfaces">
       <div className="shell py-9 sm:py-11">
-        <p className="label-caps text-center">Placeholder engineering teams</p>
+        <p className="label-caps text-center">Integration surfaces</p>
         <div className="placeholder-client-grid mt-7">
-          {CLIENTS.map((client) => (
-            <div key={client.name} className="trusted-logo">
-              <span className="trusted-logo-mark">{client.mark}</span>
-              <span>{client.name}</span>
+          {INTEGRATION_SURFACES.map((surface) => (
+            <div key={surface.name} className="trusted-logo">
+              <span className="trusted-logo-mark">{surface.mark}</span>
+              <span>{surface.name}</span>
             </div>
           ))}
         </div>
         <p className="mt-4 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--text-subtle)]">
-          Fictional placeholder names
+          Adapter availability depends on deployment configuration
         </p>
       </div>
     </section>
   );
 }
 
-export function HomepageSections() {
+export function HomepageSections({
+  showWalkthrough,
+}: {
+  showWalkthrough: boolean;
+}) {
   return (
     <>
       <Reveal>
@@ -47,31 +39,34 @@ export function HomepageSections() {
           <div className="shell py-20 sm:py-24">
             <div className="mb-10 flex flex-wrap items-end justify-between gap-5">
               <div>
-                <span className="label-caps">Customer stories</span>
+                <span className="label-caps">Design-partner program</span>
                 <h2 className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
                   Built for calmer on-call.
                 </h2>
               </div>
-              <span className="sample-data-label">Fictional placeholder testimonials</span>
+              <span className="sample-data-label">No published customer stories yet</span>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              {TESTIMONIALS.map((testimonial, index) => (
-                <Reveal key={testimonial.name} delay={index * 0.09} className="h-full">
+              {DESIGN_PARTNER_QUESTIONS.map((question, index) => (
+                <Reveal key={question.title} delay={index * 0.09} className="h-full">
                   <article className="testimonial-card card h-full">
-                    <span className="testimonial-quote-mark" aria-hidden="true">“</span>
-                    <blockquote className="relative text-sm leading-7 text-[var(--text-muted)]">
-                      {testimonial.quote}
-                    </blockquote>
+                    <span className="testimonial-quote-mark" aria-hidden="true">?</span>
+                    <p className="relative text-sm font-semibold leading-7 text-[var(--text)]">
+                      {question.title}
+                    </p>
+                    <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">
+                      {question.body}
+                    </p>
                     <div className="mt-7 flex items-center gap-3 border-t border-[var(--border)] pt-5">
                       <span className="testimonial-avatar" aria-hidden="true">
-                        {testimonial.initial}
+                        0{index + 1}
                       </span>
                       <div>
                         <div className="text-sm font-semibold text-[var(--text)]">
-                          {testimonial.name}
+                          Evaluation question
                         </div>
                         <div className="mt-1 text-xs text-[var(--text-muted)]">
-                          {testimonial.role} · {testimonial.company}
+                          Design partner · not a testimonial
                         </div>
                       </div>
                     </div>
@@ -83,31 +78,30 @@ export function HomepageSections() {
         </section>
       </Reveal>
 
-      <Reveal>
-        <section className="home-video-section">
-          <div className="shell py-20 sm:py-24">
-            <div className="mx-auto mb-9 max-w-2xl text-center">
-              <span className="label-caps">Product walkthrough</span>
-              <h2 className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
-                See the investigation come together.
-              </h2>
-              <p className="mt-4 text-sm leading-6 text-[var(--text-muted)]">
-                A short walkthrough of evidence collection, diagnosis, and next steps.
-              </p>
+      {showWalkthrough && (
+        <Reveal>
+          <section className="home-video-section">
+            <div className="shell py-20 sm:py-24">
+              <div className="mx-auto mb-9 max-w-2xl text-center">
+                <span className="label-caps">Product walkthrough</span>
+                <h2 className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
+                  See the investigation come together.
+                </h2>
+                <p className="mt-4 text-sm leading-6 text-[var(--text-muted)]">
+                  A short walkthrough of evidence collection, diagnosis, and next steps.
+                </p>
+              </div>
+              <DemoVideo />
             </div>
-            <DemoVideo />
-            <p className="mt-4 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--text-subtle)]">
-              Video source is a placeholder and can be replaced at /public/media/sre-copilot-walkthrough.mp4
-            </p>
-          </div>
-        </section>
-      </Reveal>
+          </section>
+        </Reveal>
+      )}
 
       <Reveal>
         <section className="home-terminal-section home-section-glow">
           <div className="shell grid gap-10 py-20 sm:py-24 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center">
             <div>
-              <span className="label-caps">Live incident terminal</span>
+              <span className="label-caps">Sample incident terminal</span>
               <h2 className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
                 From crash loop to cited cause.
               </h2>
@@ -145,8 +139,8 @@ export function HomepageSections() {
                 <article className="trust-card flex h-full items-start gap-4 border-0 bg-transparent p-4 shadow-none">
                   <span className="trust-icon" aria-hidden="true">✓</span>
                   <div>
-                    <h3>Approval-gated remediation</h3>
-                    <p>Review proposed changes first, with an explicit approval step and rollback path.</p>
+                    <h3>Proposal-only changes</h3>
+                    <p>Generated infrastructure changes are never written or applied by the product.</p>
                   </div>
                 </article>
               </Reveal>
@@ -164,7 +158,7 @@ export function HomepageSections() {
         </section>
       </Reveal>
 
-      <TrustedTeams />
+      <IntegrationSurfaces />
 
       <Reveal>
         <section className="home-integrations-section">
@@ -176,16 +170,16 @@ export function HomepageSections() {
                   Meet your infrastructure where it is.
                 </h2>
               </div>
-              <span className="sample-data-label">Ecosystem overview · availability varies</span>
+              <span className="sample-data-label">Supported adapters · configured per deployment</span>
             </div>
             <div className="integrations-grid">
-              {INTEGRATIONS.map((integration, index) => (
-                <Reveal key={integration} delay={index * 0.045}>
+              {INTEGRATION_SURFACES.map((integration, index) => (
+                <Reveal key={integration.name} delay={index * 0.045}>
                   <div className="integration-tile">
                     <span className="integration-mark" aria-hidden="true">
-                      {integration.slice(0, 1)}
+                      {integration.mark}
                     </span>
-                    <span>{integration}</span>
+                    <span>{integration.name}</span>
                   </div>
                 </Reveal>
               ))}
@@ -201,10 +195,10 @@ export function HomepageSections() {
               <div>
                 <span className="label-caps">Simple to get started</span>
                 <h2 className="heading-display mt-3 text-3xl text-[var(--text)]">
-                  Start with a labelled demo. Scale when you’re ready.
+                  Start with a labelled demo. Deploy when you’re ready.
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
-                  Explore local demo mode first, then choose the workspace setup that fits your team.
+                  Explore local demo mode first, then choose the deployment setup that fits your team.
                 </p>
               </div>
               <Link href="/pricing" className="btn-ghost">
