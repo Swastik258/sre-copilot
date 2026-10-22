@@ -23,6 +23,9 @@ npm-debug.log*
 !.env.example
 *.db
 
+# Tracked by mistake in earlier revisions; never commit virtual environments.
+.venv-wsl/
+
 # Editors and operating systems
 .vscode/
 .idea/
@@ -31,3 +34,4 @@ Thumbs.db
 
 # Local build/report artifacts
 frontend/public/SRE_Copilot_Build_Report.pdf
+docs/SRE_Copilot_Build_Report.pdf
