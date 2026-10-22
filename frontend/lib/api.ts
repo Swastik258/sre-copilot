@@ -36,6 +36,18 @@ export class ApiRequestError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? "GET").toUpperCase();
+  const unsafe = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+  const csrfToken =
+    unsafe && typeof document !== "undefined"
+      ? document.cookie
+          .split("; ")
+          .find((cookie) => cookie.startsWith("sre_csrf="))
+          ?.split("=")
+          .slice(1)
+          .join("=")
+      : undefined;
+
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${path}`, {
@@ -45,6 +57,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       headers: {
         Accept: "application/json",
         ...(init?.body ? { "Content-Type": "application/json" } : {}),
+        ...(csrfToken ? { "X-CSRF-Token": decodeURIComponent(csrfToken) } : {}),
         ...(init?.headers ?? {}),
       },
       cache: "no-store",
@@ -154,13 +167,17 @@ export type AuthUser = {
   id: string;
   email: string | null;
   display_name: string | null;
-  role: "admin" | "member";
+  role: "owner" | "admin" | "member" | "viewer";
   tenant_id: string;
   is_active: boolean;
+  email_verified_at?: string | null;
   created_at: string;
 };
 
-export type AuthResponse = { user: AuthUser };
+export type AuthResponse = {
+  user: AuthUser;
+  verification_required?: boolean;
+};
 
 export type AdminUserListResponse = {
   users: AuthUser[];
@@ -168,13 +185,14 @@ export type AdminUserListResponse = {
 };
 
 export type AdminUserUpdate = {
-  role?: "admin" | "member";
+  role?: "owner" | "admin" | "member" | "viewer";
   tenant_id?: string;
   is_active?: boolean;
 };
 
 export type TenantSummary = {
   tenant_id: string;
+  name?: string | null;
   user_count: number;
 };
 
@@ -195,6 +213,7 @@ export type AccountSnapshot = {
   integrations: { kubernetes: boolean; github: boolean; prometheus: boolean };
   api_keys: { id: string; name: string; prefix: string; created_at: string }[];
   plan: string;
+  role?: "owner" | "admin" | "member" | "viewer";
 };
 
 export type ApiKeyCreated = AccountSnapshot["api_keys"][number] & { key: string };
@@ -697,6 +716,33 @@ export const api = {
         method: "POST",
         body: JSON.stringify(payload),
       }),
+    refresh: () =>
+      request<AuthResponse>("/api/v1/auth/refresh", { method: "POST" }),
+    forgotPassword: (email: string) =>
+      request<{ message: string }>("/api/v1/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
+    resetPassword: (token: string, password: string) =>
+      request<null>("/api/v1/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ token, password }),
+      }),
+    verifyEmail: (token: string) =>
+      request<AuthUser>("/api/v1/auth/verify-email", {
+        method: "POST",
+        body: JSON.stringify({ token }),
+      }),
+    resendVerification: () =>
+      request<{ message: string }>("/api/v1/auth/resend-verification", {
+        method: "POST",
+      }),
+    providers: () =>
+      request<{ providers: string[]; email_password: boolean }>(
+        "/api/v1/auth/providers",
+      ),
+    oauthUrl: (provider: string) =>
+      `${API_BASE}/api/v1/auth/oauth/${encodeURIComponent(provider)}/start`,
     logout: () => request<null>("/api/v1/auth/logout", { method: "POST" }),
   },
   account: {

@@ -1,15 +1,12 @@
 """Password hashing for local (self-hosted) accounts.
 
-Uses :func:`hashlib.scrypt` from the standard library, with a PBKDF2-HMAC-SHA256
-fallback for builds where OpenSSL does not expose scrypt. No third-party
-dependency is required, which keeps the project runnable fully offline.
+New passwords use Argon2id (``argon2-cffi``). The verifier also understands the
+legacy scrypt and PBKDF2 formats emitted by earlier revisions, so existing
+accounts keep working and are transparently upgraded on the next successful
+login.
 
-Stored format (fields separated by ``$``)::
-
-    scrypt$<n>$<r>$<p>$<salt_b64>$<hash_b64>
-    pbkdf2$<iterations>$<salt_b64>$<hash_b64>
-
-Hashes are salted per user and compared in constant time.
+Hashes are salted per user, self-describing, and compared in constant time by
+the hashing library. No password or pepper is ever logged.
 """
 
 from __future__ import annotations
@@ -17,13 +14,22 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
-import os
+from typing import Final
 
-_SCRYPT_N = 2**14
-_SCRYPT_R = 8
-_SCRYPT_P = 1
-_DKLEN = 32
-_SALT_BYTES = 16
+from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
+
+# OWASP-aligned Argon2id parameters. 19 MiB is the minimum recommendation; we
+# use 64 MiB to leave comfortable headroom for a server-side login path.
+_HASHER: Final = PasswordHasher(
+    time_cost=3,
+    memory_cost=65536,
+    parallelism=4,
+    hash_len=32,
+    salt_len=16,
+)
+
+_LEGACY_SALT_BYTES = 16
 _PBKDF2_ITERATIONS = 200_000
 
 
@@ -35,45 +41,34 @@ def _unb64(text: str) -> bytes:
     return base64.b64decode(text.encode("ascii"))
 
 
-def _scrypt_supported() -> bool:
-    try:
-        hashlib.scrypt(b"probe", salt=b"probe", n=16, r=1, p=1, dklen=16)
-    except (ValueError, AttributeError, TypeError):
-        return False
-    return True
-
-
-_USE_SCRYPT = _scrypt_supported()
-
-
-def _derive(password: str, salt: bytes) -> tuple[str, bytes]:
-    if _USE_SCRYPT:
-        derived = hashlib.scrypt(
-            password.encode("utf-8"),
-            salt=salt,
-            n=_SCRYPT_N,
-            r=_SCRYPT_R,
-            p=_SCRYPT_P,
-            dklen=_DKLEN,
-        )
-        return f"scrypt${_SCRYPT_N}${_SCRYPT_R}${_SCRYPT_P}", derived
-    derived = hashlib.pbkdf2_hmac(
-        "sha256", password.encode("utf-8"), salt, _PBKDF2_ITERATIONS, dklen=_DKLEN
-    )
-    return f"pbkdf2${_PBKDF2_ITERATIONS}", derived
-
-
 def hash_password(password: str) -> str:
-    """Return a salted, self-describing hash string for ``password``."""
-    salt = os.urandom(_SALT_BYTES)
-    prefix, derived = _derive(password, salt)
-    return f"{prefix}${_b64(salt)}${_b64(derived)}"
+    """Return a salted Argon2id hash for ``password``."""
+    return _HASHER.hash(password)
 
 
 def verify_password(password: str, stored: str | None) -> bool:
-    """Constant-time check of ``password`` against a stored hash string."""
+    """Constant-time check of ``password`` against any supported hash format."""
     if not stored:
         return False
+    if stored.startswith("$argon2"):
+        try:
+            return _HASHER.verify(stored, password)
+        except (VerifyMismatchError, VerificationError, InvalidHashError):
+            return False
+    return _verify_legacy(password, stored)
+
+
+def needs_rehash(stored: str | None) -> bool:
+    """True when a stored hash should be replaced with current parameters."""
+    if not stored or not stored.startswith("$argon2"):
+        return True
+    try:
+        return _HASHER.check_needs_rehash(stored)
+    except InvalidHashError:
+        return True
+
+
+def _verify_legacy(password: str, stored: str) -> bool:
     try:
         scheme, *parts = stored.split("$")
         if scheme == "scrypt":

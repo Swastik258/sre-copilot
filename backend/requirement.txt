@@ -3,6 +3,7 @@
 # runtime dependencies only (dev/test tooling lives in pyproject's [dev] extra).
 
 alembic>=1.13,<2
+argon2-cffi>=23,<26
 fastapi>=0.110,<1
 pydantic-settings>=2.2,<3
 psycopg[binary]>=3.1,<4

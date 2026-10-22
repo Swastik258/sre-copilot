@@ -11,9 +11,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.core.csrf import CSRFMiddleware
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.ratelimit import MaxBodySizeMiddleware, RateLimitMiddleware
@@ -24,6 +26,12 @@ configure_logging()
 
 settings = get_settings()
 log = logging.getLogger("app")
+
+_runtime_errors = settings.runtime_config_errors()
+if _runtime_errors:
+    raise RuntimeError(
+        "Unsafe runtime configuration: " + " ".join(_runtime_errors)
+    )
 
 
 def _ensure_local_schema() -> None:
@@ -57,9 +65,12 @@ app = FastAPI(
     title="SRE Copilot API",
     version=settings.app_version,
     lifespan=lifespan,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
     description=(
         "Evidence-backed, read-only infrastructure diagnosis. "
-        "See /docs for interactive schema documentation."
+        "Interactive schema documentation is served at /api/docs."
     ),
 )
 
@@ -73,9 +84,12 @@ app.add_middleware(
     allow_origins=settings.cors_origin_list,
     allow_credentials=settings.allow_credentials,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token"],
     expose_headers=["X-Request-ID"],
+    max_age=600,
 )
+if settings.effective_csrf_protection:
+    app.add_middleware(CSRFMiddleware, settings=settings)
 if settings.security_headers_enabled:
     app.add_middleware(
         SecurityHeadersMiddleware,
@@ -97,9 +111,20 @@ def root() -> dict[str, str]:
     return {
         "service": settings.app_name,
         "version": settings.app_version,
-        "docs": "/docs",
+        "docs": "/api/docs",
+        "openapi": "/api/openapi.json",
         "api": settings.api_v1_prefix,
     }
+
+
+@app.get("/docs", include_in_schema=False)
+def legacy_docs_redirect() -> RedirectResponse:
+    return RedirectResponse("/api/docs", status_code=307)
+
+
+@app.get("/openapi.json", include_in_schema=False)
+def legacy_openapi_redirect() -> RedirectResponse:
+    return RedirectResponse("/api/openapi.json", status_code=307)
 
 
 app.include_router(api_router, prefix=settings.api_v1_prefix)

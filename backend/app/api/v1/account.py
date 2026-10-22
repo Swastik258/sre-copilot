@@ -5,17 +5,31 @@ from __future__ import annotations
 import re
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Request, Response, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import DbSession, RequiredUser
 from app.core.config import get_settings
 from app.core.errors import ConflictError, NotFoundError, UnauthorizedError, ValidationError
-from app.db.models import AccountSettings, AuthSession, User, UserApiKey
-from app.security.passwords import hash_password, verify_password
+from app.db.models import (
+    AccountSettings,
+    Organization,
+    OrganizationMembership,
+    User,
+    UserApiKey,
+)
+from app.security.password_policy import (
+    MAX_PASSWORD_LENGTH,
+    MIN_PASSWORD_LENGTH,
+    validate_password_strength,
+)
+from app.security.passwords import verify_password
 from app.security.tokens import generate_token, hash_token
+from app.services import auth as auth_service
+from app.services.audit import record_event
+from app.services.email import send_verification_email
 
 router = APIRouter(prefix="/account", tags=["account"])
 
@@ -38,6 +52,7 @@ class AccountResponse(BaseModel):
     integrations: dict[str, bool]
     api_keys: list[AccountKeySummary]
     plan: str = "free"
+    role: str = "member"
 
 
 class ProfileUpdate(BaseModel):
@@ -64,8 +79,13 @@ class ProfileUpdate(BaseModel):
 
 class PasswordUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    current_password: str = Field(min_length=1, max_length=128)
-    new_password: str = Field(min_length=8, max_length=128)
+    current_password: str = Field(min_length=1, max_length=MAX_PASSWORD_LENGTH)
+    new_password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
+
+    @field_validator("new_password")
+    @classmethod
+    def _strong_password(cls, value: str) -> str:
+        return validate_password_strength(value)
 
 
 class PreferencesUpdate(BaseModel):
@@ -133,6 +153,7 @@ def get_account(user: RequiredUser, db: DbSession) -> AccountResponse:
             UserApiKey.user_id == user.id, UserApiKey.revoked_at.is_(None)
         ).order_by(UserApiKey.created_at.desc())
     ).all()
+    organization = db.get(Organization, user.tenant_id)
     return AccountResponse(
         profile=AccountProfile(display_name=user.display_name, email=user.email),
         preferences=settings.preferences,
@@ -141,19 +162,28 @@ def get_account(user: RequiredUser, db: DbSession) -> AccountResponse:
             AccountKeySummary(id=key.id, name=key.name, prefix=key.prefix, created_at=key.created_at)
             for key in keys
         ],
+        plan=organization.plan_id if organization else "free",
+        role=user.role,
     )
 
 
 @router.patch("/profile", response_model=AccountProfile)
 def update_profile(
-    payload: ProfileUpdate, user: RequiredUser, db: DbSession
+    payload: ProfileUpdate,
+    user: RequiredUser,
+    db: DbSession,
+    background: BackgroundTasks,
 ) -> AccountProfile:
+    settings = get_settings()
+    email_changed = False
     if "email" in payload.model_fields_set and payload.email != user.email:
         if payload.email is None:
             raise ValidationError("Email cannot be empty.")
         if not payload.current_password or not verify_password(payload.current_password, user.password_hash):
             raise UnauthorizedError("Confirm your current password to change email.")
         user.email = payload.email
+        user.email_verified_at = None
+        email_changed = True
     if "display_name" in payload.model_fields_set:
         user.display_name = payload.display_name
     try:
@@ -162,6 +192,22 @@ def update_profile(
         db.rollback()
         raise ConflictError("An account with that email already exists.") from None
     db.refresh(user)
+    if email_changed and user.email and settings.email_delivery != "disabled":
+        token = auth_service.issue_email_token(
+            db, user, auth_service.PURPOSE_VERIFY_EMAIL
+        )
+        background.add_task(
+            send_verification_email, settings, to=user.email, token=token
+        )
+    record_event(
+        db,
+        action="account.profile.update",
+        actor="user",
+        decision="allow",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        outcome={"email_changed": email_changed},
+    )
     return AccountProfile(display_name=user.display_name, email=user.email)
 
 
@@ -171,19 +217,20 @@ def update_password(
 ) -> Response:
     if not verify_password(payload.current_password, user.password_hash):
         raise UnauthorizedError("Current password is incorrect.")
-    user.password_hash = hash_password(payload.new_password)
     token = request.cookies.get(get_settings().auth_cookie_name) or ""
     if not token:
         header = request.headers.get("authorization", "")
         if header.lower().startswith("bearer "):
             token = header[7:].strip()
-    token_hash = hash_token(token) if token else ""
-    db.execute(
-        update(AuthSession)
-        .where(AuthSession.user_id == user.id, AuthSession.token_hash != token_hash)
-        .values(revoked_at=datetime.now(UTC))
+    auth_service.change_password(db, user, payload.new_password, keep_token=token or None)
+    record_event(
+        db,
+        action="account.password.update",
+        actor="user",
+        decision="allow",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
     )
-    db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -194,6 +241,15 @@ def update_preferences(
     settings = _settings(db, user)
     settings.preferences = {**settings.preferences, **payload.model_dump(exclude_unset=True)}
     db.commit()
+    record_event(
+        db,
+        action="account.preferences.update",
+        actor="user",
+        decision="allow",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        outcome={"preferences": settings.preferences},
+    )
     return settings.preferences
 
 
@@ -206,6 +262,16 @@ def update_integration(
     settings = _settings(db, user)
     settings.integrations = {**settings.integrations, kind: payload.connected}
     db.commit()
+    record_event(
+        db,
+        action="account.integration.update",
+        actor="user",
+        decision="allow",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        resource={"kind": kind},
+        outcome={"connected": payload.connected},
+    )
     return settings.integrations
 
 
@@ -228,6 +294,15 @@ def create_api_key(payload: ApiKeyCreate, user: RequiredUser, db: DbSession) -> 
     db.add(record)
     db.commit()
     db.refresh(record)
+    record_event(
+        db,
+        action="account.api_key.create",
+        actor="user",
+        decision="allow",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        resource={"api_key_id": record.id, "prefix": record.prefix},
+    )
     return ApiKeyCreated(
         id=record.id,
         name=record.name,
@@ -246,6 +321,15 @@ def revoke_api_key(key_id: str, user: RequiredUser, db: DbSession) -> Response:
         raise NotFoundError("API key not found.")
     record.revoked_at = datetime.now(UTC)
     db.commit()
+    record_event(
+        db,
+        action="account.api_key.revoke",
+        actor="user",
+        decision="allow",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        resource={"api_key_id": record.id, "prefix": record.prefix},
+    )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -255,14 +339,57 @@ def delete_account(
 ) -> Response:
     if not verify_password(payload.password, user.password_hash):
         raise UnauthorizedError("Password is incorrect.")
-    if user.role == "admin":
-        other_admins = db.scalar(
-            select(func.count()).select_from(User).where(
-                User.role == "admin", User.is_active.is_(True), User.id != user.id
+
+    organization = db.get(Organization, user.tenant_id)
+    membership = db.scalar(
+        select(OrganizationMembership).where(
+            OrganizationMembership.organization_id == user.tenant_id,
+            OrganizationMembership.user_id == user.id,
+        )
+    )
+    if membership is not None and membership.role == "owner":
+        owner_count = (
+            db.scalar(
+                select(func.count())
+                .select_from(OrganizationMembership)
+                .where(
+                    OrganizationMembership.organization_id == user.tenant_id,
+                    OrganizationMembership.role == "owner",
+                )
             )
-        ) or 0
-        if other_admins == 0:
-            raise ConflictError("The last active administrator cannot delete their account.")
+            or 0
+        )
+        member_count = (
+            db.scalar(
+                select(func.count())
+                .select_from(OrganizationMembership)
+                .where(OrganizationMembership.organization_id == user.tenant_id)
+            )
+            or 0
+        )
+        if owner_count <= 1 and member_count > 1:
+            raise ConflictError(
+                "Transfer workspace ownership to another member before deleting your account."
+            )
+
+    record_event(
+        db,
+        action="account.delete",
+        actor="user",
+        decision="allow",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        resource={"organization_id": user.tenant_id},
+    )
     db.delete(user)
+    db.flush()
+    if organization is not None:
+        remaining_members = db.scalar(
+            select(func.count())
+            .select_from(OrganizationMembership)
+            .where(OrganizationMembership.organization_id == organization.id)
+        )
+        if not remaining_members:
+            db.delete(organization)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

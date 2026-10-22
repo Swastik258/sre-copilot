@@ -65,11 +65,48 @@ class Settings(BaseSettings):
     # without credentials; turn it on in shared environments.
     auth_required: bool = False
     auth_cookie_name: str = "sre_session"
+    auth_csrf_cookie_name: str = "sre_csrf"
+    auth_csrf_header_name: str = "X-CSRF-Token"
     auth_session_ttl_hours: int = 168  # 7 days
+    auth_session_idle_hours: int = 72
+    auth_max_failed_logins: int = 5
+    auth_lockout_minutes: int = 15
+    auth_rate_limit_per_minute: int = 10
+    # Double-submit CSRF protection is always enforced in production. Local
+    # development and tests may set this explicitly, otherwise the default is
+    # derived from ENVIRONMENT.
+    csrf_protection: bool | None = None
     # New public signups are always members. Promote an administrator with the
     # trusted local `scripts/set_admin.py` operator command.
     default_tenant_id: str = "default"
     security_headers_enabled: bool = True
+
+    # ---- Email delivery / account lifecycle ----
+    # disabled: no outbound mail (tokens are not returned by the API)
+    # console: write messages to the application log (local development only)
+    # smtp: deliver through the configured SMTP relay
+    email_delivery: Literal["disabled", "console", "smtp"] = "disabled"
+    email_from: str = "SRE Copilot <no-reply@localhost>"
+    email_verification_required: bool = False
+    email_verification_ttl_hours: int = 24
+    password_reset_ttl_minutes: int = 30
+    app_base_url: str = "http://localhost:3000"
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_starttls: bool = True
+    smtp_use_ssl: bool = False
+    smtp_timeout_seconds: float = 10.0
+
+    # ---- Optional OAuth providers ----
+    # Buttons are only rendered by clients that discover enabled providers from
+    # /api/v1/auth/providers. Public signup remains available independently.
+    oauth_redirect_base_url: str = "http://localhost:8000"
+    google_oauth_client_id: str | None = None
+    google_oauth_client_secret: str | None = None
+    github_oauth_client_id: str | None = None
+    github_oauth_client_secret: str | None = None
 
     # ---- Request limits ----
     max_request_bytes: int = 2_000_000  # 2 MB default cap on request bodies
@@ -163,8 +200,73 @@ class Settings(BaseSettings):
         return 120 if self.environment == "production" else 0
 
     @property
+    def effective_csrf_protection(self) -> bool:
+        if self.csrf_protection is not None:
+            return self.csrf_protection
+        return self.environment == "production"
+
+    @property
+    def oauth_providers(self) -> list[str]:
+        providers: list[str] = []
+        if self.google_oauth_client_id and self.google_oauth_client_secret:
+            providers.append("google")
+        if self.github_oauth_client_id and self.github_oauth_client_secret:
+            providers.append("github")
+        return providers
+
+    @property
     def is_sqlite(self) -> bool:
         return self.database_url.startswith("sqlite")
+
+    def runtime_config_errors(self) -> list[str]:
+        """Return production-safety errors without performing network I/O.
+
+        Local/test environments are intentionally permissive so the zero-setup
+        demo keeps working. Production must fail fast instead of silently using
+        SQLite, wildcard CORS, console email, or an insecure public base URL.
+        """
+
+        errors: list[str] = []
+        if self.email_delivery == "smtp":
+            if not self.smtp_host:
+                errors.append("SMTP_HOST is required when EMAIL_DELIVERY=smtp.")
+            if self.smtp_starttls and self.smtp_use_ssl:
+                errors.append("SMTP_STARTTLS and SMTP_USE_SSL cannot both be true.")
+        if self.email_verification_required and self.email_delivery == "disabled":
+            errors.append(
+                "EMAIL_VERIFICATION_REQUIRED=true needs a working EMAIL_DELIVERY."
+            )
+        if bool(self.google_oauth_client_id) != bool(self.google_oauth_client_secret):
+            errors.append("Set both GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET.")
+        if bool(self.github_oauth_client_id) != bool(self.github_oauth_client_secret):
+            errors.append("Set both GITHUB_OAUTH_CLIENT_ID and GITHUB_OAUTH_CLIENT_SECRET.")
+        if self.auth_session_idle_hours > self.auth_session_ttl_hours:
+            errors.append("AUTH_SESSION_IDLE_HOURS cannot exceed AUTH_SESSION_TTL_HOURS.")
+
+        if self.environment != "production":
+            return errors
+
+        if not self.auth_required:
+            errors.append("AUTH_REQUIRED=true is required in production.")
+        if self.is_sqlite:
+            errors.append("Production requires PostgreSQL, not SQLite.")
+        if not self.cors_origin_list or "*" in self.cors_origin_list:
+            errors.append("CORS_ORIGINS must be an explicit allow-list in production.")
+        if not self.app_base_url.lower().startswith("https://"):
+            errors.append("APP_BASE_URL must use HTTPS in production.")
+        if self.oauth_providers and not self.oauth_redirect_base_url.lower().startswith(
+            "https://"
+        ):
+            errors.append("OAUTH_REDIRECT_BASE_URL must use HTTPS in production.")
+        if self.email_delivery == "console":
+            errors.append("EMAIL_DELIVERY=console is not allowed in production.")
+        if self.debug:
+            errors.append("DEBUG must be false in production.")
+        if self.log_level == "DEBUG":
+            errors.append("LOG_LEVEL=DEBUG is not allowed in production.")
+        if self.email_delivery == "smtp" and not self.smtp_host:
+            errors.append("SMTP_HOST is required in production when email is enabled.")
+        return errors
 
     @property
     def external_ai_configured(self) -> bool:

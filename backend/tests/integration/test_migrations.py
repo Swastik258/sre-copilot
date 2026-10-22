@@ -24,6 +24,9 @@ EXPECTED_TABLES = {
     "app_settings",
     "account_settings",
     "user_api_keys",
+    "organizations",
+    "organization_memberships",
+    "email_tokens",
 }
 
 
@@ -126,8 +129,20 @@ def test_upgrade_keeps_existing_accounts_as_members(tmp_path):
     try:
         roles = dict(con.execute("SELECT id, role FROM users ORDER BY created_at"))
         tenants = dict(con.execute("SELECT id, tenant_id FROM users ORDER BY created_at"))
+        memberships = {
+            (row[0], row[1])
+            for row in con.execute(
+                "SELECT organization_id, role FROM organization_memberships"
+            )
+        }
+        verified = dict(
+            con.execute("SELECT id, email_verified_at FROM users ORDER BY created_at")
+        )
     finally:
         con.close()
 
     assert roles == {"first-user": "member", "second-user": "member"}
     assert tenants == {"first-user": "default", "second-user": "default"}
+    assert memberships == {("default", "member")}
+    assert verified["first-user"] is not None
+    assert verified["second-user"] is not None

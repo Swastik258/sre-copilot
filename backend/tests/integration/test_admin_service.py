@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import select
 
-from app.core.errors import ConflictError
+from app.core.errors import ConflictError, ForbiddenError
 from app.db.models import Investigation, User
 from app.schemas.admin import AdminUserUpdate
 from app.services import admin as admin_service
@@ -58,7 +58,7 @@ def test_last_active_admin_cannot_be_demoted(db_session) -> None:
     assert admin_user.is_active is True
 
 
-def test_moving_a_member_tenant_migrates_their_investigations(db_session) -> None:
+def test_cross_tenant_user_moves_are_rejected(db_session) -> None:
     admin_user = User(
         email="tenant-move-admin@example.com",
         password_hash="not-used",
@@ -84,13 +84,15 @@ def test_moving_a_member_tenant_migrates_their_investigations(db_session) -> Non
     db_session.add(investigation)
     db_session.commit()
 
-    updated = admin_service.update_user(
-        db_session,
-        admin_user,
-        member.id,
-        AdminUserUpdate(tenant_id="tenant-new"),
-    )
+    with pytest.raises(ForbiddenError):
+        admin_service.update_user(
+            db_session,
+            admin_user,
+            member.id,
+            AdminUserUpdate(tenant_id="tenant-new"),
+        )
 
-    assert updated.tenant_id == "tenant-new"
+    db_session.refresh(member)
     db_session.refresh(investigation)
-    assert investigation.tenant_id == "tenant-new"
+    assert member.tenant_id == "tenant-old"
+    assert investigation.tenant_id == "tenant-old"

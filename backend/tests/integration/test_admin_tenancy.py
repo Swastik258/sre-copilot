@@ -39,7 +39,7 @@ def test_non_admin_cannot_manage_users(client, db_session) -> None:
     assert response.json()["error"]["code"] == "forbidden"
 
 
-def test_admin_can_list_users_and_move_a_member_tenant(client, db_session) -> None:
+def test_admin_can_list_users_but_cannot_move_members_between_workspaces(client, db_session) -> None:
     settings = get_settings()
     previous_tenant = settings.default_tenant_id
     settings.default_tenant_id = "tenant-alpha"
@@ -66,14 +66,23 @@ def test_admin_can_list_users_and_move_a_member_tenant(client, db_session) -> No
 
         updated = client.patch(
             f"/api/v1/admin/users/{member['id']}",
-            json={"tenant_id": "tenant-beta"},
+            json={"role": "viewer"},
         )
         assert updated.status_code == 200, updated.text
-        assert updated.json()["tenant_id"] == "tenant-beta"
+        assert updated.json()["role"] == "viewer"
+
+        moved = client.patch(
+            f"/api/v1/admin/users/{member['id']}",
+            json={"tenant_id": "tenant-beta"},
+        )
+        assert moved.status_code == 403, moved.text
+        assert moved.json()["error"]["code"] == "forbidden"
 
         tenants = client.get("/api/v1/admin/tenants")
         assert tenants.status_code == 200
-        assert any(item["tenant_id"] == "tenant-beta" for item in tenants.json()["tenants"])
+        assert [item["tenant_id"] for item in tenants.json()["tenants"]] == [
+            "tenant-alpha"
+        ]
     finally:
         settings.default_tenant_id = previous_tenant
 
@@ -92,7 +101,14 @@ def test_settings_are_scoped_per_tenant(client, db_session) -> None:
         assert updated.status_code == 200, updated.text
         assert updated.json()["audit_retention_days"] == 14
 
-        member = _signup(client, "tenant-settings-member@example.com")
+        # A second workspace has its own settings row and cannot be seen by the
+        # first workspace's administrator.
+        settings.default_tenant_id = "settings-tenant-beta"
+        _signup(client, "tenant-settings-member@example.com")
+        member_settings = client.get("/api/v1/settings")
+        assert member_settings.status_code == 200
+        assert member_settings.json()["audit_retention_days"] == 30
+
         login = client.post(
             "/api/v1/auth/login",
             json={
@@ -101,53 +117,48 @@ def test_settings_are_scoped_per_tenant(client, db_session) -> None:
             },
         )
         assert login.status_code == 200
-        moved = client.patch(
-            f"/api/v1/admin/users/{member['id']}",
-            json={"tenant_id": "settings-tenant-beta"},
+        admin_listing = client.get("/api/v1/admin/users")
+        assert admin_listing.status_code == 200
+        assert all(
+            user["tenant_id"] == "settings-tenant-alpha"
+            for user in admin_listing.json()["users"]
         )
-        assert moved.status_code == 200, moved.text
-
-        member_login = client.post(
-            "/api/v1/auth/login",
-            json={
-                "email": "tenant-settings-member@example.com",
-                "password": "correct-horse",
-            },
-        )
-        assert member_login.status_code == 200
-        member_settings = client.get("/api/v1/settings")
-        assert member_settings.status_code == 200
-        assert member_settings.json()["audit_retention_days"] == 30
     finally:
         settings.default_tenant_id = previous_tenant
 
 
 def test_deactivating_a_member_revokes_their_session(client, db_session) -> None:
-    admin = _signup(client, "deactivate-admin@example.com")
-    _grant_admin(db_session, admin["id"])
-    member = _signup(client, "deactivate-member@example.com")
-    member_token = client.cookies.get("sre_session")
-    assert member_token
+    settings = get_settings()
+    previous_tenant = settings.default_tenant_id
+    settings.default_tenant_id = "deactivate-tenant"
+    try:
+        admin = _signup(client, "deactivate-admin@example.com")
+        _grant_admin(db_session, admin["id"])
+        member = _signup(client, "deactivate-member@example.com")
+        member_token = client.cookies.get("sre_session")
+        assert member_token
 
-    login = client.post(
-        "/api/v1/auth/login",
-        json={
-            "email": "deactivate-admin@example.com",
-            "password": "correct-horse",
-        },
-    )
-    assert login.status_code == 200
-    assert client.get("/api/v1/auth/me").json()["role"] == "admin"
+        login = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": "deactivate-admin@example.com",
+                "password": "correct-horse",
+            },
+        )
+        assert login.status_code == 200
+        assert client.get("/api/v1/auth/me").json()["role"] == "admin"
 
-    response = client.patch(
-        f"/api/v1/admin/users/{member['id']}",
-        json={"is_active": False},
-    )
-    assert response.status_code == 200, response.text
-    assert response.json()["is_active"] is False
+        response = client.patch(
+            f"/api/v1/admin/users/{member['id']}",
+            json={"is_active": False},
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["is_active"] is False
 
-    client.cookies.set("sre_session", member_token)
-    assert client.get("/api/v1/auth/me").status_code == 401
+        client.cookies.set("sre_session", member_token)
+        assert client.get("/api/v1/auth/me").status_code == 401
+    finally:
+        settings.default_tenant_id = previous_tenant
 
 
 def test_security_headers_are_present(client) -> None:

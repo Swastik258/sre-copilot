@@ -15,6 +15,7 @@ from app.api.v1 import (
     kubernetes,
     logs,
     metrics,
+    organizations,
     runbooks,
     settings,
     terraform,
@@ -26,6 +27,7 @@ api_router = APIRouter()
 api_router.include_router(health.router, tags=["health"])
 api_router.include_router(auth.router)
 api_router.include_router(account.router)
+api_router.include_router(organizations.router)
 
 # Read-only data routes. ``enforce_auth`` is a no-op unless AUTH_REQUIRED=true,
 # so the local demo stays open while shared deployments can lock the API down.

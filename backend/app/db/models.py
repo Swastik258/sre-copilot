@@ -30,8 +30,19 @@ class User(Base):
     # identity provider (e.g. Clerk), which authenticate elsewhere.
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    # Workspace role and tenant boundary. Public self-registration always
-    # creates members; trusted operators explicitly provision administrators.
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    failed_login_count: Mapped[int] = mapped_column(default=0, nullable=False)
+    locked_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    password_changed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # Active workspace role. Organization membership is the source of truth;
+    # this denormalized value keeps authorization checks cheap and is kept in
+    # sync by the organization service.
     role: Mapped[str] = mapped_column(String(16), default="member", nullable=False, index=True)
     tenant_id: Mapped[str] = mapped_column(
         String(36), default="default", nullable=False, index=True
@@ -48,17 +59,77 @@ class User(Base):
     api_keys: Mapped[list[UserApiKey]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    memberships: Mapped[list[OrganizationMembership]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    email_tokens: Mapped[list[EmailToken]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
     audit_events: Mapped[list[AuditEvent]] = relationship(
         back_populates="user",
         passive_deletes=True,
     )
 
 
+class Organization(Base):
+    """A tenant/workspace boundary with an explicit owner and membership list."""
+
+    __tablename__ = "organizations"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    slug: Mapped[str | None] = mapped_column(String(80), unique=True, nullable=True)
+    plan_id: Mapped[str] = mapped_column(String(32), default="free", nullable=False)
+    created_by: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+
+    memberships: Mapped[list[OrganizationMembership]] = relationship(
+        back_populates="organization", cascade="all, delete-orphan"
+    )
+
+
+class OrganizationMembership(Base):
+    __tablename__ = "organization_memberships"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    organization_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    role: Mapped[str] = mapped_column(String(16), default="member", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+
+    organization: Mapped[Organization] = relationship(back_populates="memberships")
+    user: Mapped[User] = relationship(back_populates="memberships")
+
+
+class EmailToken(Base):
+    """Single-use, hashed token for email verification or password reset."""
+
+    __tablename__ = "email_tokens"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    purpose: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+
+    user: Mapped[User] = relationship(back_populates="email_tokens")
+
+
 class AuthSession(Base):
     """A server-side browser session for local auth.
 
     Only the SHA-256 hash of the opaque token is stored, so a database leak does
-    not hand out usable sessions.
+    not hand out usable sessions. Rotation revokes the old row and issues a new
+    token; ``rotated_from_id`` preserves the audit trail.
     """
 
     __tablename__ = "sessions"
@@ -67,8 +138,11 @@ class AuthSession(Base):
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    csrf_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    rotated_from_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    last_used_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -232,5 +306,23 @@ Index("ix_evidence_investigation_collected", Evidence.investigation_id, Evidence
 Index("ix_users_email", User.email, unique=True)
 Index("ix_users_tenant_role", User.tenant_id, User.role)
 Index("ix_sessions_user_created", AuthSession.user_id, AuthSession.created_at)
+Index("ix_sessions_user_last_used", AuthSession.user_id, AuthSession.last_used_at)
 Index("ix_investigations_tenant_created", Investigation.tenant_id, Investigation.created_at)
 Index("ix_audit_events_tenant_created", AuditEvent.tenant_id, AuditEvent.created_at)
+Index(
+    "ix_organization_memberships_org_user",
+    OrganizationMembership.organization_id,
+    OrganizationMembership.user_id,
+    unique=True,
+)
+Index(
+    "ix_organization_memberships_user_role",
+    OrganizationMembership.user_id,
+    OrganizationMembership.role,
+)
+Index(
+    "ix_email_tokens_user_purpose",
+    EmailToken.user_id,
+    EmailToken.purpose,
+    EmailToken.created_at,
+)

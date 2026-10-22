@@ -55,6 +55,13 @@ def upgrade_local_sqlite_schema(engine: Engine) -> list[str]:
         for table, column, ddl in (
             ("users", "role", "VARCHAR(16) NOT NULL DEFAULT 'member'"),
             ("users", "tenant_id", "VARCHAR(36) NOT NULL DEFAULT 'default'"),
+            ("users", "email_verified_at", "DATETIME"),
+            ("users", "failed_login_count", "INTEGER NOT NULL DEFAULT 0"),
+            ("users", "locked_until", "DATETIME"),
+            ("users", "password_changed_at", "DATETIME"),
+            ("sessions", "csrf_token_hash", "VARCHAR(64)"),
+            ("sessions", "rotated_from_id", "VARCHAR(36)"),
+            ("sessions", "last_used_at", "DATETIME"),
             ("investigations", "tenant_id", "VARCHAR(36) NOT NULL DEFAULT 'default'"),
             ("audit_events", "tenant_id", "VARCHAR(36) NOT NULL DEFAULT 'default'"),
         ):

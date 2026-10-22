@@ -11,7 +11,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from app.api.deps import DbSession, Pagination, RequiredUser
+from app.api.deps import DbSession, OperatorUser, Pagination, RequiredUser
 from app.schemas.evidence import Evidence
 from app.schemas.investigation import (
     InvestigationCreate,
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/investigations", tags=["investigations"])
 def create_investigation(
     payload: InvestigationCreate,
     db: DbSession,
-    user: RequiredUser,
+    user: OperatorUser,
 ) -> InvestigationDetail:
     return service.create_investigation(db, user, payload)
 
@@ -79,7 +79,7 @@ def add_message(
     investigation_id: str,
     payload: MessageCreate,
     db: DbSession,
-    user: RequiredUser,
+    user: OperatorUser,
 ) -> MessageExchange:
     return service.add_message(db, user, investigation_id, payload.content)
 
@@ -98,6 +98,6 @@ def get_evidence(
 def close_investigation(
     investigation_id: str,
     db: DbSession,
-    user: RequiredUser,
+    user: OperatorUser,
 ) -> InvestigationDetail:
     return service.close_investigation(db, user, investigation_id)

@@ -21,12 +21,13 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 @router.get("/users", response_model=AdminUserListResponse)
 def list_users(
     db: DbSession,
-    _: AdminUser,
+    admin: AdminUser,
     pagination: Pagination,
     tenant_id: Annotated[str | None, Query(max_length=36)] = None,
 ) -> AdminUserListResponse:
     return service.list_users(
         db,
+        admin,
         tenant_id=tenant_id,
         limit=pagination.page_size,
         offset=(pagination.page - 1) * pagination.page_size,
@@ -44,5 +45,5 @@ def update_user(
 
 
 @router.get("/tenants", response_model=TenantListResponse)
-def list_tenants(db: DbSession, _: AdminUser) -> TenantListResponse:
-    return service.list_tenants(db)
+def list_tenants(db: DbSession, admin: AdminUser) -> TenantListResponse:
+    return service.list_tenants(db, admin)

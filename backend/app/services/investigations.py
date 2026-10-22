@@ -94,15 +94,14 @@ def _message_out(message: dict) -> MessageOut:
 
 
 def _tenant_filters(user: User) -> list:
-    """Admins can inspect every tenant; members see only their own records.
+    """Owners/admins can inspect every investigation in their workspace.
 
-    The tenant predicate keeps a member's records inside their workspace even
-    if their account is later moved, while the user predicate preserves the
-    stricter "own investigations" behavior for non-admin accounts.
+    Members and viewers see only their own records, always bounded by the
+    active tenant. Cross-tenant access is never granted by role.
     """
 
-    if user.role == "admin":
-        return []
+    if user.role in {"owner", "admin"}:
+        return [Investigation.tenant_id == user.tenant_id]
     return [
         Investigation.user_id == user.id,
         Investigation.tenant_id == user.tenant_id,

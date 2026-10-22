@@ -36,7 +36,7 @@ export default function SettingsPage() {
   const [adminBusy, setAdminBusy] = useState<string | null>(null);
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "owner" || user?.role === "admin";
 
   useEffect(() => {
     let cancelled = false;
@@ -55,7 +55,7 @@ export default function SettingsPage() {
         setRetentionDays(response.audit_retention_days);
         setPrivacyMode(response.ai_privacy_mode);
         setEnvironment(response.default_environment ?? "");
-        if (current.role === "admin") {
+        if (current.role === "owner" || current.role === "admin") {
           const [userList, tenantList] = await Promise.all([
             api.admin.users(),
             api.admin.tenants(),
@@ -118,7 +118,7 @@ export default function SettingsPage() {
           setPhase("signed_out");
           return;
         }
-        if (current.role !== "admin") {
+        if (current.role !== "owner" && current.role !== "admin") {
           setAdminMessage("Your administrator role was removed.");
           return;
         }
@@ -433,13 +433,15 @@ function AdminUserRow({
         disabled={busy}
         onChange={(event) =>
           void onSave(member.id, {
-            role: event.target.value as "admin" | "member",
+            role: event.target.value as "owner" | "admin" | "member" | "viewer",
           })
         }
         className="rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-2 py-1.5 font-mono text-[10.5px] text-primary disabled:opacity-50"
       >
+        <option value="viewer">viewer</option>
         <option value="member">member</option>
         <option value="admin">admin</option>
+        <option value="owner">owner</option>
       </select>
       <div className="flex items-center gap-1">
         <input

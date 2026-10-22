@@ -9,6 +9,7 @@ description = "Backend API for SRE Copilot"
 requires-python = ">=3.11"
 dependencies = [
     "alembic>=1.13,<2",
+    "argon2-cffi>=23,<26",
     "fastapi>=0.110,<1",
     "pydantic-settings>=2.2,<3",
     "psycopg[binary]>=3.1,<4",
