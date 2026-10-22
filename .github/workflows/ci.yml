@@ -9,6 +9,7 @@ jobs:
   backend:
     name: Backend (lint + tests)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: backend
@@ -20,13 +21,34 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          pip install -c requirements.lock -e ".[dev]"
       - name: Lint (ruff)
         run: ruff check .
       - name: Format check (ruff)
         run: ruff format --check .
       - name: Type check (mypy)
         run: mypy app
+      - name: Validate production environment example
+        env:
+          ENVIRONMENT: production
+          AUTH_REQUIRED: "true"
+          DEBUG: "false"
+          LOG_JSON: "true"
+          LOG_LEVEL: INFO
+          RATE_LIMIT_PER_MINUTE: "120"
+          AUTH_RATE_LIMIT_PER_MINUTE: "10"
+          METRICS_ENABLED: "true"
+          BILLING_ENABLED: "false"
+          AUTO_CREATE_SCHEMA: "false"
+        run: |
+          python - <<'PY'
+          from app.core.config import Settings
+          settings = Settings(_env_file="../deploy/production.env.example")
+          errors = settings.runtime_config_errors()
+          if errors:
+              raise SystemExit("\n".join(errors))
+          print(f"production example valid: {settings.environment}")
+          PY
       - name: Tests with coverage
         # Tests use SQLite + fixtures; no production credentials required.
         run: pytest --cov=app --cov-branch --cov-report=term --cov-fail-under=80
@@ -38,6 +60,7 @@ jobs:
   frontend:
     name: Frontend (lint + build)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: frontend
@@ -68,3 +91,102 @@ jobs:
             sleep 2
           done
           RELEASE_BASE_URL=http://localhost:3000 npm run smoke
+
+  manifests:
+    name: Helm, Compose, and Terraform validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      - name: Lint and render the chart
+        run: |
+          set -eu
+          helm lint deploy/helm/sre-copilot
+          helm lint deploy/helm/sre-copilot \
+            --set ingress.enabled=true \
+            --set ingress.tls.enabled=true \
+            --set ingress.tls.secretName=app-tls \
+            --set autoscaling.enabled=true \
+            --set networkPolicy.enabled=true \
+            --set backend.rbac.create=true
+          helm template sre-copilot deploy/helm/sre-copilot \
+            --namespace sre-copilot \
+            --set ingress.enabled=true \
+            --set ingress.tls.enabled=true \
+            --set ingress.tls.secretName=app-tls \
+            --set autoscaling.enabled=true \
+            --set networkPolicy.enabled=true \
+            --set backend.rbac.create=true \
+            > /tmp/rendered-manifests.yaml
+
+      - name: Validate rendered Kubernetes resources
+        run: |
+          docker run --rm -v /tmp:/tmp ghcr.io/yannh/kubeconform:v0.6.7 \
+            -strict -summary /tmp/rendered-manifests.yaml
+
+      - name: Validate Compose files
+        run: |
+          set -eu
+          docker compose -f deploy/docker-compose.yml config -q
+          cp deploy/production.env.example deploy/production.env
+          docker compose --env-file deploy/production.env \
+            -f deploy/docker-compose.prod.yml config -q
+          rm -f deploy/production.env
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Terraform format and validate
+        working-directory: deploy/terraform/kubernetes
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false -input=false
+          terraform validate
+
+  images:
+    name: Build non-root container images
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          load: true
+          tags: sre-copilot-backend:ci
+          build-args: |
+            INSTALL_EXTRAS=kubernetes
+          cache-from: type=gha,scope=ci-backend
+          cache-to: type=gha,mode=max,scope=ci-backend
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          load: true
+          tags: sre-copilot-frontend:ci
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://localhost:8000
+          cache-from: type=gha,scope=ci-frontend
+          cache-to: type=gha,mode=max,scope=ci-frontend
+
+      - name: Verify images run as non-root
+        run: |
+          set -eu
+          backend_uid="$(docker run --rm --entrypoint id sre-copilot-backend:ci -u)"
+          frontend_uid="$(docker run --rm --entrypoint id sre-copilot-frontend:ci -u)"
+          test "$backend_uid" = "10001"
+          test "$frontend_uid" = "10001"
+          echo "backend uid=$backend_uid frontend uid=$frontend_uid"
