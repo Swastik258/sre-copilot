@@ -37,6 +37,7 @@ from app.schemas.investigation import (
 )
 from app.services.ai import summarize
 from app.services.audit import record_event
+from app.services.billing import record_usage
 from app.services.settings_store import get_ai_privacy_override
 
 
@@ -147,6 +148,14 @@ def create_investigation(
         user_id=user.id,
         tenant_id=user.tenant_id,
         resource={"investigation_id": investigation.id, "kind": investigation.kind},
+    )
+    record_usage(
+        db,
+        organization_id=user.tenant_id,
+        user_id=user.id,
+        metric="investigation.created",
+        idempotency_key=f"investigation:{investigation.id}",
+        properties={"kind": investigation.kind},
     )
     return _to_detail(db, investigation)
 

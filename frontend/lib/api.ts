@@ -207,6 +207,51 @@ export type SignupPayload = {
 };
 export type LoginPayload = { email: string; password: string };
 
+export type PlanId = "free" | "pro" | "team";
+
+export type PlanInfo = {
+  id: PlanId;
+  name: string;
+  description: string;
+  status: "available" | "planned";
+  features: Record<string, boolean>;
+  limits: Record<string, number | null>;
+};
+
+export type PlanCatalogResponse = {
+  plans: PlanInfo[];
+  billing_enabled: boolean;
+  current_plan: PlanInfo | null;
+};
+
+export type UsageMetricSummary = {
+  metric: string;
+  quantity: number;
+  events: number;
+};
+
+export type BillingUsageSummary = {
+  organization_id: string;
+  plan: PlanInfo;
+  period_start: string;
+  period_end: string;
+  total_events: number;
+  metrics: UsageMetricSummary[];
+};
+
+export type BillingState = {
+  organization_id: string;
+  plan: PlanInfo;
+  billing_enabled: boolean;
+  subscription: {
+    provider: string;
+    plan_id: string;
+    status: string;
+    current_period_end: string | null;
+    cancel_at_period_end: boolean;
+  } | null;
+};
+
 export type AccountSnapshot = {
   profile: { display_name: string | null; email: string | null };
   preferences: { theme: string; notifications: boolean };
@@ -901,6 +946,11 @@ export const api = {
         method: "POST",
         body: JSON.stringify(payload),
       }),
+  },
+  billing: {
+    plans: () => request<PlanCatalogResponse>("/api/v1/billing/plans"),
+    state: () => request<BillingState>("/api/v1/billing/state"),
+    usage: () => request<BillingUsageSummary>("/api/v1/billing/usage"),
   },
   investigations: {
     list: (params?: { status?: InvestigationStatus; kind?: InvestigationKind; page?: number; page_size?: number }) => {

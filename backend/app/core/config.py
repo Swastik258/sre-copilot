@@ -99,6 +99,17 @@ class Settings(BaseSettings):
     smtp_use_ssl: bool = False
     smtp_timeout_seconds: float = 10.0
 
+    # ---- Billing (Stripe-ready, disabled by default) ----
+    # No payment flow is exposed until billing_enabled is explicitly turned on
+    # and the Stripe price ids have been configured. Usage metering and webhook
+    # storage work independently of payment collection.
+    billing_enabled: bool = False
+    stripe_secret_key: str | None = None
+    stripe_webhook_secret: str | None = None
+    stripe_price_pro: str | None = None
+    stripe_price_team: str | None = None
+    stripe_webhook_tolerance_seconds: int = 300
+
     # ---- Optional OAuth providers ----
     # Buttons are only rendered by clients that discover enabled providers from
     # /api/v1/auth/providers. Public signup remains available independently.
@@ -242,6 +253,13 @@ class Settings(BaseSettings):
             errors.append("Set both GITHUB_OAUTH_CLIENT_ID and GITHUB_OAUTH_CLIENT_SECRET.")
         if self.auth_session_idle_hours > self.auth_session_ttl_hours:
             errors.append("AUTH_SESSION_IDLE_HOURS cannot exceed AUTH_SESSION_TTL_HOURS.")
+        if self.billing_enabled:
+            if not self.stripe_secret_key:
+                errors.append("STRIPE_SECRET_KEY is required when BILLING_ENABLED=true.")
+            if not self.stripe_webhook_secret:
+                errors.append(
+                    "STRIPE_WEBHOOK_SECRET is required when BILLING_ENABLED=true."
+                )
 
         if self.environment != "production":
             return errors

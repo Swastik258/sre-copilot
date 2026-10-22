@@ -27,6 +27,9 @@ EXPECTED_TABLES = {
     "organizations",
     "organization_memberships",
     "email_tokens",
+    "subscriptions",
+    "usage_events",
+    "billing_webhook_events",
 }
 
 

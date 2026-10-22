@@ -124,6 +124,75 @@ class EmailToken(Base):
     user: Mapped[User] = relationship(back_populates="email_tokens")
 
 
+class Subscription(Base):
+    """Stripe-ready subscription state. No payment flow writes this yet."""
+
+    __tablename__ = "subscriptions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    organization_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    provider: Mapped[str] = mapped_column(String(32), default="stripe", nullable=False)
+    provider_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    provider_subscription_id: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True
+    )
+    plan_id: Mapped[str] = mapped_column(String(32), default="free", nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="inactive", nullable=False)
+    current_period_end: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    cancel_at_period_end: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+
+
+class UsageEvent(Base):
+    """Append-only metered usage for future billing and current analytics."""
+
+    __tablename__ = "usage_events"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    organization_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    metric: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    quantity: Mapped[int] = mapped_column(default=1, nullable=False)
+    idempotency_key: Mapped[str | None] = mapped_column(
+        String(128), unique=True, nullable=True
+    )
+    properties: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+
+
+class BillingWebhookEvent(Base):
+    """Durable, minimally retained record of verified provider webhooks."""
+
+    __tablename__ = "billing_webhook_events"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    provider: Mapped[str] = mapped_column(String(32), default="stripe", nullable=False)
+    event_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    event_type: Mapped[str] = mapped_column(String(120), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="received", nullable=False)
+    payload: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    processed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+
 class AuthSession(Base):
     """A server-side browser session for local auth.
 
@@ -325,4 +394,11 @@ Index(
     EmailToken.user_id,
     EmailToken.purpose,
     EmailToken.created_at,
+)
+Index("ix_usage_events_org_occurred", UsageEvent.organization_id, UsageEvent.occurred_at)
+Index("ix_usage_events_org_metric", UsageEvent.organization_id, UsageEvent.metric)
+Index(
+    "ix_billing_webhook_events_provider_received",
+    BillingWebhookEvent.provider,
+    BillingWebhookEvent.received_at,
 )
