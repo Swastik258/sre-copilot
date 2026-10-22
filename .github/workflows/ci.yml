@@ -23,9 +23,17 @@ jobs:
           pip install -e ".[dev]"
       - name: Lint (ruff)
         run: ruff check .
-      - name: Tests (pytest)
+      - name: Format check (ruff)
+        run: ruff format --check .
+      - name: Type check (mypy)
+        run: mypy app
+      - name: Tests with coverage
         # Tests use SQLite + fixtures; no production credentials required.
-        run: pytest -q
+        run: pytest --cov=app --cov-branch --cov-report=term --cov-fail-under=80
+      - name: Security scan (bandit)
+        run: bandit -q -c pyproject.toml -r app
+      - name: Dependency audit (pip-audit)
+        run: pip-audit --progress-spinner off
 
   frontend:
     name: Frontend (lint + build)
@@ -44,6 +52,10 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Type check
+        run: npm run typecheck
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=high
       - name: Build
         run: npm run build
       - name: Release route smoke

@@ -12,8 +12,12 @@ Backend:
 ```bash
 cd backend
 . .venv/bin/activate
-ruff check .
-pytest
+ruff check app tests
+ruff format --check app tests
+mypy app
+pytest --cov=app --cov-branch --cov-report=term-missing --cov-fail-under=80
+bandit -q -c pyproject.toml -r app
+pip-audit --progress-spinner off
 ```
 
 Frontend:
@@ -21,8 +25,21 @@ Frontend:
 ```bash
 cd frontend
 npm run lint
+npm run typecheck
+npm audit --omit=dev --audit-level=high
 npm run build
 ```
+
+Install the pre-commit hooks once:
+
+```bash
+cd backend && pip install -e ".[dev]" && cd ..
+pre-commit install
+pre-commit run --all-files
+```
+
+See [docs/TESTING.md](docs/TESTING.md) for coverage scope, CI gates, and known
+browser/network test gaps.
 
 ## Guidelines
 
