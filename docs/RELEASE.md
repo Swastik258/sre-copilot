@@ -19,20 +19,27 @@ explicit authorization from the repository owner.
 ```bash
 # Backend
 cd backend
-.venv/bin/ruff check app tests
-.venv/bin/pytest -q
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+.venv/bin/mypy app
+.venv/bin/pytest --cov=app --cov-branch --cov-fail-under=80
+.venv/bin/bandit -q -c pyproject.toml -r app
+.venv/bin/pip-audit --progress-spinner off
 
 # Frontend
-cd frontend
+cd ../frontend
 npm run lint
+npm run typecheck
+npm audit --omit=dev --audit-level=high
 npm run build
 npm run start &
 RELEASE_BASE_URL=http://localhost:3000 npm run smoke
 ```
 
-Expected: ruff clean, **184 backend tests** passing, lint clean, production build
-with **37 routes**, and **16/16** route smoke checks. CI runs the same backend and
-frontend gates.
+Expected: all checks clean, **266 backend tests** passing with **82.9%**
+line+branch coverage, a production build with **40 routes**, and **16/16** route
+smoke checks. CI also validates Helm, Compose, Terraform, and builds both
+container images as UID 10001. See [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## 3. Security configuration
 
@@ -141,10 +148,13 @@ Checklist:
 
 ## 7. Rollback
 
-- [ ] Keep the previous deployed image/build available.
+- [ ] Keep the previous deployed image digest and Helm revision available.
 - [ ] Back up the database before migrations.
-- [ ] `alembic downgrade -1` only after verifying the previous application version
-      is compatible.
+- [ ] Prefer the protected `Rollback` GitHub workflow/Helm rollback for the
+      application. Migrations are forward-only; a Helm rollback does not reverse
+      schema changes.
+- [ ] Use `alembic downgrade` or a database restore only after verifying schema
+      and data compatibility and obtaining approval.
 - [ ] Revoke any credential that may have leaked during verification.
 - [ ] Restore the last known-good environment file from a secure store.
 
@@ -152,7 +162,10 @@ Checklist:
 
 - Full browser E2E is not automated; run the manual browser pass above.
 - Rate limiting is per-process until a shared limiter is deployed.
-- Dependency/image scanning and prompt-injection regression tests are not yet in
-  CI.
+- CI validates the container definitions and non-root UIDs, but does not push or
+  deploy images without an approved environment.
+- No live Kubernetes/Helm, registry, TLS, or managed-database deployment has been
+  verified in this checkout; use [DEPLOYMENT.md](DEPLOYMENT.md) and the protected
+  workflows.
 - Encryption at rest is delegated to the database/platform.
 - No apply path exists for generated infrastructure code or remediation.
