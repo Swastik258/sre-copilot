@@ -1,0 +1,27 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "sre-copilot.backend.fullname" . }}
+  labels:
+    {{- include "sre-copilot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "sre-copilot.backend.selectorLabels" . | nindent 6 }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "sre-copilot.frontend.fullname" . }}
+  labels:
+    {{- include "sre-copilot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "sre-copilot.frontend.selectorLabels" . | nindent 6 }}
+{{- end }}

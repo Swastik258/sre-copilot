@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sre-copilot.backend.fullname" . }}
+  labels:
+    {{- include "sre-copilot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.backend.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: 5
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      {{- include "sre-copilot.backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sre-copilot.backend.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.backend.createSecret }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "sre-copilot.serviceAccountName" . }}
+      {{- include "sre-copilot.imagePullSecrets" . | nindent 6 }}
+      automountServiceAccountToken: {{ or .Values.backend.serviceAccount.automountServiceAccountToken .Values.backend.rbac.create }}
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: {{ .Values.backend.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.backend.podSecurityContext | nindent 8 }}
+      containers:
+        - name: backend
+          image: {{ include "sre-copilot.image" (dict "image" .Values.backend.image "appVersion" .Chart.AppVersion) }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          command:
+            - uvicorn
+            - app.main:app
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8000"
+            - --no-access-log
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "sre-copilot.configMapName" . }}
+            - secretRef:
+                name: {{ include "sre-copilot.secretName" . }}
+          {{- with .Values.backend.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          startupProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: http
+            periodSeconds: {{ .Values.backend.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.probes.startup.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: http
+            periodSeconds: {{ .Values.backend.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.probes.readiness.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: http
+            periodSeconds: {{ .Values.backend.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.probes.liveness.failureThreshold }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.backend.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    {{- include "sre-copilot.backend.selectorLabels" . | nindent 20 }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              {{- include "sre-copilot.backend.selectorLabels" . | nindent 14 }}

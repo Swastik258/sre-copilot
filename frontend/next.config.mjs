@@ -56,6 +56,8 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // Emit a self-contained server bundle for the minimal production image.
+  output: "standalone",
   poweredByHeader: false,
   async headers() {
     return [

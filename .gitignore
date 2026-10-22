@@ -21,7 +21,18 @@ npm-debug.log*
 .env
 .env.*
 !.env.example
+deploy/production.env
 *.db
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example
+tfplan
+crash.log
 
 # Tracked by mistake in earlier revisions; never commit virtual environments.
 .venv-wsl/

@@ -1,0 +1,199 @@
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+
+backend:
+  image:
+    repository: ghcr.io/swastik258/sre-copilot-backend
+    # Prefer a digest in production. When empty, the chart appVersion is used.
+    digest: ""
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  existingSecret: sre-copilot-secrets
+  # Creating a Secret from Helm values puts secrets in release metadata and
+  # values files. Use only for isolated demos; prefer existingSecret.
+  createSecret: false
+  secret: {}
+  env:
+    ENVIRONMENT: production
+    AUTH_REQUIRED: "true"
+    AUTO_CREATE_SCHEMA: "false"
+    CORS_ORIGINS: https://app.example.com
+    ALLOW_CREDENTIALS: "true"
+    TRUSTED_PROXY_IPS: ""
+    DEFAULT_TENANT_ID: default
+    SECURITY_HEADERS_ENABLED: "true"
+    MAX_REQUEST_BYTES: "2000000"
+    RATE_LIMIT_PER_MINUTE: "120"
+    AUTH_RATE_LIMIT_PER_MINUTE: "10"
+    IDEMPOTENCY_TTL_HOURS: "24"
+    LOG_LEVEL: INFO
+    LOG_JSON: "true"
+    ACCESS_LOG_ENABLED: "true"
+    METRICS_ENABLED: "true"
+    METRICS_ALLOW_UNAUTHENTICATED: "false"
+    OTEL_ENABLED: "false"
+    OTEL_SERVICE_NAME: sre-copilot-api
+    OTEL_TRACES_SAMPLE_RATIO: "0.1"
+    SENTRY_TRACES_SAMPLE_RATE: "0.0"
+    EMAIL_DELIVERY: disabled
+    EMAIL_FROM: SRE Copilot <no-reply@example.com>
+    EMAIL_VERIFICATION_REQUIRED: "false"
+    APP_BASE_URL: https://app.example.com
+    BACKGROUND_JOBS_ENABLED: "false"
+    BACKGROUND_JOB_POLL_SECONDS: "5"
+    BACKGROUND_JOB_MAX_ATTEMPTS: "5"
+    BILLING_ENABLED: "false"
+    OAUTH_REDIRECT_BASE_URL: https://app.example.com
+    AI_PROVIDER: mock
+    AI_MODEL: gpt-4o-mini
+    AI_TIMEOUT_SECONDS: "30"
+    AI_MAX_OUTPUT_TOKENS: "1500"
+    AI_PRIVACY_MODE: "false"
+    GITHUB_ENABLED: "false"
+    GITHUB_API_URL: https://api.github.com
+    GITHUB_REQUEST_TIMEOUT_SECONDS: "15"
+    KUBERNETES_ENABLED: "false"
+    KUBERNETES_DEMO_MODE: "true"
+    KUBERNETES_IN_CLUSTER: "false"
+    KUBERNETES_REQUEST_TIMEOUT_SECONDS: "15"
+    PROMETHEUS_ENABLED: "false"
+    PROMETHEUS_DEMO_MODE: "true"
+    PROMETHEUS_REQUEST_TIMEOUT_SECONDS: "15"
+    REDACTION_ENABLED: "true"
+  extraEnv: []
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  probes:
+    startup:
+      periodSeconds: 2
+      timeoutSeconds: 3
+      failureThreshold: 30
+    readiness:
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+    liveness:
+      periodSeconds: 20
+      timeoutSeconds: 3
+      failureThreshold: 3
+  terminationGracePeriodSeconds: 45
+  serviceAccount:
+    create: true
+    name: ""
+    automountServiceAccountToken: false
+  rbac:
+    # Read-only cluster role used only when KUBERNETES_IN_CLUSTER=true.
+    create: false
+
+frontend:
+  image:
+    repository: ghcr.io/swastik258/sre-copilot-frontend
+    digest: ""
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  probes:
+    startup:
+      periodSeconds: 2
+      timeoutSeconds: 3
+      failureThreshold: 30
+    readiness:
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+    liveness:
+      periodSeconds: 20
+      timeoutSeconds: 3
+      failureThreshold: 3
+  terminationGracePeriodSeconds: 30
+
+migrations:
+  enabled: true
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: app.example.com
+  pathType: Prefix
+  tls:
+    enabled: false
+    secretName: ""
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+networkPolicy:
+  enabled: false
+  ingressController:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: ingress-nginx
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/name: ingress-nginx
+  databasePort: 5432
+  httpsPort: 443
