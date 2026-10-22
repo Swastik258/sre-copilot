@@ -1,6 +1,7 @@
 # AI providers
 
-> **Status: implemented for `mock`, OpenAI-compatible providers, OpenRouter, and
+> **Status: implemented for `mock`, OpenAI-compatible providers including Groq,
+> OpenRouter, and
 > Anthropic's native Messages API.** AI explanations are optional; deterministic
 > diagnosis remains authoritative.
 
@@ -8,6 +9,7 @@
 
 - `mock` — deterministic, no external calls (default for development/tests).
 - `openai` — OpenAI-compatible chat completions.
+- `groq` — Groq's OpenAI-compatible chat completions API.
 - `openrouter` — OpenRouter's OpenAI-compatible chat completions; model IDs must
   be namespaced.
 - `anthropic` — native Anthropic Messages API (`system` prompt, `messages`, and
@@ -21,14 +23,32 @@ available. Provider/model metadata is recorded, never keys.
 
 | Env var | Purpose |
 |---------|---------|
-| `AI_PROVIDER` | `mock` \| `openai` \| `openrouter` \| `anthropic` |
-| `AI_MODEL` | Model name (OpenRouter: `openai/gpt-4o-mini`; Anthropic: e.g. `claude-3-5-sonnet-latest`) |
+| `AI_PROVIDER` | `mock` \| `openai` \| `openrouter` \| `anthropic` \| `groq` |
+| `AI_MODEL` | Model name (Groq example: `llama-3.3-70b-versatile`; OpenRouter: `openai/gpt-4o-mini`; Anthropic: e.g. `claude-3-5-sonnet-latest`) |
 | `AI_TIMEOUT_SECONDS` | Request timeout |
 | `AI_MAX_OUTPUT_TOKENS` | Output cap |
 | `AI_PRIVACY_MODE` | Block all external providers |
 | `OPENAI_API_KEY` / `OPENAI_BASE_URL` | OpenAI-compatible provider |
+| `GROQ_API_KEY` / `GROQ_BASE_URL` | Groq OpenAI-compatible API (`https://api.groq.com/openai/v1`) |
 | `OPENROUTER_API_KEY` / `OPENROUTER_BASE_URL` | OpenRouter provider |
 | `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL` | Anthropic provider |
+
+## Groq example
+
+Set these in `backend/.env` or the backend deployment environment. Obtain a
+fresh API key from the Groq console and keep it server-side; never put it in a
+frontend environment variable or commit it.
+
+```dotenv
+AI_PROVIDER=groq
+AI_MODEL=llama-3.3-70b-versatile
+GROQ_API_KEY=your-new-groq-key
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+AI_PRIVACY_MODE=false
+```
+
+The backend uses its existing OpenAI-compatible HTTP adapter; no additional
+Groq SDK dependency is needed. See the [Groq quickstart](https://console.groq.com/docs/quickstart).
 
 ## OpenRouter example
 
@@ -64,7 +84,7 @@ diagnosis remains authoritative, and the response is labelled
 
 Set `AI_PRIVACY_MODE=true` to **prevent any external LLM transmission**. When
 enabled, external providers are rejected at call time. Admins can also set a
-per-tenant privacy override in `/settings`; `AI_PRIVACY_MODE` is the environment
+per-tenant privacy override in `/admin/settings`; `AI_PRIVACY_MODE` is the environment
 default when no tenant override exists.
 
 ## Cost and data handling

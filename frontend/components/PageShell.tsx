@@ -21,15 +21,15 @@ export function PageShell({
   children?: ReactNode;
 }) {
   return (
-    <div className="relative">
-      <header className="relative overflow-hidden border-b border-hairline">
+    <div className="page-shell relative">
+      <header className="page-shell-header relative overflow-hidden border-b border-hairline">
         <div aria-hidden className="grid-overlay" />
         <div aria-hidden className="glow glow-amber -left-24 -top-40 h-80 w-80" />
         <div className="shell relative py-16 sm:py-20">
           <div className="grid grid-cols-1 items-end gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
             <div className="max-w-3xl animate-fade-up">
               {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-              <h1 className="mt-5 font-serif text-display tracking-tight text-primary">
+              <h1 className="heading-display mt-5 text-primary">
                 {title}
               </h1>
               {subtitle && (

@@ -55,8 +55,10 @@ NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev   # http://localhost:3000
 
 The app starts with **no API keys, no cluster, and no cloud account**. The
 backend defaults to SQLite and creates its schema automatically for local use.
-The first local account becomes an admin; later accounts are members in the
-default tenant.
+New registrations are members. After creating your account, grant administrator
+access only from a trusted backend shell with
+`cd backend; python scripts/set_admin.py your-email@example.com`. Use
+`--member` to revoke an existing admin role after confirming the target.
 
 ### Docker Compose
 
@@ -74,7 +76,14 @@ docker compose -f deploy/docker-compose.yml up --build
 - Shared **Evidence** model with provenance, redaction, integrity fingerprints,
   and `demo` labels.
 - Self-hosted accounts, server-side sessions, `admin`/`member` roles, tenant
-  scoping, and an admin user/tenant API. Production always requires auth.
+  scoping, per-user settings, revocable API keys, and an admin user/tenant API.
+  Public signup never grants administrator privileges. Production always
+  requires auth.
+- **Customer dashboard**: authenticated overview, quick starts, recent saved
+  investigations, responsive workspace sidebar, and personal account settings.
+  Admin operational settings remain at `/admin/settings`.
+- **Plan entitlements**: centrally configured in
+  `frontend/lib/feature-access.ts`; Free currently includes every feature.
 - **Kubernetes**: read-only multi-cluster selection, namespace/pod/workload
   listing, bounded logs, and evidence-backed diagnosis for CrashLoopBackOff,
   OOMKilled, ImagePullBackOff, Pending, probe failures, and related signals.
@@ -95,8 +104,10 @@ docker compose -f deploy/docker-compose.yml up --build
 - **Infrastructure code**: deterministic Kubernetes Deployment/Service and
   Terraform module proposals with baseline policy findings at `/infra-code`.
   Nothing is written or applied.
-- **AI providers**: deterministic mock, OpenAI-compatible, OpenRouter, and native
-  Anthropic Messages API. Deterministic diagnosis remains authoritative.
+- **AI providers**: deterministic mock, OpenAI-compatible APIs including Groq,
+  OpenRouter, and native Anthropic Messages API. Deterministic diagnosis remains
+  authoritative. Configure `GROQ_API_KEY` server-side; never expose it in the
+  frontend.
 - Paper/ink route-group themes, semantic utilities, 4px corners, and a
   reduced-motion-safe motion system.
 
@@ -115,6 +126,43 @@ docker compose -f deploy/docker-compose.yml up --build
 - Do not expose the API publicly until the hardening and release items in
   [docs/SECURITY.md](docs/SECURITY.md) and [docs/RELEASE.md](docs/RELEASE.md) are
   complete.
+
+## Customer account API
+
+Authenticated account data is scoped to the current user under `/api/v1/account`:
+profile, password, preferences, integration enablement flags, API key create
+and revoke, and account deletion. API key secrets are displayed once and stored
+as hashes. Live integration credentials remain operator-managed in backend
+environment variables. The admin workspace configuration page is `/admin/settings`.
+
+## Changelog
+
+- Added an authenticated dashboard workspace with responsive navigation,
+  account overview, recent investigations, history, and planned-feature pages.
+- Added centralized Free/Pro/Team entitlements. Free currently unlocks all
+  features; no payment or billing is implemented.
+- Added persistent per-user profile, password, preferences, integration flags,
+  API key, and account-deletion endpoints and settings forms.
+- **Backend security fix — privilege escalation during registration:** public
+  signup previously made the first registrant an administrator and promoted a
+  matching `BOOTSTRAP_ADMIN_EMAIL` without verifying ownership. Removed
+  first-user and email-based admin promotion from signup, startup, local schema
+  upgrades, and fresh role migrations (`backend/app/services/auth.py`,
+  `backend/app/main.py`, `backend/app/db/local_schema.py`, and
+  `backend/alembic/versions/0005_roles_tenants.py`). New accounts are members;
+  administrators are provisioned through the trusted
+  `backend/scripts/set_admin.py` command. Existing installations should review
+  administrator roles assigned by older versions and demote any account that
+  was not deliberately authorized.
+- Added hashed, owner-scoped API keys, account settings migrations, and route
+  tests covering persistence, ownership, password checks, revocation, and the
+  signup privilege boundary.
+- Preserved existing admin operational settings at `/admin/settings` while
+  using `/settings` for customer account settings.
+- Added Groq support through the existing OpenAI-compatible chat completions
+  adapter using server-side `GROQ_API_KEY`/`GROQ_BASE_URL`; no SDK dependency
+  was added.
+- Removed the Customers dropdown and its links from the marketing navbar.
 
 ## Verification
 

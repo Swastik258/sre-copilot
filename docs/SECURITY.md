@@ -48,7 +48,10 @@ protection.
 | Audit events | `app/services/audit.py` | Redacted resource/outcome payloads; tenant-scoped; retention is audited. |
 | Account passwords | `app/security/passwords.py` | scrypt (per-user salt, 16-byte, `n=2^14`), constant-time compare; PBKDF2 fallback. |
 | Local signup/login | `app/services/auth.py`, `app/api/v1/auth.py` | Self-hosted accounts; the session token is never returned in a body. |
+| Signup privilege boundary | `app/services/auth.py`, `app/api/v1/auth.py`, `scripts/set_admin.py` | Public signups are always members; only a trusted local operator command grants admin. |
 | Session tokens | `app/security/tokens.py` | 256-bit `secrets.token_urlsafe`; only the SHA-256 hash is stored. |
+| Customer API keys | `app/api/v1/account.py`, `app/db/models.py` | Random bearer secrets; only hashes are stored, keys are owner-scoped, revocable, and shown once. |
+| Customer settings | `app/api/v1/account.py` | Profile, preferences, integrations, and keys are scoped to the authenticated user. |
 | Session cookie | `app/api/v1/auth.py` | `HttpOnly`, `SameSite=Lax`, `Secure` off localhost, 7-day TTL, revocable. |
 | Production authentication | `app/api/deps.py` | Production always requires authentication even if `AUTH_REQUIRED` is unset. |
 | Roles and admin APIs | `app/services/admin.py`, `app/api/v1/admin.py` | `admin`/`member`; admin-only user/tenant changes; last active admin protected. |
@@ -70,8 +73,12 @@ protection.
 - Keep `CORS_ORIGINS` to the exact frontend origin and never combine it with `*`.
 - Use Postgres and Alembic migrations (`AUTO_CREATE_SCHEMA` is for local SQLite).
 - Set an explicit `RATE_LIMIT_PER_MINUTE` if 120/min is not appropriate.
-- Create the first admin deliberately, or set `BOOTSTRAP_ADMIN_EMAIL` before
-  provisioning accounts. Do not leave an unused bootstrap address configured.
+- Create administrators deliberately from a trusted backend shell with
+  `python scripts/set_admin.py account@example.com`. Public registration order
+  and email addresses never grant admin privileges.
+- Review administrator roles assigned by older versions after upgrading; use
+  `python scripts/set_admin.py untrusted@example.com --member` from a trusted
+  shell to revoke unintended roles.
 - Ensure at least two active admins before operational handoff.
 
 ## Remaining controls

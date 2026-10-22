@@ -50,10 +50,16 @@ backend/app/ai/*                         → provider-independent AI explanation
   - `app/core/redaction.py` — best-effort credential redaction.
 - **Authentication and authorization**
   - `app/services/auth.py` — local accounts, scrypt hashes, sessions.
+  - `app/api/v1/account.py` — owner-scoped profile/settings and revocable API keys.
   - `app/api/deps.py` — optional/required user, admin dependency, production
     authentication gate.
   - `app/services/admin.py` — user/tenant administration and last-admin lockout.
   - `app/services/settings_store.py` — per-tenant non-secret preferences.
+- **Customer workspace** — `frontend/components/WorkspaceLayout.tsx` is the
+  authenticated shell; `frontend/lib/feature-access.ts` maps features to plans.
+  The Free plan currently includes all features. Account preferences and API
+  keys are persisted per user; operator-configured integration secrets remain
+  backend-only.
 - **Schemas** — `app/schemas/*` are typed API contracts. Shared evidence and
   diagnosis vocabulary lives in `evidence.py` and `investigation.py`.
 - **Services** — evidence construction, integration status, audit, Kubernetes,
@@ -115,7 +121,7 @@ finer-grained permissions are future work.
   - `/metrics` — Prometheus query and correlation
   - `/runbooks` — searchable operator catalog
   - `/audit` — audit filters, CSV export, admin retention
-  - `/settings` — per-tenant policy and admin user/tenant controls
+  - `/admin/settings` — per-tenant policy and admin user/tenant controls
   - `/infra-code` — proposal-only Deployment/Service/Terraform generation
 - `components/StatusStrip.tsx` and `components/HealthPill.tsx` render live
   backend status; demo data is labelled.
@@ -129,10 +135,10 @@ finer-grained permissions are future work.
 | `DATABASE_URL` | `sqlite:///./sre_copilot.db` | Postgres in Compose |
 | `AUTO_CREATE_SCHEMA` | `true` | Local SQLite only; never Postgres |
 | `AUTH_REQUIRED` | `false` | Off for local demo; production always enforces |
-| `BOOTSTRAP_ADMIN_EMAIL` | empty | Promote a specific account to admin |
 | `DEFAULT_TENANT_ID` | `default` | Tenant for newly created accounts |
 | `RATE_LIMIT_PER_MINUTE` | `0` | `0` disables locally; production defaults to 120 |
-| `AI_PROVIDER` | `mock` | `mock`, `openai`, `openrouter`, or `anthropic` |
+| `AI_PROVIDER` | `mock` | `mock`, `openai`, `groq`, `openrouter`, or `anthropic` |
+| `GROQ_API_KEY` / `GROQ_BASE_URL` | empty / Groq OpenAI-compatible endpoint | Server-side Groq chat completions |
 | `AI_PRIVACY_MODE` | `false` | Blocks external LLM transmission; per-tenant override available |
 | `GITHUB_ENABLED` / `GITHUB_TOKEN` | `false` / empty | Read-only Actions access |
 | `PROMETHEUS_ENABLED` / `PROMETHEUS_URL` | `false` / empty | Fixture mode when enabled without a URL |

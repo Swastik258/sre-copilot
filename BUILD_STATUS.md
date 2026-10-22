@@ -15,13 +15,18 @@ bounded, and what remains. The milestone view lives in
   paper, `(product)` uses ink, and the root layout sets no theme.
 - Semantic utilities, 4px corners, and the shared motion system are used
   throughout. Motion collapses under `prefers-reduced-motion: reduce`.
-- `/dashboard` is auth-gated and shows live integration status, surface cards,
-  account state, and investigations.
-- Navigation is auth-aware on desktop and mobile.
+- `/dashboard` is auth-gated and shows quick starts, account status, recent
+  saved investigations, and empty states. `/history` lists saved runs.
+- Authenticated product views use the separate responsive workspace shell,
+  collapsible desktop sidebar, mobile drawer, plan label, account avatar, and
+  sign-out action. Admin operational settings remain at `/admin/settings`;
+  `/settings` is customer account settings.
+- `frontend/lib/feature-access.ts` centrally maps features to plans. Free
+  currently unlocks everything; billing is not implemented.
 - Live consoles: `/kubernetes`, `/cicd`, `/terraform`, `/logs`, `/assistant`,
   `/metrics`, `/runbooks`, `/audit`, `/settings`, and `/infra-code`.
-- `/settings` includes admin-only user, role, tenant, and activation controls.
-  `/audit` hides destructive retention actions from members.
+- `/admin/settings` includes admin-only user, role, tenant, and activation
+  controls. `/audit` hides destructive retention actions from members.
 
 ### Backend platform
 
@@ -36,15 +41,19 @@ bounded, and what remains. The milestone view lives in
 - Shared Evidence schema, SQLAlchemy model, and Alembic migrations.
 - Self-hosted accounts: signup/login/logout/me, scrypt password hashing, and
   server-side sessions in an `HttpOnly` cookie.
-- Workspace authorization: `admin` and `member` roles; the first local account
-  becomes an admin, and `BOOTSTRAP_ADMIN_EMAIL` can promote a specific account.
+- Workspace authorization: `admin` and `member` roles; public signup always
+  creates members. Trusted operators promote users with
+  `backend/scripts/set_admin.py`.
   Admin APIs list users/tenants and change role, tenant, or activation. The last
   active admin cannot be demoted or deactivated, and deactivation revokes the
   user's sessions.
+- Customer account settings: persisted profile, password, preferences,
+  per-user integration flags, one-time API key display/revocation, and
+  password-confirmed account deletion. API key secrets are stored as hashes.
 - Tenant boundaries: investigations carry a tenant, members only see their own
   records, admins can inspect across tenants, and settings are per-tenant.
-  Moving a member migrates their investigations to the new tenant. Existing
-  databases promote their earliest account to admin during upgrade.
+  Moving a member migrates their investigations to the new tenant. New schema
+  upgrades never grant admin based on account age.
 - Audit service and `AuditEvent` model with tenant scoping, read/filter/export,
   and admin-only retention (currently workspace-wide across tenants).
 - Local SQLite databases from older milestones are upgraded additively on
@@ -86,10 +95,10 @@ bounded, and what remains. The milestone view lives in
   proposal-only; nothing is written or applied. `/infra-code` is live.
 - **AI explanation layer** (`app/ai/providers/*`, `app/services/ai.py`,
   `app/api/v1/ai.py`): provider-independent interface, deterministic mock,
-  OpenAI-compatible adapter, OpenRouter support, native Anthropic Messages API
-  adapter, strict validated JSON, privacy mode, and redaction before
-  transmission. AI explanations are optional and deterministic diagnosis remains
-  authoritative.
+  OpenAI-compatible adapter including Groq, OpenRouter support, native
+  Anthropic Messages API adapter, strict validated JSON, privacy mode, and
+  redaction before transmission. AI explanations are optional and deterministic
+  diagnosis remains authoritative.
 - **Investigations and assistant** (`app/services/investigations.py`,
   `app/api/v1/investigations.py`): authenticated create/read/list/close,
   persisted message history, evidence attachment, AI exchange, tenant scoping,

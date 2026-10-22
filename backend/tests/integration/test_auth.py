@@ -24,13 +24,21 @@ def test_signup_creates_account_and_session(client):
     body = r.json()
     assert body["user"]["email"] == "ada@example.com"
     assert body["user"]["display_name"] == "Ada"
+    assert body["user"]["role"] == "member"
     # The token is never exposed in the response body.
     assert "token" not in body
     assert "sre_session" in client.cookies
-
     me = client.get(ME)
     assert me.status_code == 200
     assert me.json()["email"] == "ada@example.com"
+
+
+def test_signup_never_grants_admin_from_email_or_account_order(client):
+    first = _signup(client, email="first-signup@example.com")
+    client.cookies.clear()
+    second = _signup(client, email="admin@example.com")
+    assert first.json()["user"]["role"] == "member"
+    assert second.json()["user"]["role"] == "member"
 
 
 def test_session_cookie_is_httponly(client):

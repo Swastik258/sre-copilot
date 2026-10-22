@@ -1,14 +1,15 @@
-# Design system: paper + ink
+# Design system: dark operations UI
 
-SRE Copilot has two visual modes built on one token set. The mode is selected by
-the route group, not by the page. Pages do not branch on the theme.
+SRE Copilot uses a unified near-black palette across route groups. Route groups
+continue to set the semantic theme wrapper, while both wrappers resolve to the
+same dark surfaces and contrast tokens.
 
 ## The two modes
 
 | Mode | `data-theme` | Used by | Character |
 | --- | --- | --- | --- |
-| Paper | `paper` | Marketing, docs, auth | Warm off-white canvas, cool near-black text, burnt-orange accent, hairline borders |
-| Ink | `ink` | Product consoles | Warm dark canvas, ivory text, the same burnt-orange accent, hairline borders |
+| Marketing/auth | `paper` | Marketing, docs, auth | Near-black canvas, near-white text, bright blue accent, soft borders |
+| Product | `ink` | Product consoles | Near-black canvas, near-white text, the same blue accent, soft borders |
 
 Both modes use the same semantic utilities. A component that uses `bg-[var(--bg)]`,
 `text-[var(--text)]`, and `border-[var(--border)]` works in both modes without
@@ -58,7 +59,7 @@ place in the codebase where literal color values are allowed.
 - `--signal-info`
 - Ink-mode variants `--signal-*-ink` for legibility on the dark canvas
 
-### Paper palette
+### Marketing/auth dark palette
 
 - `--bg-paper`
 - `--bg-elevated-paper`
@@ -69,7 +70,7 @@ place in the codebase where literal color values are allowed.
 - `--border-paper`
 - `--border-strong-paper`
 
-### Ink palette
+### Product dark palette
 
 - `--bg-ink`
 - `--bg-elevated-ink`
@@ -160,8 +161,8 @@ the old `border-hairline` palette class. When setting a border width, use
 - `.btn-light`
 - `.btn-glass`
 
-Buttons are square with a 4px radius. They have no gradients or glows, and no
-shadows of their own.
+Buttons use rounded 10px corners, clear hover states, and a restrained accent
+shadow for primary actions.
 
 ### Status
 
@@ -207,9 +208,9 @@ shadows of their own.
    `.grid-overlay` decoration, and the `.auth-card-lift` / `.preview-lift`
    shadows, must stay defined in `globals.css`; do not add gradient, glow, or
    shadow utilities inline in components.
-6. **Corners are 4px.** Use `.card`, `.btn-accent`, `.btn-ghost`, or
-   `rounded-[4px]`.
-7. **Display type is intentional.** Use `.heading-display` or `font-serif` for
+6. **Use consistent rounded surfaces.** Buttons use 10px corners; cards use
+   16px corners; smaller controls and chips use pill or 10px corners.
+7. **Display type is intentional.** Use `.heading-display` for modern Geist
    display headings, Geist for body copy, and `font-mono` / `.label-caps` for
    labels and data.
 8. **Marketing pages stay static.** No live data fetching, API forms, or
@@ -217,9 +218,7 @@ shadows of their own.
 
 ## Typography
 
-- **Instrument Serif** — display headings, large pull quotes, editorial page
-  titles.
-- **Geist** — body copy, UI labels, navigation, buttons.
+- **Geist** — display headings, body copy, UI labels, navigation, and buttons.
 - **Geist Mono** — eyebrows, data, status labels, IDs, and terminal-like blocks.
 
 ## Choosing a mode
@@ -267,6 +266,11 @@ dependency.
 - Use `.surface-grid` for staggered cards; `.delay-1`–`.delay-6` stagger
   individual elements.
 - Hover motion belongs on `.card-hover`, `.icon-tile`, and `.link-arrow`.
+- The landing hero's animated product preview is a CSS illustration, not a
+  recording of a live investigation.
+- Client logos, testimonials, sample workflow metrics, the incident terminal,
+  and the walkthrough video are placeholders; they must be replaced with
+  approved real content before being presented as customer proof or results.
 - Every animation collapses under `prefers-reduced-motion: reduce`.
 
 ## Legacy sweep

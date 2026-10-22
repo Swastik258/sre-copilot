@@ -71,7 +71,7 @@ npm run lint      # eslint
 npm run build     # type-check + production build
 ```
 
-The production build currently has **33 routes**.
+The production build currently has **37 routes**.
 
 ### Release route smoke
 

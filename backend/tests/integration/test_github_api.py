@@ -85,6 +85,18 @@ def test_list_runs(client: TestClient, fake_client: FakeClient) -> None:
     assert body["demo"] is False
 
 
+def test_list_runs_accepts_and_normalizes_github_url(
+    client: TestClient, fake_client: FakeClient
+) -> None:
+    response = client.get(
+        "/api/v1/github/runs",
+        params={"repo": "https://github.com/acme/demo.git"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["repo"] == "acme/demo"
+
+
 def test_run_detail_includes_jobs(client: TestClient, fake_client: FakeClient) -> None:
     response = client.get(
         "/api/v1/github/runs/101", params={"repo": "acme/demo"}

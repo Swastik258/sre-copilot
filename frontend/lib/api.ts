@@ -189,6 +189,16 @@ export type SignupPayload = {
 };
 export type LoginPayload = { email: string; password: string };
 
+export type AccountSnapshot = {
+  profile: { display_name: string | null; email: string | null };
+  preferences: { theme: string; notifications: boolean };
+  integrations: { kubernetes: boolean; github: boolean; prometheus: boolean };
+  api_keys: { id: string; name: string; prefix: string; created_at: string }[];
+  plan: string;
+};
+
+export type ApiKeyCreated = AccountSnapshot["api_keys"][number] & { key: string };
+
 // ---- Kubernetes (read-only) ----
 
 export type K8sCluster = {
@@ -688,6 +698,47 @@ export const api = {
         body: JSON.stringify(payload),
       }),
     logout: () => request<null>("/api/v1/auth/logout", { method: "POST" }),
+  },
+  account: {
+    get: () => request<AccountSnapshot>("/api/v1/account"),
+    updateProfile: (payload: {
+      display_name?: string | null;
+      email?: string;
+      current_password?: string;
+    }) =>
+      request<AccountSnapshot["profile"]>("/api/v1/account/profile", {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+    updatePassword: (current_password: string, new_password: string) =>
+      request<null>("/api/v1/account/password", {
+        method: "POST",
+        body: JSON.stringify({ current_password, new_password }),
+      }),
+    updatePreferences: (payload: Partial<AccountSnapshot["preferences"]>) =>
+      request<AccountSnapshot["preferences"]>("/api/v1/account/preferences", {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+    updateIntegration: (kind: keyof AccountSnapshot["integrations"], connected: boolean) =>
+      request<AccountSnapshot["integrations"]>(`/api/v1/account/integrations/${kind}`, {
+        method: "PUT",
+        body: JSON.stringify({ connected }),
+      }),
+    createApiKey: (name: string) =>
+      request<ApiKeyCreated>("/api/v1/account/api-keys", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      }),
+    revokeApiKey: (id: string) =>
+      request<null>(`/api/v1/account/api-keys/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }),
+    delete: (password: string) =>
+      request<null>("/api/v1/account", {
+        method: "DELETE",
+        body: JSON.stringify({ password }),
+      }),
   },
   kubernetes: {
     clusters: () =>

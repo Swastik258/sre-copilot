@@ -44,6 +44,8 @@ def test_external_ai_requires_key():
         ).external_ai_configured
         is True
     )
+    assert Settings(ai_provider="groq").external_ai_configured is False
+    assert Settings(ai_provider="groq", groq_api_key="gsk-test").external_ai_configured is True
 
 
 def test_integration_status_reflects_configuration():
@@ -69,6 +71,13 @@ def test_integration_status_reflects_configuration():
     )
     by_kind3 = {i.kind: i for i in report3.integrations}
     assert by_kind3["ai"].state.value == "enabled"
+
+    report4 = integration_statuses(
+        Settings(ai_provider="groq", groq_api_key="gsk-test")
+    )
+    by_kind4 = {i.kind: i for i in report4.integrations}
+    assert by_kind4["ai"].name == "AI provider (groq)"
+    assert by_kind4["ai"].state.value == "enabled"
 
 
 def test_integration_status_never_leaks_tokens():

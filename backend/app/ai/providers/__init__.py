@@ -70,6 +70,18 @@ def build_provider(settings: Settings) -> AIProvider:
             max_output_tokens=settings.ai_max_output_tokens,
         )
 
+    if provider == "groq":
+        if not settings.groq_api_key:
+            raise NotConfiguredError("Groq is selected but GROQ_API_KEY is not set.")
+        return OpenAICompatibleProvider(
+            name="groq",
+            model=settings.ai_model,
+            api_key=settings.groq_api_key,
+            base_url=settings.groq_base_url,
+            timeout_seconds=settings.ai_timeout_seconds,
+            max_output_tokens=settings.ai_max_output_tokens,
+        )
+
     if provider == "anthropic":
         if not settings.anthropic_api_key:
             raise NotConfiguredError(

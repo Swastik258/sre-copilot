@@ -294,11 +294,11 @@ export function CTASection({
         <div className="grad-card relative overflow-hidden rounded-[2rem] px-7 py-14 sm:px-14 sm:py-16">
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-16 -top-20 h-80 w-80 rounded-full bg-white/10 blur-3xl"
+            className="pointer-events-none absolute -right-16 -top-20 h-80 w-80 rounded-full bg-[var(--accent-soft)] blur-3xl"
           />
           <div className="relative z-10 grid grid-cols-1 items-end gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
             <div>
-              <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-[13px] font-medium text-white/90">
+              <span className="inline-flex items-center rounded-full bg-[var(--accent-soft)] px-3 py-1 text-[13px] font-medium text-white/90">
                 {eyebrow}
               </span>
               <h2 className="mt-5 text-[2rem] font-semibold leading-[1.1] tracking-[-0.03em] text-white sm:text-[2.5rem]">

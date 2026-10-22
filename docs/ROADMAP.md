@@ -12,7 +12,7 @@ Statuses: **Done** · **Partial** · **Blocked** · **Future**
 | Kubernetes diagnosis | **Done** | Read-only client, fixtures, deterministic rules, evidence, `/kubernetes`, named multi-cluster selection | Live re-verification after Windows sync |
 | GitHub Actions | **Done** | Read-only runs/jobs/logs, deterministic rules, `/cicd` | Live verification needs a fresh read-only token |
 | Terraform plan review | **Done** | Plan JSON parsing, blast radius, evidence, `/terraform`, AI explanation | None known |
-| AI explanations | **Done** | Mock, OpenAI, OpenRouter, native Anthropic; privacy mode; redaction | Live provider check after key rotation |
+| AI explanations | **Done** | Mock, OpenAI, Groq, OpenRouter, native Anthropic; privacy mode; redaction | Live provider check after key rotation |
 | Accounts and dashboard | **Done** | Self-hosted auth, gated dashboard, auth-aware nav | None known |
 | Authorization and tenancy | **Done** | Admin/member roles, tenant-scoped investigations/settings/audit, admin APIs, session revocation | Shared-role granularity is intentionally simple |
 | Product UI | **Done** | Paper/ink themes, semantic utilities, motion, responsive shell | Full browser E2E runner |
@@ -56,8 +56,8 @@ Statuses: **Done** · **Partial** · **Blocked** · **Future**
 
 ### 3a — AI explanation layer
 
-- Provider-independent interface with mock, OpenAI-compatible, OpenRouter, and
-  native Anthropic adapters.
+- Provider-independent interface with mock, OpenAI-compatible providers
+  including Groq, OpenRouter, and native Anthropic adapters.
 - Strict Pydantic validation, timeouts, explicit errors, privacy mode, and
   redaction before transmission.
 - Optional AI panels in Kubernetes, GitHub, Terraform, and investigations.

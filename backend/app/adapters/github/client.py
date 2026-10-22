@@ -49,12 +49,38 @@ class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 
 def validate_repo(repo: str) -> str:
-    """Validate and normalize an ``owner/repo`` identifier."""
+    """Validate and normalize a repository identifier or github.com URL."""
 
     value = repo.strip()
+    if value.startswith(("https://", "http://")):
+        try:
+            parsed = urllib.parse.urlsplit(value)
+            port = parsed.port
+        except ValueError:
+            parsed = None
+            port = -1
+        if parsed is None:
+            value = ""
+        elif (
+            parsed.scheme != "https"
+            or parsed.hostname not in {"github.com", "www.github.com"}
+            or parsed.username is not None
+            or parsed.password is not None
+            or port is not None
+            or parsed.query
+            or parsed.fragment
+        ):
+            value = ""
+        else:
+            parts = parsed.path.strip("/").split("/")
+            if len(parts) == 2:
+                parts[1] = re.sub(r"\.git$", "", parts[1])
+                value = "/".join(parts)
+            else:
+                value = ""
     if not _REPO_RE.fullmatch(value) or len(value) > 200:
         raise ValidationError(
-            "repo must be a GitHub repository in owner/name form.",
+            "Enter a GitHub repository as owner/name or a github.com repository URL.",
             details={"repo": repo[:200]},
         )
     return value

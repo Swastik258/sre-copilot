@@ -42,8 +42,13 @@ def get_current_user(request: Request, db: DbSession) -> User | None:
     back both optional and required dependencies.
     """
     settings = get_settings()
-    token = request.cookies.get(settings.auth_cookie_name) or _bearer_token(request)
-    return auth_service.resolve_session(db, token)
+    cookie_token = request.cookies.get(settings.auth_cookie_name)
+    if cookie_token:
+        return auth_service.resolve_session(db, cookie_token)
+    bearer_token = _bearer_token(request)
+    return auth_service.resolve_session(db, bearer_token) or auth_service.resolve_api_key(
+        db, bearer_token
+    )
 
 
 CurrentUser = Annotated[User | None, Depends(get_current_user)]

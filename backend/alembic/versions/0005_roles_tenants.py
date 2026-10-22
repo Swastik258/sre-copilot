@@ -59,14 +59,6 @@ def upgrade() -> None:
         "audit_events",
         ["tenant_id", "created_at"],
     )
-    # Existing installations predate roles. Promote the earliest active account
-    # so the workspace always has an administrator after the upgrade; everyone
-    # else starts as a member. New installations promote the first signup in code.
-    op.execute(
-        "UPDATE users SET role = 'admin' WHERE id = ("
-        "SELECT id FROM users WHERE is_active = TRUE "
-        "ORDER BY created_at ASC LIMIT 1)"
-    )
 
 
 def downgrade() -> None:

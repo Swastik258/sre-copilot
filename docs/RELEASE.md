@@ -8,7 +8,7 @@ explicit authorization from the repository owner.
 - [ ] Revoke the previously exposed GitHub token and OpenRouter key.
 - [ ] Create a fresh GitHub fine-grained token with **Actions: read**,
       **Contents: read**, and **Metadata: read** only. No write scopes.
-- [ ] Create a fresh OpenRouter or Anthropic key for live AI checks.
+- [ ] Create a fresh Groq, OpenRouter, or Anthropic key for live AI checks.
 - [ ] Put keys only in the backend environment or `.env`; never in
       `NEXT_PUBLIC_*`, logs, screenshots, issues, or commits.
 - [ ] Confirm `.env` and local database files are untracked.
@@ -30,8 +30,8 @@ npm run start &
 RELEASE_BASE_URL=http://localhost:3000 npm run smoke
 ```
 
-Expected: ruff clean, **180 backend tests** passing, lint clean, production build
-with **33 routes**, and **16/16** route smoke checks. CI runs the same backend and
+Expected: ruff clean, **184 backend tests** passing, lint clean, production build
+with **37 routes**, and **16/16** route smoke checks. CI runs the same backend and
 frontend gates.
 
 ## 3. Security configuration
@@ -45,7 +45,8 @@ frontend gates.
 - [ ] Postgres + Alembic migrations are used; `AUTO_CREATE_SCHEMA` is not used for
       production.
 - [ ] At least two active admins exist; the last-admin guard is verified.
-- [ ] `BOOTSTRAP_ADMIN_EMAIL` is removed or intentionally retained.
+- [ ] Administrators are provisioned from a trusted backend shell; public
+      signup never assigns admin privileges.
 - [ ] Audit retention policy is set and tested.
 
 ## 4. Demo-mode verification (no credentials)
@@ -62,7 +63,8 @@ frontend gates.
 - [ ] `/terraform` reviews the sample plan and shows the AI explanation path
       (mock provider).
 - [ ] `/audit` lists events and exports CSV; retention is disabled for a member.
-- [ ] `/settings` is read-only for a member and editable by an admin.
+- [ ] `/settings` saves customer profile/preferences; `/admin/settings` is
+      restricted to administrators.
 
 ## 5. Live integration verification
 

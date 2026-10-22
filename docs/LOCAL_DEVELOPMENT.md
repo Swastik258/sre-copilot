@@ -30,21 +30,29 @@ uvicorn app.main:app --reload --port 8000
 
 ### Accounts, roles, and tenants
 
-Signup and sign-in are self-hosted. The **first local account becomes an admin**;
-later accounts are members in `DEFAULT_TENANT_ID`. When an older database is
-upgraded, the earliest existing account is promoted to admin so the workspace
-cannot be left without an administrator. To promote a specific account
-in an existing database, set:
+Signup and sign-in are self-hosted. New accounts are always members in
+`DEFAULT_TENANT_ID`. To grant admin privileges, first register the operator's
+account, then run the following from the `backend` directory using a trusted
+local shell:
 
-```dotenv
-BOOTSTRAP_ADMIN_EMAIL=you@example.com
+```bash
+python scripts/set_admin.py you@example.com
 ```
 
-The backend promotes that active account on startup (and applies it to a new
-signup), then the setting can be removed. Admins can manage users and tenants
-from `/settings` or via `/api/v1/admin/*`. The last active admin cannot be
-demoted or deactivated. Moving a member migrates their investigations. Settings
-and audit views are tenant-scoped.
+There is no email-based or first-registrant admin bootstrap. Admins can manage
+users and tenants from `/admin/settings` or via `/api/v1/admin/*`. The last
+active admin cannot be demoted or deactivated. Moving a member migrates their
+investigations. Settings and audit views are tenant-scoped.
+Existing databases retain roles already assigned by earlier versions. Review
+the current admin list after upgrading, then demote any unintended account from
+a trusted shell with `python scripts/set_admin.py email@example.com --member`.
+
+After sign-up or login, customers land on `/dashboard`. The workspace sidebar
+links to product tools, investigation history, and `/settings`. Personal account
+settings save through `/api/v1/account/*`; admin-only operational settings stay
+at `/admin/settings`. The Free plan currently unlocks every feature. Change
+feature-to-plan mappings in `frontend/lib/feature-access.ts`; billing is not
+implemented.
 
 ### Authentication enforcement
 
@@ -62,7 +70,7 @@ including `users.password_hash`, `users.role`, `users.tenant_id`,
 Look for a log line such as:
 
 ```
-Upgraded local SQLite schema: users.password_hash, users.role, users.tenant_id, users.role(admin)
+Upgraded local SQLite schema: users.password_hash, users.role, users.tenant_id
 ```
 
 If an upgrade logs a duplicate-email warning, delete the local SQLite file (demo
@@ -91,7 +99,7 @@ session is carried in an `HttpOnly` cookie. After signing in you land on
 `/dashboard`.
 
 Live product pages: `/kubernetes`, `/cicd`, `/terraform`, `/logs`, `/assistant`,
-`/metrics`, `/runbooks`, `/audit`, `/settings`, and `/infra-code`.
+`/metrics`, `/runbooks`, `/audit`, `/settings`, `/admin/settings`, and `/infra-code`.
 
 ### Clerk status
 
@@ -176,5 +184,6 @@ Services: Postgres (`db`), backend (migrates then serves on 8000), frontend on
 - **Cannot stay signed in** — check `CORS_ORIGINS`, the `HttpOnly` cookie, and
   that the frontend/backend origins match. Clerk environment variables are not
   used.
-- **403 on settings/audit retention** — the signed-in account is a member. Ask
-  an admin, or set `BOOTSTRAP_ADMIN_EMAIL` for the account before restarting.
+- **403 on admin settings/audit retention** — the signed-in account is a member.
+  Ask an existing admin to change the role, or use the trusted
+  `backend/scripts/set_admin.py` command from a local operator shell.

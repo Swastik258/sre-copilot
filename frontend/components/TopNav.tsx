@@ -78,22 +78,6 @@ const LINKS: NavItem[] = [
     ],
   },
   {
-    label: "Customers",
-    href: "/customers",
-    children: [
-      {
-        label: "Case studies",
-        href: "/customers/case-studies",
-        description: "How teams use it",
-      },
-      {
-        label: "Testimonials",
-        href: "/customers/testimonials",
-        description: "What engineers say",
-      },
-    ],
-  },
-  {
     label: "Resources",
     href: "/resources",
     children: [
@@ -165,16 +149,16 @@ export function TopNav() {
   return (
     <header
       ref={navRef}
-      className="fixed inset-x-0 top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]"
+      className="site-nav fixed inset-x-0 top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]"
     >
       <nav className="shell flex h-16 items-center justify-between gap-6">
         <div className="flex min-w-0 items-center gap-8">
           <Link
             href="/"
             onClick={() => setMobileOpen(false)}
-            className="flex shrink-0 items-center gap-3 text-sm font-semibold text-[var(--text)]"
+            className="site-brand flex shrink-0 items-center gap-3 text-sm font-semibold text-[var(--text)]"
           >
-            <span className="grid size-8 place-items-center border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-[var(--accent)]">
+            <span className="site-brand-mark grid size-8 place-items-center border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-[var(--accent)]">
               SC
             </span>
             <span>SRE Copilot</span>

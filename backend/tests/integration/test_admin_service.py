@@ -5,12 +5,10 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import select
 
-from app.core.config import get_settings
 from app.core.errors import ConflictError
 from app.db.models import Investigation, User
 from app.schemas.admin import AdminUserUpdate
 from app.services import admin as admin_service
-from app.services.auth import ensure_bootstrap_admin
 
 
 def test_last_active_admin_cannot_be_demoted(db_session) -> None:
@@ -96,27 +94,3 @@ def test_moving_a_member_tenant_migrates_their_investigations(db_session) -> Non
     assert updated.tenant_id == "tenant-new"
     db_session.refresh(investigation)
     assert investigation.tenant_id == "tenant-new"
-
-def test_bootstrap_email_promotes_an_existing_member(db_session) -> None:
-    settings = get_settings()
-    previous = settings.bootstrap_admin_email
-    member = User(
-        email="bootstrap-promote@example.com",
-        password_hash="not-used",
-        role="member",
-        tenant_id="bootstrap-tenant",
-    )
-    db_session.add(member)
-    db_session.commit()
-
-    settings.bootstrap_admin_email = member.email
-    try:
-        promoted = ensure_bootstrap_admin(db_session)
-        assert promoted is not None
-        assert promoted.id == member.id
-        assert promoted.role == "admin"
-    finally:
-        settings.bootstrap_admin_email = previous
-        member.role = "member"
-        db_session.add(member)
-        db_session.commit()

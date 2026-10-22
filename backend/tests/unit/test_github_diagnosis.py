@@ -115,8 +115,35 @@ def test_validate_repo_accepts_owner_name(repo: str) -> None:
     assert validate_repo(repo).strip() == repo.strip()
 
 
+@pytest.mark.parametrize(
+    ("repo", "expected"),
+    [
+        ("https://github.com/Swastik258/carbon-foot-print.git", "Swastik258/carbon-foot-print"),
+        ("https://github.com/acme/demo/", "acme/demo"),
+        ("https://www.github.com/acme/demo", "acme/demo"),
+    ],
+)
+def test_validate_repo_normalizes_github_urls(repo: str, expected: str) -> None:
+    assert validate_repo(repo) == expected
+
+
 @pytest.mark.parametrize("repo", ["", "demo", "acme/demo/extra", "../repo", "acme/../repo"])
 def test_validate_repo_rejects_invalid_shapes(repo: str) -> None:
+    with pytest.raises(ValidationError):
+        validate_repo(repo)
+
+
+@pytest.mark.parametrize(
+    "repo",
+    [
+        "https://evil.example/acme/demo",
+        "https://github.com/acme/demo/actions",
+        "https://user:password@github.com/acme/demo",
+        "https://github.com:invalid/acme/demo",
+        "https://github.com/acme/demo?tab=actions",
+    ],
+)
+def test_validate_repo_rejects_non_repository_urls(repo: str) -> None:
     with pytest.raises(ValidationError):
         validate_repo(repo)
 

@@ -41,7 +41,7 @@ export default function CicdPage() {
     const normalized = repo.trim();
     if (!normalized) {
       setPhase("error");
-      setMessage("Enter a repository in owner/name form.");
+      setMessage("Enter owner/repository or paste a GitHub repository URL.");
       return;
     }
     setPhase("loading");
@@ -55,7 +55,7 @@ export default function CicdPage() {
         normalized,
         branch.trim() || undefined,
       );
-      setActiveRepo(normalized);
+      setActiveRepo(result.repo);
       setRuns(result.runs);
       setPhase("ready");
       if (result.runs.length === 0) {
@@ -133,10 +133,13 @@ export default function CicdPage() {
               id="repo"
               value={repo}
               onChange={(event) => setRepo(event.target.value)}
-              placeholder="owner/repo"
+              placeholder="owner/repo or https://github.com/owner/repo"
               autoComplete="off"
               className="mt-2 w-full rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 font-mono text-sm text-primary placeholder:text-tertiary"
             />
+            <p className="mt-1.5 text-xs text-tertiary">
+              Paste a repository URL or enter it as owner/repository.
+            </p>
           </div>
           <div>
             <label className="label-caps" htmlFor="branch">

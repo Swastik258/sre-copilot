@@ -47,22 +47,9 @@ def _ensure_local_schema() -> None:
         log.info("Ensured local SQLite schema exists")
 
 
-def _ensure_bootstrap_admin() -> None:
-    """Promote ``BOOTSTRAP_ADMIN_EMAIL`` if the account already exists."""
-
-    from app.db.session import SessionLocal
-    from app.services.auth import ensure_bootstrap_admin
-
-    with SessionLocal() as db:
-        promoted = ensure_bootstrap_admin(db)
-    if promoted is not None:
-        log.info("Promoted %s to administrator via bootstrap configuration", promoted.email)
-
-
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     _ensure_local_schema()
-    _ensure_bootstrap_admin()
     yield
 
 

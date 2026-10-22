@@ -22,6 +22,8 @@ EXPECTED_TABLES = {
     "evidence",
     "sessions",
     "app_settings",
+    "account_settings",
+    "user_api_keys",
 }
 
 
@@ -66,7 +68,7 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
     assert "tenant_id" in audit_columns
 
 
-def test_upgrade_promotes_the_earliest_existing_user(tmp_path):
+def test_upgrade_keeps_existing_accounts_as_members(tmp_path):
     db_path = tmp_path / "migration_roles_test.db"
     env = {
         **os.environ,
@@ -127,5 +129,5 @@ def test_upgrade_promotes_the_earliest_existing_user(tmp_path):
     finally:
         con.close()
 
-    assert roles == {"first-user": "admin", "second-user": "member"}
+    assert roles == {"first-user": "member", "second-user": "member"}
     assert tenants == {"first-user": "default", "second-user": "default"}

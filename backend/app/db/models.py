@@ -30,8 +30,8 @@ class User(Base):
     # identity provider (e.g. Clerk), which authenticate elsewhere.
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    # Workspace role and tenant boundary. The first local account becomes an
-    # admin; later accounts are members in the configured default tenant.
+    # Workspace role and tenant boundary. Public self-registration always
+    # creates members; trusted operators explicitly provision administrators.
     role: Mapped[str] = mapped_column(String(16), default="member", nullable=False, index=True)
     tenant_id: Mapped[str] = mapped_column(
         String(36), default="default", nullable=False, index=True
@@ -42,6 +42,12 @@ class User(Base):
     conversations: Mapped[list[Conversation]] = relationship(back_populates="user", cascade="all, delete-orphan")
     investigations: Mapped[list[Investigation]] = relationship(back_populates="user", cascade="all, delete-orphan")
     sessions: Mapped[list[AuthSession]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    account_settings: Mapped[AccountSettings | None] = relationship(
+        back_populates="user", cascade="all, delete-orphan", uselist=False
+    )
+    api_keys: Mapped[list[UserApiKey]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
     audit_events: Mapped[list[AuditEvent]] = relationship(
         back_populates="user",
         passive_deletes=True,
@@ -67,6 +73,35 @@ class AuthSession(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped[User] = relationship(back_populates="sessions")
+
+
+class AccountSettings(Base):
+    __tablename__ = "account_settings"
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    preferences: Mapped[dict[str, Any]] = mapped_column(
+        JSON, default=lambda: {"theme": "dark", "notifications": True}, nullable=False
+    )
+    integrations: Mapped[dict[str, Any]] = mapped_column(
+        JSON, default=lambda: {"kubernetes": False, "github": False, "prometheus": False},
+        nullable=False,
+    )
+    user: Mapped[User] = relationship(back_populates="account_settings")
+
+
+class UserApiKey(Base):
+    __tablename__ = "user_api_keys"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    prefix: Mapped[str] = mapped_column(String(24), nullable=False)
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    user: Mapped[User] = relationship(back_populates="api_keys")
 
 
 class Conversation(Base):

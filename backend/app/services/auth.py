@@ -10,13 +10,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.errors import ConflictError, UnauthorizedError
-from app.db.models import AuthSession, User
+from app.db.models import AuthSession, User, UserApiKey
 from app.security.passwords import hash_password, verify_password
 from app.security.tokens import generate_token, hash_token
 
@@ -45,16 +45,12 @@ def create_user(
     if get_user_by_email(db, email) is not None:
         raise ConflictError("An account with that email already exists.")
     settings = get_settings()
-    bootstrap = (settings.bootstrap_admin_email or "").strip().lower()
-    is_first_user = (
-        db.scalar(select(func.count()).select_from(User)) or 0
-    ) == 0
     user = User(
         email=email,
         display_name=display_name,
         password_hash=hash_password(password),
         is_active=True,
-        role="admin" if is_first_user or (bootstrap and email == bootstrap) else "member",
+        role="member",
         tenant_id=(settings.default_tenant_id or "default").strip() or "default",
     )
     db.add(user)
@@ -65,27 +61,6 @@ def create_user(
         # the insert.
         db.rollback()
         raise ConflictError("An account with that email already exists.") from None
-    db.refresh(user)
-    return user
-
-
-def ensure_bootstrap_admin(db: Session) -> User | None:
-    """Promote the configured address when it already exists.
-
-    New signups are handled in :func:`create_user`. This covers an existing
-    database where the operator sets ``BOOTSTRAP_ADMIN_EMAIL`` after accounts
-    have already been provisioned.
-    """
-
-    email = (get_settings().bootstrap_admin_email or "").strip().lower()
-    if not email:
-        return None
-    user = get_user_by_email(db, email)
-    if user is None or not user.is_active or user.role == "admin":
-        return None
-    user.role = "admin"
-    db.add(user)
-    db.commit()
     db.refresh(user)
     return user
 
@@ -116,6 +91,24 @@ def resolve_session(db: Session, token: str | None) -> User | None:
     if _as_aware(session.expires_at) <= _now():
         return None
     user = db.get(User, session.user_id)
+    if user is None or not user.is_active:
+        return None
+    return user
+
+
+def resolve_api_key(db: Session, token: str | None) -> User | None:
+    """Resolve an active, hashed customer API key."""
+    if not token:
+        return None
+    api_key = db.scalar(
+        select(UserApiKey).where(
+            UserApiKey.key_hash == hash_token(token),
+            UserApiKey.revoked_at.is_(None),
+        )
+    )
+    if api_key is None:
+        return None
+    user = db.get(User, api_key.user_id)
     if user is None or not user.is_active:
         return None
     return user

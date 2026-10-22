@@ -18,7 +18,7 @@ from typing import Literal
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-AIProviderName = Literal["mock", "openai", "openrouter", "anthropic"]
+AIProviderName = Literal["mock", "openai", "openrouter", "anthropic", "groq"]
 
 # Integrations that, when enabled, mean the app is *not* solely in demo mode.
 _INTEGRATION_FLAGS = (
@@ -66,9 +66,8 @@ class Settings(BaseSettings):
     auth_required: bool = False
     auth_cookie_name: str = "sre_session"
     auth_session_ttl_hours: int = 168  # 7 days
-    # The first local account is always an admin. Set this to also promote a
-    # specific bootstrap email (useful when a database already has members).
-    bootstrap_admin_email: str | None = None
+    # New public signups are always members. Promote an administrator with the
+    # trusted local `scripts/set_admin.py` operator command.
     default_tenant_id: str = "default"
     security_headers_enabled: bool = True
 
@@ -89,6 +88,9 @@ class Settings(BaseSettings):
 
     openai_api_key: str | None = None
     openai_base_url: str = "https://api.openai.com/v1"
+
+    groq_api_key: str | None = None
+    groq_base_url: str = "https://api.groq.com/openai/v1"
 
     # OpenRouter exposes an OpenAI-compatible chat-completions API. Model IDs
     # are namespaced (for example ``openai/gpt-4o-mini``).
@@ -171,6 +173,8 @@ class Settings(BaseSettings):
             return bool(self.openai_api_key)
         if self.ai_provider == "openrouter":
             return bool(self.openrouter_api_key)
+        if self.ai_provider == "groq":
+            return bool(self.groq_api_key)
         if self.ai_provider == "anthropic":
             return bool(self.anthropic_api_key)
         return False

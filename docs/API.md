@@ -69,9 +69,10 @@ Configuration state is not reachability.
 `UserOut` includes `id`, `email`, `display_name`, `role` (`admin` or `member`),
 `tenant_id`, `is_active`, and `created_at`.
 
-The first local account becomes an `admin`; later accounts are `member`s in
-`DEFAULT_TENANT_ID`. `BOOTSTRAP_ADMIN_EMAIL` can promote a specific address.
-Admins can move a member to another tenant; their investigations are migrated.
+Every public signup is a `member` in `DEFAULT_TENANT_ID`. Administrator
+privileges must be granted from a trusted backend shell with
+`python scripts/set_admin.py account@example.com`; signup email or registration
+order never grants admin access. Admins can move a member to another tenant; their investigations are migrated.
 The last active admin cannot be demoted or deactivated, and deactivation revokes
 the member's sessions.
 
@@ -86,6 +87,29 @@ Example admin update:
 ```
 
 All fields are optional. Invalid tenant IDs return `422 validation_error`.
+
+### Customer account settings
+
+Every endpoint below requires the current user session or a valid bearer API
+key. Customer data is scoped to that user.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/v1/account` | Profile, preferences, integration flags, active key metadata, and plan |
+| PATCH | `/api/v1/account/profile` | Update display name/email; current password is required to change email |
+| POST | `/api/v1/account/password` | Change password after validating the current password |
+| PATCH | `/api/v1/account/preferences` | Save `theme` (`dark` or `system`) and notification preference |
+| PUT | `/api/v1/account/integrations/{kind}` | Save account-level enablement for `kubernetes`, `github`, or `prometheus` |
+| POST | `/api/v1/account/api-keys` | Create a named API key; the raw key is returned only once |
+| DELETE | `/api/v1/account/api-keys/{key_id}` | Revoke one of the current user's keys |
+| DELETE | `/api/v1/account` | Permanently delete the current account after password confirmation |
+
+API key records store only a SHA-256 hash and a short display prefix. Use the
+raw `key` from the create response as a bearer token; it cannot be retrieved
+later. Integration enablement is a per-account preference and does not change
+the operator-managed credentials or live connection configured on the backend.
+The customer plan is currently `free` with all product features enabled; no
+billing endpoints exist.
 
 ---
 
@@ -138,6 +162,8 @@ Use the read-only RBAC in `docs/KUBERNETES_SETUP.md`. Live use needs
 These routes issue only GitHub `GET` requests. There is no dispatch, re-run,
 cancel, secret, or write endpoint. The token is configured server-side and never
 returned.
+Repository values accept `owner/name` or an HTTPS URL such as
+`https://github.com/owner/name.git`; URLs are normalized to `owner/name`.
 
 | Method | Path | Purpose |
 |--------|------|---------|
