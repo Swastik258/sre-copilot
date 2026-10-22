@@ -116,8 +116,7 @@ class RedactingFilter:
                 record.exc_text = _EMAIL_RE.sub(
                     REDACTED_EMAIL, redact_text(traceback, enabled=self.enabled)
                 )
-        except Exception:  # never let redaction break logging
+        except Exception:  # nosec B110
             pass
         record.redacted = True
         return True
-

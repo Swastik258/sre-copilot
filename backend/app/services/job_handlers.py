@@ -44,7 +44,9 @@ def _retention(db: Session, payload: dict[str, Any]) -> None:
 
 def _idempotency_cleanup(db: Session, _: dict[str, Any]) -> None:
     db.execute(
-        delete(IdempotencyRecord).where(IdempotencyRecord.expires_at < datetime.now(UTC))
+        delete(IdempotencyRecord)
+        .where(IdempotencyRecord.expires_at < datetime.now(UTC))
+        .execution_options(synchronize_session=False)
     )
     db.commit()
 

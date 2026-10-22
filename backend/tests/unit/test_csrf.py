@@ -39,14 +39,10 @@ def test_cookie_write_requires_matching_csrf_header() -> None:
     assert missing.status_code == 403
     assert missing.json()["error"]["code"] == "csrf_token_invalid"
 
-    wrong = client.post(
-        "/write", headers={**headers, "X-CSRF-Token": "different-token"}
-    )
+    wrong = client.post("/write", headers={**headers, "X-CSRF-Token": "different-token"})
     assert wrong.status_code == 403
 
-    allowed = client.post(
-        "/write", headers={**headers, "X-CSRF-Token": "csrf-token"}
-    )
+    allowed = client.post("/write", headers={**headers, "X-CSRF-Token": "csrf-token"})
     assert allowed.status_code == 200
 
 

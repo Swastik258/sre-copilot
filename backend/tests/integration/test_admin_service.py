@@ -22,11 +22,7 @@ def test_last_active_admin_cannot_be_demoted(db_session) -> None:
     db_session.commit()
 
     others = list(
-        db_session.scalars(
-            select(User).where(
-                User.role == "admin", User.id != admin_user.id
-            )
-        )
+        db_session.scalars(select(User).where(User.role == "admin", User.id != admin_user.id))
     )
     previous_roles = {user.id: user.role for user in others}
     for user in others:

@@ -35,9 +35,7 @@ log = logging.getLogger("app")
 
 _runtime_errors = settings.runtime_config_errors()
 if _runtime_errors:
-    raise RuntimeError(
-        "Unsafe runtime configuration: " + " ".join(_runtime_errors)
-    )
+    raise RuntimeError("Unsafe runtime configuration: " + " ".join(_runtime_errors))
 
 configure_telemetry(settings)
 
@@ -147,9 +145,7 @@ if settings.security_headers_enabled:
         SecurityHeadersMiddleware,
         production=settings.environment == "production",
     )
-app.add_middleware(
-    ObservabilityMiddleware, access_log_enabled=settings.access_log_enabled
-)
+app.add_middleware(ObservabilityMiddleware, access_log_enabled=settings.access_log_enabled)
 app.add_middleware(RequestContextMiddleware)
 
 

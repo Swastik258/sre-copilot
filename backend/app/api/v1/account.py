@@ -149,9 +149,9 @@ def _settings(db, user: User) -> AccountSettings:
 def get_account(user: RequiredUser, db: DbSession) -> AccountResponse:
     settings = _settings(db, user)
     keys = db.scalars(
-        select(UserApiKey).where(
-            UserApiKey.user_id == user.id, UserApiKey.revoked_at.is_(None)
-        ).order_by(UserApiKey.created_at.desc())
+        select(UserApiKey)
+        .where(UserApiKey.user_id == user.id, UserApiKey.revoked_at.is_(None))
+        .order_by(UserApiKey.created_at.desc())
     ).all()
     organization = db.get(Organization, user.tenant_id)
     return AccountResponse(
@@ -159,7 +159,9 @@ def get_account(user: RequiredUser, db: DbSession) -> AccountResponse:
         preferences=settings.preferences,
         integrations=settings.integrations,
         api_keys=[
-            AccountKeySummary(id=key.id, name=key.name, prefix=key.prefix, created_at=key.created_at)
+            AccountKeySummary(
+                id=key.id, name=key.name, prefix=key.prefix, created_at=key.created_at
+            )
             for key in keys
         ],
         plan=organization.plan_id if organization else "free",
@@ -179,7 +181,9 @@ def update_profile(
     if "email" in payload.model_fields_set and payload.email != user.email:
         if payload.email is None:
             raise ValidationError("Email cannot be empty.")
-        if not payload.current_password or not verify_password(payload.current_password, user.password_hash):
+        if not payload.current_password or not verify_password(
+            payload.current_password, user.password_hash
+        ):
             raise UnauthorizedError("Confirm your current password to change email.")
         user.email = payload.email
         user.email_verified_at = None
@@ -193,12 +197,8 @@ def update_profile(
         raise ConflictError("An account with that email already exists.") from None
     db.refresh(user)
     if email_changed and user.email and settings.email_delivery != "disabled":
-        token = auth_service.issue_email_token(
-            db, user, auth_service.PURPOSE_VERIFY_EMAIL
-        )
-        background.add_task(
-            send_verification_email, settings, to=user.email, token=token
-        )
+        token = auth_service.issue_email_token(db, user, auth_service.PURPOSE_VERIFY_EMAIL)
+        background.add_task(send_verification_email, settings, to=user.email, token=token)
     record_event(
         db,
         action="account.profile.update",
@@ -278,9 +278,9 @@ def update_integration(
 @router.post("/api-keys", response_model=ApiKeyCreated, status_code=status.HTTP_201_CREATED)
 def create_api_key(payload: ApiKeyCreate, user: RequiredUser, db: DbSession) -> ApiKeyCreated:
     active_count = db.scalar(
-        select(func.count()).select_from(UserApiKey).where(
-            UserApiKey.user_id == user.id, UserApiKey.revoked_at.is_(None)
-        )
+        select(func.count())
+        .select_from(UserApiKey)
+        .where(UserApiKey.user_id == user.id, UserApiKey.revoked_at.is_(None))
     )
     if active_count is not None and active_count >= 10:
         raise ValidationError("Revoke an existing key before creating another.")
@@ -314,9 +314,11 @@ def create_api_key(payload: ApiKeyCreate, user: RequiredUser, db: DbSession) -> 
 
 @router.delete("/api-keys/{key_id}", status_code=status.HTTP_204_NO_CONTENT)
 def revoke_api_key(key_id: str, user: RequiredUser, db: DbSession) -> Response:
-    record = db.scalar(select(UserApiKey).where(
-        UserApiKey.id == key_id, UserApiKey.user_id == user.id, UserApiKey.revoked_at.is_(None)
-    ))
+    record = db.scalar(
+        select(UserApiKey).where(
+            UserApiKey.id == key_id, UserApiKey.user_id == user.id, UserApiKey.revoked_at.is_(None)
+        )
+    )
     if record is None:
         raise NotFoundError("API key not found.")
     record.revoked_at = datetime.now(UTC)
@@ -334,9 +336,7 @@ def revoke_api_key(key_id: str, user: RequiredUser, db: DbSession) -> Response:
 
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)
-def delete_account(
-    payload: PasswordConfirmation, user: RequiredUser, db: DbSession
-) -> Response:
+def delete_account(payload: PasswordConfirmation, user: RequiredUser, db: DbSession) -> Response:
     if not verify_password(payload.password, user.password_hash):
         raise UnauthorizedError("Password is incorrect.")
 

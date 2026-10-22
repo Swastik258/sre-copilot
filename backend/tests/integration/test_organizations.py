@@ -15,9 +15,7 @@ def _signup(client, email: str, password: str = "correct-horse") -> dict:
 
 
 def _login(client, email: str, password: str = "correct-horse") -> dict:
-    response = client.post(
-        "/api/v1/auth/login", json={"email": email, "password": password}
-    )
+    response = client.post("/api/v1/auth/login", json={"email": email, "password": password})
     assert response.status_code == 200, response.text
     return response.json()["user"]
 
@@ -69,9 +67,7 @@ def test_viewer_cannot_create_investigations(client) -> None:
     assert switched.status_code == 200, switched.text
     assert switched.json()["role"] == "viewer"
 
-    denied = client.post(
-        "/api/v1/investigations", json={"title": "Should fail", "kind": "logs"}
-    )
+    denied = client.post("/api/v1/investigations", json={"title": "Should fail", "kind": "logs"})
     assert denied.status_code == 403
     assert denied.json()["error"]["code"] == "forbidden"
 
@@ -89,9 +85,7 @@ def test_last_owner_cannot_be_demoted_or_removed(client) -> None:
     )
     assert demoted.status_code == 409, demoted.text
 
-    removed = client.delete(
-        f"/api/v1/organizations/{org_id}/members/{owner['id']}"
-    )
+    removed = client.delete(f"/api/v1/organizations/{org_id}/members/{owner['id']}")
     assert removed.status_code == 409, removed.text
 
 
@@ -115,10 +109,94 @@ def test_shared_workspace_configuration_keeps_members_as_members(client) -> None
         assert first["tenant_id"] == second["tenant_id"] == "shared-signup-workspace"
         assert first["role"] == "member"
         assert second["role"] == "member"
-        members = client.get(
-            "/api/v1/organizations/shared-signup-workspace/members"
-        )
+        members = client.get("/api/v1/organizations/shared-signup-workspace/members")
         assert members.status_code == 200
         assert members.json()["total"] >= 2
     finally:
         settings.default_tenant_id = previous
+
+
+def test_workspace_update_and_admin_boundaries(client) -> None:
+    owner = _signup(client, "boundary-owner@example.com")
+    org_id = owner["tenant_id"]
+    _signup(client, "boundary-admin@example.com")
+    _signup(client, "boundary-member@example.com")
+    _login(client, "boundary-owner@example.com")
+    assert (
+        client.post(
+            f"/api/v1/organizations/{org_id}/members",
+            json={"email": "boundary-admin@example.com", "role": "admin"},
+        ).status_code
+        == 201
+    )
+    member = client.post(
+        f"/api/v1/organizations/{org_id}/members",
+        json={"email": "boundary-member@example.com", "role": "member"},
+    )
+    assert member.status_code == 201, member.text
+    member_id = member.json()["user_id"]
+
+    _login(client, "boundary-member@example.com")
+    denied = client.patch(f"/api/v1/organizations/{org_id}", json={"name": "Member Rename"})
+    assert denied.status_code == 403
+
+    _login(client, "boundary-admin@example.com")
+    renamed = client.patch(f"/api/v1/organizations/{org_id}", json={"name": "Admin Rename"})
+    assert renamed.status_code == 200, renamed.text
+    assert renamed.json()["name"] == "Admin Rename"
+
+    cannot_grant_owner = client.patch(
+        f"/api/v1/organizations/{org_id}/members/{member_id}",
+        json={"role": "owner"},
+    )
+    assert cannot_grant_owner.status_code == 403
+    cannot_remove_owner = client.delete(f"/api/v1/organizations/{org_id}/members/{owner['id']}")
+    assert cannot_remove_owner.status_code == 403
+
+    _login(client, "boundary-owner@example.com")
+    promoted = client.patch(
+        f"/api/v1/organizations/{org_id}/members/{member_id}",
+        json={"role": "viewer"},
+    )
+    assert promoted.status_code == 200, promoted.text
+    assert promoted.json()["role"] == "viewer"
+
+    duplicate = client.post(
+        f"/api/v1/organizations/{org_id}/members",
+        json={"email": "boundary-member@example.com", "role": "member"},
+    )
+    assert duplicate.status_code == 409
+    missing = client.post(
+        f"/api/v1/organizations/{org_id}/members",
+        json={"email": "nobody-here@example.com", "role": "member"},
+    )
+    assert missing.status_code == 404
+    assert client.post("/api/v1/organizations/not-a-real-org/switch").status_code == 404
+
+
+def test_removed_member_falls_back_to_a_personal_workspace(client) -> None:
+    owner = _signup(client, "remove-owner@example.com")
+    org_id = owner["tenant_id"]
+    removed = _signup(client, "remove-target@example.com")
+    _login(client, "remove-owner@example.com")
+    added = client.post(
+        f"/api/v1/organizations/{org_id}/members",
+        json={"email": "remove-target@example.com", "role": "member"},
+    )
+    assert added.status_code == 201, added.text
+
+    _login(client, "remove-target@example.com")
+    switched = client.post(f"/api/v1/organizations/{org_id}/switch")
+    assert switched.status_code == 200
+    assert switched.json()["tenant_id"] == org_id
+
+    _login(client, "remove-owner@example.com")
+    response = client.delete(f"/api/v1/organizations/{org_id}/members/{removed['id']}")
+    assert response.status_code == 204, response.text
+
+    _login(client, "remove-target@example.com")
+    me = client.get("/api/v1/auth/me")
+    assert me.status_code == 200
+    assert me.json()["tenant_id"] != org_id
+    assert me.json()["role"] == "owner"
+    assert client.get(f"/api/v1/organizations/{org_id}").status_code == 404

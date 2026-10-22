@@ -55,21 +55,12 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
     con = sqlite3.connect(db_path)
     try:
         tables = {
-            row[0]
-            for row in con.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            row[0] for row in con.execute("SELECT name FROM sqlite_master WHERE type='table'")
         }
-        user_columns = {
-            row[1] for row in con.execute("PRAGMA table_info(users)")
-        }
-        investigation_columns = {
-            row[1] for row in con.execute("PRAGMA table_info(investigations)")
-        }
-        audit_columns = {
-            row[1] for row in con.execute("PRAGMA table_info(audit_events)")
-        }
-        job_columns = {
-            row[1] for row in con.execute("PRAGMA table_info(background_jobs)")
-        }
+        user_columns = {row[1] for row in con.execute("PRAGMA table_info(users)")}
+        investigation_columns = {row[1] for row in con.execute("PRAGMA table_info(investigations)")}
+        audit_columns = {row[1] for row in con.execute("PRAGMA table_info(audit_events)")}
+        job_columns = {row[1] for row in con.execute("PRAGMA table_info(background_jobs)")}
         idempotency_columns = {
             row[1] for row in con.execute("PRAGMA table_info(idempotency_records)")
         }
@@ -144,13 +135,9 @@ def test_upgrade_keeps_existing_accounts_as_members(tmp_path):
         tenants = dict(con.execute("SELECT id, tenant_id FROM users ORDER BY created_at"))
         memberships = {
             (row[0], row[1])
-            for row in con.execute(
-                "SELECT organization_id, role FROM organization_memberships"
-            )
+            for row in con.execute("SELECT organization_id, role FROM organization_memberships")
         }
-        verified = dict(
-            con.execute("SELECT id, email_verified_at FROM users ORDER BY created_at")
-        )
+        verified = dict(con.execute("SELECT id, email_verified_at FROM users ORDER BY created_at"))
     finally:
         con.close()
 

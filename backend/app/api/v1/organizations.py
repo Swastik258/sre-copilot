@@ -45,9 +45,7 @@ def create_organization(
 
 
 @router.get("/{organization_id}", response_model=OrganizationOut)
-def get_organization(
-    organization_id: str, db: DbSession, user: RequiredUser
-) -> OrganizationOut:
+def get_organization(organization_id: str, db: DbSession, user: RequiredUser) -> OrganizationOut:
     return service.get_organization(db, user, organization_id)
 
 
@@ -73,9 +71,7 @@ def update_organization(
 
 
 @router.get("/{organization_id}/members", response_model=OrgMembersResponse)
-def list_members(
-    organization_id: str, db: DbSession, user: RequiredUser
-) -> OrgMembersResponse:
+def list_members(organization_id: str, db: DbSession, user: RequiredUser) -> OrgMembersResponse:
     return service.list_members(db, user, organization_id)
 
 
@@ -147,9 +143,7 @@ def remove_member(
 
 
 @router.post("/{organization_id}/switch", response_model=UserOut)
-def switch_organization(
-    organization_id: str, db: DbSession, user: RequiredUser
-) -> UserOut:
+def switch_organization(organization_id: str, db: DbSession, user: RequiredUser) -> UserOut:
     updated = service.switch_organization(db, user, organization_id)
     record_event(
         db,

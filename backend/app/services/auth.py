@@ -50,7 +50,7 @@ ADMIN_ROLES = (ROLE_OWNER, ROLE_ADMIN)
 OPERATOR_ROLES = (ROLE_OWNER, ROLE_ADMIN, ROLE_MEMBER)
 
 PURPOSE_VERIFY_EMAIL = "verify_email"
-PURPOSE_RESET_PASSWORD = "reset_password"
+PURPOSE_RESET_PASSWORD = "reset_password"  # nosec B105
 TOKEN_PURPOSES = (PURPOSE_VERIFY_EMAIL, PURPOSE_RESET_PASSWORD)
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
@@ -259,9 +259,7 @@ def create_external_user(
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise ConflictError(
-            "This account could not be linked. Try signing in locally."
-        ) from None
+        raise ConflictError("This account could not be linked. Try signing in locally.") from None
     db.refresh(user)
     return user
 
@@ -337,7 +335,9 @@ def resolve_session(db: Session, token: str | None) -> User | None:
     return user
 
 
-def rotate_session(db: Session, token: str | None, *, user_agent: str | None = None) -> SessionBundle:
+def rotate_session(
+    db: Session, token: str | None, *, user_agent: str | None = None
+) -> SessionBundle:
     """Revoke the current session and issue a fresh token + CSRF pair."""
     session = _active_session(db, token)
     if session is None:
@@ -444,11 +444,9 @@ def revoke_all_sessions(db: Session, user_id: str, *, except_token: str | None =
     filters = [AuthSession.user_id == user_id, AuthSession.revoked_at.is_(None)]
     if except_token:
         filters.append(AuthSession.token_hash != hash_token(except_token))
-    result = db.execute(
-        update(AuthSession).where(*filters).values(revoked_at=_now())
-    )
+    result = db.execute(update(AuthSession).where(*filters).values(revoked_at=_now()))
     db.commit()
-    return int(result.rowcount or 0)
+    return int(getattr(result, "rowcount", 0) or 0)
 
 
 def set_password(db: Session, user: User, password: str) -> None:

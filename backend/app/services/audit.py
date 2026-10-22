@@ -123,10 +123,7 @@ def export_rows(
         filters.append(AuditEvent.tenant_id == tenant_id)
     rows = list(
         db.scalars(
-            select(AuditEvent)
-            .where(*filters)
-            .order_by(AuditEvent.created_at.desc())
-            .limit(limit)
+            select(AuditEvent).where(*filters).order_by(AuditEvent.created_at.desc()).limit(limit)
         )
     )
     return [_out(row) for row in rows]
@@ -145,6 +142,10 @@ def apply_retention(
         filters.append(AuditEvent.user_id == user_id)
     if tenant_id:
         filters.append(AuditEvent.tenant_id == tenant_id)
-    result = db.execute(delete(AuditEvent).where(*filters))
+    result = db.execute(
+        delete(AuditEvent).where(*filters).execution_options(synchronize_session=False)
+    )
     db.commit()
-    return AuditRetentionResponse(deleted=int(result.rowcount or 0), older_than_days=days)
+    return AuditRetentionResponse(
+        deleted=int(getattr(result, "rowcount", 0) or 0), older_than_days=days
+    )

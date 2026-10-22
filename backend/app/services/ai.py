@@ -9,7 +9,7 @@ model-generated view. It never executes remediation.
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Literal, cast
 
 from app.ai.providers import AIProvider, ChatMessage, build_provider
 from app.core.config import get_settings
@@ -73,9 +73,7 @@ def _evidence_context(evidence: list[Evidence], *, redaction_enabled: bool) -> s
 
     lines: list[str] = []
     for item in evidence:
-        summary = _escape_untrusted(
-            redact_text(item.summary, enabled=redaction_enabled)
-        )
+        summary = _escape_untrusted(redact_text(item.summary, enabled=redaction_enabled))
         source_resource = _escape_untrusted(item.source_resource or "unknown")
         lines.append(
             "\n".join(
@@ -159,6 +157,7 @@ def _proposed_actions(value: Any) -> list[ProposedAction]:
         risk = item.get("risk")
         if risk not in {"low", "medium", "high"}:
             risk = "medium"
+        risk = cast(Literal["low", "medium", "high"], risk)
         result.append(
             ProposedAction(
                 description=description.strip()[:1000],
@@ -181,9 +180,7 @@ def _risk_level(actions: list[ProposedAction]) -> RiskLevel:
     }[highest]
 
 
-def summarize(
-    request: AIRequest, *, privacy_mode: bool | None = None
-) -> StructuredDiagnosis:
+def summarize(request: AIRequest, *, privacy_mode: bool | None = None) -> StructuredDiagnosis:
     settings = get_settings()
     if privacy_mode is not None:
         settings = settings.model_copy(update={"ai_privacy_mode": privacy_mode})
@@ -231,9 +228,7 @@ def summarize(
     observed = [EvidenceRef(**item.model_dump()) for item in request.evidence]
 
     return StructuredDiagnosis(
-        summary=redact_text(
-            summary.strip(), enabled=settings.redaction_enabled
-        ),
+        summary=redact_text(summary.strip(), enabled=settings.redaction_enabled),
         confirmed_observations=[
             redact_text(item.summary, enabled=settings.redaction_enabled)
             for item in request.evidence

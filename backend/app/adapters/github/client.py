@@ -38,7 +38,7 @@ class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
     the token.
     """
 
-    def redirect_request(self, req, fp, code, msg, headers, newurl):  # type: ignore[no-untyped-def]
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
         new_request = super().redirect_request(req, fp, code, msg, headers, newurl)
         if new_request is not None:
             old_host = urllib.parse.urlsplit(req.full_url).netloc.lower()
@@ -144,7 +144,7 @@ class RealGitHubClient:
             try:
                 message = exc.read().decode("utf-8", "replace")[:300]
             except Exception:
-                pass
+                message = ""
             if exc.code == 404:
                 raise NotFoundError(
                     "GitHub repository or workflow run was not found.",
@@ -262,9 +262,7 @@ class RealGitHubClient:
             raise GitHubAPIError("GitHub returned an unexpected jobs response.")
         return [self._parse_job(item) for item in jobs if isinstance(item, dict)]
 
-    def get_job_logs(
-        self, repo: str, job_id: int, *, tail_lines: int = 200
-    ) -> GitHubLogExcerpt:
+    def get_job_logs(self, repo: str, job_id: int, *, tail_lines: int = 200) -> GitHubLogExcerpt:
         repo = validate_repo(repo)
         text = self._get_text(f"/repos/{repo}/actions/jobs/{job_id}/logs")
         lines = text.splitlines()
@@ -288,8 +286,6 @@ def build_github_client(settings: Settings) -> GitHubReadClient:
     if not settings.github_token:
         raise NotConfiguredError(
             "GITHUB_TOKEN is not set.",
-            details={
-                "hint": "Create a fine-grained token with Actions: read and Contents: read."
-            },
+            details={"hint": "Create a fine-grained token with Actions: read and Contents: read."},
         )
     return RealGitHubClient(settings)

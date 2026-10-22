@@ -127,22 +127,16 @@ def test_stripe_webhook_rejects_bad_signature_and_stores_once(client, db_session
             "content-type": "application/json",
             "stripe-signature": f"t={timestamp},v1={signature}",
         }
-        accepted = client.post(
-            "/api/v1/billing/webhook/stripe", content=payload, headers=headers
-        )
+        accepted = client.post("/api/v1/billing/webhook/stripe", content=payload, headers=headers)
         assert accepted.status_code == 200, accepted.text
         assert accepted.json()["received"] is True
 
-        duplicate = client.post(
-            "/api/v1/billing/webhook/stripe", content=payload, headers=headers
-        )
+        duplicate = client.post("/api/v1/billing/webhook/stripe", content=payload, headers=headers)
         assert duplicate.status_code == 200, duplicate.text
 
         events = list(
             db_session.scalars(
-                select(BillingWebhookEvent).where(
-                    BillingWebhookEvent.event_id == "evt_test_1"
-                )
+                select(BillingWebhookEvent).where(BillingWebhookEvent.event_id == "evt_test_1")
             )
         )
         assert len(events) == 1

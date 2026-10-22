@@ -30,7 +30,7 @@ def _trace_ids() -> tuple[str | None, str | None]:
         context = trace.get_current_span().get_span_context()
         if context.is_valid:
             return f"{context.trace_id:032x}", f"{context.span_id:016x}"
-    except Exception:  # noqa: BLE001 - tracing is optional
+    except Exception:  # noqa: BLE001  # nosec B110
         pass
     return None, None
 

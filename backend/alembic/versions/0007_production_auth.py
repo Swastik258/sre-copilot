@@ -30,9 +30,7 @@ def upgrade() -> None:
     )
     op.add_column(
         "users",
-        sa.Column(
-            "failed_login_count", sa.Integer(), nullable=False, server_default="0"
-        ),
+        sa.Column("failed_login_count", sa.Integer(), nullable=False, server_default="0"),
     )
     op.add_column(
         "users",
@@ -44,16 +42,12 @@ def upgrade() -> None:
     )
 
     # ---- Session rotation / CSRF columns ----
-    op.add_column(
-        "sessions", sa.Column("csrf_token_hash", sa.String(length=64), nullable=True)
-    )
+    op.add_column("sessions", sa.Column("csrf_token_hash", sa.String(length=64), nullable=True))
     op.add_column(
         "sessions",
         sa.Column("rotated_from_id", sa.String(length=36), nullable=True),
     )
-    op.add_column(
-        "sessions", sa.Column("last_used_at", sa.DateTime(timezone=True), nullable=True)
-    )
+    op.add_column("sessions", sa.Column("last_used_at", sa.DateTime(timezone=True), nullable=True))
 
     # ---- Organizations and memberships ----
     op.create_table(
@@ -61,9 +55,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(length=36), nullable=False),
         sa.Column("name", sa.String(length=120), nullable=False),
         sa.Column("slug", sa.String(length=80), nullable=True),
-        sa.Column(
-            "plan_id", sa.String(length=32), nullable=False, server_default="free"
-        ),
+        sa.Column("plan_id", sa.String(length=32), nullable=False, server_default="free"),
         sa.Column("created_by", sa.String(length=36), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
@@ -76,14 +68,10 @@ def upgrade() -> None:
         sa.Column("id", sa.String(length=36), nullable=False),
         sa.Column("organization_id", sa.String(length=36), nullable=False),
         sa.Column("user_id", sa.String(length=36), nullable=False),
-        sa.Column(
-            "role", sa.String(length=16), nullable=False, server_default="member"
-        ),
+        sa.Column("role", sa.String(length=16), nullable=False, server_default="member"),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -131,35 +119,26 @@ def upgrade() -> None:
         "email_tokens",
         ["user_id", "purpose", "created_at"],
     )
-    op.create_index(
-        "ix_sessions_user_last_used", "sessions", ["user_id", "last_used_at"]
-    )
+    op.create_index("ix_sessions_user_last_used", "sessions", ["user_id", "last_used_at"])
 
     bind = op.get_bind()
     bind.execute(
-        sa.text(
-            "UPDATE users SET email_verified_at = created_at "
-            "WHERE email_verified_at IS NULL"
-        )
+        sa.text("UPDATE users SET email_verified_at = created_at WHERE email_verified_at IS NULL")
     )
     bind.execute(
-        sa.text(
-            "UPDATE sessions SET last_used_at = created_at "
-            "WHERE last_used_at IS NULL"
-        )
+        sa.text("UPDATE sessions SET last_used_at = created_at WHERE last_used_at IS NULL")
     )
 
     # ---- Backfill organizations/memberships ----
-    tenants = bind.execute(
-        sa.text("SELECT DISTINCT tenant_id FROM users ORDER BY tenant_id")
-    ).scalars().all()
+    tenants = (
+        bind.execute(sa.text("SELECT DISTINCT tenant_id FROM users ORDER BY tenant_id"))
+        .scalars()
+        .all()
+    )
     for index, tenant_id in enumerate(tenants):
         tenant = (tenant_id or "default")[:36]
         users = bind.execute(
-            sa.text(
-                "SELECT id, role FROM users WHERE tenant_id = :tenant "
-                "ORDER BY created_at, id"
-            ),
+            sa.text("SELECT id, role FROM users WHERE tenant_id = :tenant ORDER BY created_at, id"),
             {"tenant": tenant},
         ).all()
         if not users:
@@ -179,7 +158,9 @@ def upgrade() -> None:
                 ),
                 {
                     "id": org_id,
-                    "name": "Default workspace" if tenant == "default" else f"Workspace {tenant}"[:120],
+                    "name": "Default workspace"
+                    if tenant == "default"
+                    else f"Workspace {tenant}"[:120],
                     "slug": "default" if tenant == "default" else f"workspace-{index + 1}",
                     "created_by": first_user_id,
                 },
@@ -198,9 +179,7 @@ def upgrade() -> None:
             if len(f"m-{tenant}-{user_id}") > 36:
                 import hashlib
 
-                membership_id = hashlib.sha1(
-                    f"{tenant}:{user_id}".encode()
-                ).hexdigest()[:36]
+                membership_id = hashlib.sha1(f"{tenant}:{user_id}".encode()).hexdigest()[:36]
             already = bind.execute(
                 sa.text(
                     "SELECT id FROM organization_memberships "

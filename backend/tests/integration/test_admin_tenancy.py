@@ -26,9 +26,7 @@ def _grant_admin(db_session, user_id: str) -> None:
 
 def test_non_admin_cannot_manage_users(client, db_session) -> None:
     _signup(client, "plain-member@example.com")
-    user = db_session.scalar(
-        select(User).where(User.email == "plain-member@example.com")
-    )
+    user = db_session.scalar(select(User).where(User.email == "plain-member@example.com"))
     assert user is not None
     user.role = "member"
     db_session.add(user)
@@ -39,7 +37,9 @@ def test_non_admin_cannot_manage_users(client, db_session) -> None:
     assert response.json()["error"]["code"] == "forbidden"
 
 
-def test_admin_can_list_users_but_cannot_move_members_between_workspaces(client, db_session) -> None:
+def test_admin_can_list_users_but_cannot_move_members_between_workspaces(
+    client, db_session
+) -> None:
     settings = get_settings()
     previous_tenant = settings.default_tenant_id
     settings.default_tenant_id = "tenant-alpha"
@@ -48,9 +48,7 @@ def test_admin_can_list_users_but_cannot_move_members_between_workspaces(client,
         _grant_admin(db_session, admin["id"])
         assert admin["tenant_id"] == "tenant-alpha"
 
-        member = _signup(
-            client, "tenant-member@example.com", password="correct-horse"
-        )
+        member = _signup(client, "tenant-member@example.com", password="correct-horse")
         login = client.post(
             "/api/v1/auth/login",
             json={
@@ -80,9 +78,7 @@ def test_admin_can_list_users_but_cannot_move_members_between_workspaces(client,
 
         tenants = client.get("/api/v1/admin/tenants")
         assert tenants.status_code == 200
-        assert [item["tenant_id"] for item in tenants.json()["tenants"]] == [
-            "tenant-alpha"
-        ]
+        assert [item["tenant_id"] for item in tenants.json()["tenants"]] == ["tenant-alpha"]
     finally:
         settings.default_tenant_id = previous_tenant
 
@@ -120,8 +116,7 @@ def test_settings_are_scoped_per_tenant(client, db_session) -> None:
         admin_listing = client.get("/api/v1/admin/users")
         assert admin_listing.status_code == 200
         assert all(
-            user["tenant_id"] == "settings-tenant-alpha"
-            for user in admin_listing.json()["users"]
+            user["tenant_id"] == "settings-tenant-alpha" for user in admin_listing.json()["users"]
         )
     finally:
         settings.default_tenant_id = previous_tenant

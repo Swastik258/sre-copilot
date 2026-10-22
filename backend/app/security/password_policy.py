@@ -36,13 +36,9 @@ def validate_password_strength(password: str, *, email: str | None = None) -> st
     if password != password.strip():
         raise ValueError("Password must not start or end with whitespace.")
     if len(password) < MIN_PASSWORD_LENGTH:
-        raise ValueError(
-            f"Password must be at least {MIN_PASSWORD_LENGTH} characters."
-        )
+        raise ValueError(f"Password must be at least {MIN_PASSWORD_LENGTH} characters.")
     if len(password) > MAX_PASSWORD_LENGTH:
-        raise ValueError(
-            f"Password must be at most {MAX_PASSWORD_LENGTH} characters."
-        )
+        raise ValueError(f"Password must be at most {MAX_PASSWORD_LENGTH} characters.")
 
     normalized = password.casefold()
     if normalized in _DENYLIST:

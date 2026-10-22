@@ -50,9 +50,7 @@ def enqueue_job(
     settings = get_settings()
     box = secret_box(settings)
     if dedupe_key:
-        existing = db.scalar(
-            select(BackgroundJob).where(BackgroundJob.dedupe_key == dedupe_key)
-        )
+        existing = db.scalar(select(BackgroundJob).where(BackgroundJob.dedupe_key == dedupe_key))
         if existing is not None:
             return existing
     job = BackgroundJob(
@@ -71,9 +69,7 @@ def enqueue_job(
         db.rollback()
         if not dedupe_key:
             raise
-        existing = db.scalar(
-            select(BackgroundJob).where(BackgroundJob.dedupe_key == dedupe_key)
-        )
+        existing = db.scalar(select(BackgroundJob).where(BackgroundJob.dedupe_key == dedupe_key))
         if existing is None:
             raise
         return existing
@@ -98,9 +94,10 @@ def recover_stale_jobs(older_than_seconds: int = 600) -> int:
                 available_at=_now(),
                 last_error="Worker stopped before the job completed.",
             )
+            .execution_options(synchronize_session=False)
         )
         db.commit()
-        return int(result.rowcount or 0)
+        return int(getattr(result, "rowcount", 0) or 0)
     finally:
         db.close()
 
@@ -191,9 +188,7 @@ class BackgroundWorker:
                 log.warning("Recovered %s stale background job(s)", recovered)
         except Exception:  # noqa: BLE001 - startup proceeds; poll continues
             log.exception("Could not recover stale background jobs")
-        self._thread = threading.Thread(
-            target=self._run, name="sre-background-worker", daemon=True
-        )
+        self._thread = threading.Thread(target=self._run, name="sre-background-worker", daemon=True)
         self._thread.start()
         log.info("Background worker started")
 

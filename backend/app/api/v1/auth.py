@@ -88,9 +88,7 @@ def _send_verification(settings, db, user, background: BackgroundTasks) -> None:
 
         enqueue_verification_email(db, to=user.email or "", token=token)
     else:
-        background.add_task(
-            send_verification_email, settings, to=user.email or "", token=token
-        )
+        background.add_task(send_verification_email, settings, to=user.email or "", token=token)
 
 
 @router.post("/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
@@ -112,9 +110,7 @@ def signup(
     if settings.email_delivery != "disabled":
         _send_verification(settings, db, user, background)
     if not verification_required:
-        bundle = auth_service.create_session(
-            db, user, user_agent=request.headers.get("user-agent")
-        )
+        bundle = auth_service.create_session(db, user, user_agent=request.headers.get("user-agent"))
         _set_session_cookies(response, bundle.token, bundle.csrf_token)
     record_event(
         db,
@@ -139,9 +135,7 @@ def login(
     db: DbSession,
 ) -> AuthResponse:
     user = auth_service.authenticate(db, email=payload.email, password=payload.password)
-    bundle = auth_service.create_session(
-        db, user, user_agent=request.headers.get("user-agent")
-    )
+    bundle = auth_service.create_session(db, user, user_agent=request.headers.get("user-agent"))
     record_event(
         db,
         action="auth.login",
@@ -158,9 +152,7 @@ def login(
 def refresh(request: Request, response: Response, db: DbSession) -> AuthResponse:
     settings = get_settings()
     current = request.cookies.get(settings.auth_cookie_name)
-    bundle = auth_service.rotate_session(
-        db, current, user_agent=request.headers.get("user-agent")
-    )
+    bundle = auth_service.rotate_session(db, current, user_agent=request.headers.get("user-agent"))
     user = db.get(User, bundle.session.user_id)
     if user is None:
         raise UnauthorizedError("Session expired. Sign in again.")
@@ -253,10 +245,7 @@ def oauth_callback(
     settings = get_settings()
     expected = request.cookies.get(_OAUTH_STATE_COOKIE, "")
     state_valid = bool(
-        expected
-        and state
-        and len(state) <= 256
-        and secrets.compare_digest(expected, state)
+        expected and state and len(state) <= 256 and secrets.compare_digest(expected, state)
     )
     if provider not in settings.oauth_providers or not state_valid or not code:
         response = _oauth_error_redirect("oauth_state_invalid")
@@ -272,9 +261,7 @@ def oauth_callback(
             display_name=profile.get("display_name"),
             external_id=f"{provider}:{profile['subject']}",
         )
-        bundle = auth_service.create_session(
-            db, user, user_agent=request.headers.get("user-agent")
-        )
+        bundle = auth_service.create_session(db, user, user_agent=request.headers.get("user-agent"))
         record_event(
             db,
             action="auth.oauth.login",
@@ -331,7 +318,9 @@ def resend_verification(
     return MessageResponse(message="If delivery is configured, a verification email is on its way.")
 
 
-@router.post("/forgot-password", response_model=MessageResponse, status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/forgot-password", response_model=MessageResponse, status_code=status.HTTP_202_ACCEPTED
+)
 def forgot_password(
     payload: ForgotPasswordRequest, db: DbSession, background: BackgroundTasks
 ) -> MessageResponse:
@@ -339,17 +328,13 @@ def forgot_password(
     user = auth_service.get_user_by_email(db, payload.email)
     # Always return the same response so the endpoint cannot enumerate accounts.
     if user is not None and user.is_active and user.email:
-        token = auth_service.issue_email_token(
-            db, user, auth_service.PURPOSE_RESET_PASSWORD
-        )
+        token = auth_service.issue_email_token(db, user, auth_service.PURPOSE_RESET_PASSWORD)
         if settings.effective_background_jobs:
             from app.services.job_handlers import enqueue_password_reset_email
 
             enqueue_password_reset_email(db, to=user.email, token=token)
         else:
-            background.add_task(
-                send_password_reset_email, settings, to=user.email, token=token
-            )
+            background.add_task(send_password_reset_email, settings, to=user.email, token=token)
         record_event(
             db,
             action="auth.password.reset.request",

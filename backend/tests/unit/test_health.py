@@ -65,9 +65,7 @@ def test_metrics_token_can_be_required(client):
     settings.metrics_bearer_token = "metrics-token-012345"
     try:
         assert client.get("/metrics").status_code == 401
-        ok = client.get(
-            "/metrics", headers={"Authorization": "Bearer metrics-token-012345"}
-        )
+        ok = client.get("/metrics", headers={"Authorization": "Bearer metrics-token-012345"})
         assert ok.status_code == 200
     finally:
         settings.metrics_bearer_token = previous

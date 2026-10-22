@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 import secrets
+from typing import cast
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -25,6 +26,7 @@ from app.schemas.organization import (
     OrganizationUpdate,
     OrgMemberOut,
     OrgMembersResponse,
+    WorkspaceRole,
 )
 from app.services.auth import ADMIN_ROLES, ASSIGNABLE_ROLES, ROLE_OWNER
 
@@ -81,7 +83,7 @@ def _to_out(org: Organization, role: str) -> OrganizationOut:
         name=org.name,
         slug=org.slug,
         plan_id=org.plan_id,
-        role=role,
+        role=cast(WorkspaceRole, role),
         created_at=org.created_at,
     )
 
@@ -105,9 +107,7 @@ def list_organizations(db: Session, user: User) -> OrganizationListResponse:
     )
 
 
-def create_organization(
-    db: Session, user: User, payload: OrganizationCreate
-) -> OrganizationOut:
+def create_organization(db: Session, user: User, payload: OrganizationCreate) -> OrganizationOut:
     org = Organization(
         name=payload.name.strip(),
         slug=_unique_slug(db, payload.name),
@@ -164,9 +164,7 @@ def _owner_count(db: Session, organization_id: str) -> int:
     )
 
 
-def list_members(
-    db: Session, user: User, organization_id: str
-) -> OrgMembersResponse:
+def list_members(db: Session, user: User, organization_id: str) -> OrgMembersResponse:
     require_membership(db, user, organization_id)
     rows = list(
         db.execute(
@@ -182,7 +180,7 @@ def list_members(
                 user_id=member.user_id,
                 email=target.email,
                 display_name=target.display_name,
-                role=member.role,
+                role=cast(WorkspaceRole, member.role),
                 is_active=target.is_active,
                 created_at=member.created_at,
             )
@@ -192,17 +190,13 @@ def list_members(
     )
 
 
-def add_member(
-    db: Session, actor: User, organization_id: str, payload: MemberAdd
-) -> OrgMemberOut:
+def add_member(db: Session, actor: User, organization_id: str, payload: MemberAdd) -> OrgMemberOut:
     actor_role = require_membership(db, actor, organization_id, roles=ADMIN_ROLES).role
     if payload.role == ROLE_OWNER and actor_role != ROLE_OWNER:
         raise ForbiddenError("Only an owner can add another owner.")
     target = db.scalar(select(User).where(User.email == payload.email.strip().lower()))
     if target is None:
-        raise NotFoundError(
-            "No account exists for that email. The person must sign up first."
-        )
+        raise NotFoundError("No account exists for that email. The person must sign up first.")
     existing = _membership(db, organization_id=organization_id, user_id=target.id)
     if existing is not None:
         raise ConflictError("That account is already a member of this workspace.")
@@ -218,7 +212,7 @@ def add_member(
         user_id=target.id,
         email=target.email,
         display_name=target.display_name,
-        role=membership.role,
+        role=cast(WorkspaceRole, membership.role),
         is_active=target.is_active,
         created_at=membership.created_at,
     )
@@ -265,9 +259,7 @@ def update_member(
     )
 
 
-def remove_member(
-    db: Session, actor: User, organization_id: str, user_id: str
-) -> None:
+def remove_member(db: Session, actor: User, organization_id: str, user_id: str) -> None:
     actor_role = require_membership(db, actor, organization_id, roles=ADMIN_ROLES).role
     target_membership = _membership(db, organization_id=organization_id, user_id=user_id)
     if target_membership is None:
@@ -295,7 +287,9 @@ def remove_member(
             # Never leave an account without a workspace. The removed user
             # becomes owner of a fresh personal workspace.
             personal = Organization(
-                name=f"{target.display_name or (target.email or 'Personal').split('@')[0]}'s workspace"[:120],
+                name=f"{target.display_name or (target.email or 'Personal').split('@')[0]}'s workspace"[
+                    :120
+                ],
                 slug=_unique_slug(db, target.display_name or target.email or "personal"),
                 plan_id="free",
                 created_by=target.id,

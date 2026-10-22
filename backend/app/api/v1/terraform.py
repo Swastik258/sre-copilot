@@ -39,8 +39,6 @@ def explain(
             surface="terraform",
             evidence=review_result.evidence,
         ),
-        privacy_mode=get_ai_privacy_override(
-            db, user.tenant_id if user else "default"
-        ),
+        privacy_mode=get_ai_privacy_override(db, user.tenant_id if user else "default"),
     )
     return TerraformExplainResponse(review=review_result, explanation=explanation)

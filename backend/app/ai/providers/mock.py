@@ -13,28 +13,19 @@ class MockProvider:
 
     def complete(self, messages: list[ChatMessage]) -> str:
         question = next(
-            (
-                message["content"]
-                for message in reversed(messages)
-                if message["role"] == "user"
-            ),
+            (message["content"] for message in reversed(messages) if message["role"] == "user"),
             "No question supplied.",
         )
         return json.dumps(
             {
                 "summary": (
-                    "Mock AI provider: no model was called. "
-                    f"Question received: {question[:300]}"
+                    f"Mock AI provider: no model was called. Question received: {question[:300]}"
                 ),
                 "confidence": 0.2,
                 "hypotheses": [],
-                "next_steps": [
-                    "Review the cited evidence and verify the deterministic diagnosis."
-                ],
+                "next_steps": ["Review the cited evidence and verify the deterministic diagnosis."],
                 "risks": [],
-                "unknowns": [
-                    "The mock provider does not perform inference or inspect evidence."
-                ],
+                "unknowns": ["The mock provider does not perform inference or inspect evidence."],
                 "proposed_remediation": [],
             }
         )

@@ -26,9 +26,7 @@ _FORBIDDEN_PREFIXES = (
 def test_kubernetes_clients_expose_no_mutating_methods() -> None:
     for cls in (KubernetesReadClient, FixtureKubernetesClient, RealKubernetesClient):
         names = [name for name in dir(cls) if not name.startswith("_")]
-        assert not [
-            name for name in names if name.lower().startswith(_FORBIDDEN_PREFIXES)
-        ]
+        assert not [name for name in names if name.lower().startswith(_FORBIDDEN_PREFIXES)]
 
 
 def test_kubernetes_client_source_has_no_mutation_calls() -> None:

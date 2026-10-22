@@ -43,6 +43,7 @@ if settings.is_sqlite:
         finally:
             cursor.close()
 
+
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
 

@@ -54,9 +54,7 @@ def _enabled_integrations() -> list[str]:
     settings = get_settings()
     report = integration_statuses(settings)
     return [
-        item.kind
-        for item in report.integrations
-        if item.state.value in {"connected", "enabled"}
+        item.kind for item in report.integrations if item.state.value in {"connected", "enabled"}
     ]
 
 
@@ -67,10 +65,10 @@ def _health() -> HealthResponse:
     checks = {
         "database": "ok" if ok else "unavailable",
         "migrations": migrations,
-        "auth": "required" if settings.auth_required or settings.environment == "production" else "demo",
-        "background_jobs": (
-            "configured" if settings.effective_background_jobs else "disabled"
-        ),
+        "auth": "required"
+        if settings.auth_required or settings.environment == "production"
+        else "demo",
+        "background_jobs": ("configured" if settings.effective_background_jobs else "disabled"),
         "metrics": "enabled" if settings.metrics_enabled else "disabled",
     }
     ready = ok and migrations in {"ok", "skipped"}

@@ -13,11 +13,11 @@ from pydantic import BaseModel, Field
 
 
 class IntegrationState(str, Enum):
-    connected = "connected"       # enabled and a live read succeeded
-    enabled = "enabled"           # enabled but not yet verified
+    connected = "connected"  # enabled and a live read succeeded
+    enabled = "enabled"  # enabled but not yet verified
     unconfigured = "unconfigured"  # enabled but missing credentials/config
-    demo = "demo"                 # fixture-backed, no live source
-    disabled = "disabled"         # explicitly off
+    demo = "demo"  # fixture-backed, no live source
+    disabled = "disabled"  # explicitly off
 
 
 class IntegrationInfo(BaseModel):

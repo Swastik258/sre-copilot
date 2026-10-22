@@ -9,9 +9,7 @@ from pydantic import BaseModel, Field
 from app.schemas.ai import StructuredDiagnosis
 from app.schemas.evidence import Evidence, Severity
 
-TerraformAction = Literal[
-    "create", "update", "replace", "destroy", "read", "no-op", "unknown"
-]
+TerraformAction = Literal["create", "update", "replace", "destroy", "read", "no-op", "unknown"]
 BlastRadius = Literal["none", "low", "medium", "high", "critical"]
 
 

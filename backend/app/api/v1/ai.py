@@ -19,9 +19,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 
 
 @router.post("/diagnose", response_model=StructuredDiagnosis)
-def diagnose(
-    request: AIRequest, db: DbSession, user: CurrentUser
-) -> StructuredDiagnosis:
+def diagnose(request: AIRequest, db: DbSession, user: CurrentUser) -> StructuredDiagnosis:
     tenant_id = user.tenant_id if user else "default"
     result = summarize(request, privacy_mode=get_ai_privacy_override(db, tenant_id))
     if user is not None:
@@ -35,9 +33,7 @@ def diagnose(
 
 
 @router.post("/summarize", response_model=StructuredDiagnosis)
-def summarize_alias(
-    request: AIRequest, db: DbSession, user: CurrentUser
-) -> StructuredDiagnosis:
+def summarize_alias(request: AIRequest, db: DbSession, user: CurrentUser) -> StructuredDiagnosis:
     """Alias for clients that use the more explicit ``summarize`` verb."""
 
     tenant_id = user.tenant_id if user else "default"

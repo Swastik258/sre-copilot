@@ -36,18 +36,14 @@ def upgrade_local_sqlite_schema(engine: Engine) -> list[str]:
     with engine.begin() as conn:
         tables = {
             row[0]
-            for row in conn.exec_driver_sql(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            )
+            for row in conn.exec_driver_sql("SELECT name FROM sqlite_master WHERE type='table'")
         }
         if "users" not in tables:
             return applied
 
         columns = {row[1] for row in conn.exec_driver_sql("PRAGMA table_info(users)")}
         if _AUTH_COLUMN not in columns:
-            conn.exec_driver_sql(
-                f"ALTER TABLE users ADD COLUMN {_AUTH_COLUMN} VARCHAR(255)"
-            )
+            conn.exec_driver_sql(f"ALTER TABLE users ADD COLUMN {_AUTH_COLUMN} VARCHAR(255)")
             applied.append(f"users.{_AUTH_COLUMN}")
 
         # Role and tenant columns are additive with safe defaults. This keeps a
@@ -67,13 +63,9 @@ def upgrade_local_sqlite_schema(engine: Engine) -> list[str]:
         ):
             if table not in tables:
                 continue
-            existing = {
-                row[1] for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")
-            }
+            existing = {row[1] for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")}
             if column not in existing:
-                conn.exec_driver_sql(
-                    f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"
-                )
+                conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
                 applied.append(f"{table}.{column}")
 
     # Index creation gets its own transaction: legacy rows may contain duplicate
@@ -82,9 +74,7 @@ def upgrade_local_sqlite_schema(engine: Engine) -> list[str]:
         indexes = {row[1] for row in conn.exec_driver_sql("PRAGMA index_list(users)")}
         if _EMAIL_INDEX not in indexes:
             try:
-                conn.exec_driver_sql(
-                    f"CREATE UNIQUE INDEX {_EMAIL_INDEX} ON users (email)"
-                )
+                conn.exec_driver_sql(f"CREATE UNIQUE INDEX {_EMAIL_INDEX} ON users (email)")
                 applied.append(_EMAIL_INDEX)
             except Exception:
                 log.warning(

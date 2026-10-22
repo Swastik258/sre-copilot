@@ -23,9 +23,7 @@ def upgrade() -> None:
         sa.Column("kind", sa.String(length=64), nullable=False),
         sa.Column("dedupe_key", sa.String(length=160), nullable=True),
         sa.Column("encrypted_payload", sa.Text(), nullable=False),
-        sa.Column(
-            "status", sa.String(length=24), nullable=False, server_default="pending"
-        ),
+        sa.Column("status", sa.String(length=24), nullable=False, server_default="pending"),
         sa.Column("attempts", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("max_attempts", sa.Integer(), nullable=False, server_default="5"),
         sa.Column("available_at", sa.DateTime(timezone=True), nullable=False),
@@ -38,9 +36,7 @@ def upgrade() -> None:
     )
     op.create_index("ix_background_jobs_kind", "background_jobs", ["kind"])
     op.create_index("ix_background_jobs_status", "background_jobs", ["status"])
-    op.create_index(
-        "ix_background_jobs_available_at", "background_jobs", ["available_at"]
-    )
+    op.create_index("ix_background_jobs_available_at", "background_jobs", ["available_at"])
     op.create_index(
         "ix_background_jobs_status_available",
         "background_jobs",

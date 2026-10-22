@@ -311,9 +311,7 @@ class Settings(BaseSettings):
             if self.smtp_starttls and self.smtp_use_ssl:
                 errors.append("SMTP_STARTTLS and SMTP_USE_SSL cannot both be true.")
         if self.email_verification_required and self.email_delivery == "disabled":
-            errors.append(
-                "EMAIL_VERIFICATION_REQUIRED=true needs a working EMAIL_DELIVERY."
-            )
+            errors.append("EMAIL_VERIFICATION_REQUIRED=true needs a working EMAIL_DELIVERY.")
         if bool(self.google_oauth_client_id) != bool(self.google_oauth_client_secret):
             errors.append("Set both GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET.")
         if bool(self.github_oauth_client_id) != bool(self.github_oauth_client_secret):
@@ -324,9 +322,7 @@ class Settings(BaseSettings):
             if not self.stripe_secret_key:
                 errors.append("STRIPE_SECRET_KEY is required when BILLING_ENABLED=true.")
             if not self.stripe_webhook_secret:
-                errors.append(
-                    "STRIPE_WEBHOOK_SECRET is required when BILLING_ENABLED=true."
-                )
+                errors.append("STRIPE_WEBHOOK_SECRET is required when BILLING_ENABLED=true.")
         if self.background_jobs_enabled and not self.credential_encryption_key:
             errors.append(
                 "CREDENTIAL_ENCRYPTION_KEY is required when BACKGROUND_JOBS_ENABLED=true."
@@ -337,9 +333,7 @@ class Settings(BaseSettings):
 
                 Fernet(self.credential_encryption_key.encode())
             except (ValueError, TypeError):
-                errors.append(
-                    "CREDENTIAL_ENCRYPTION_KEY must be a valid Fernet key."
-                )
+                errors.append("CREDENTIAL_ENCRYPTION_KEY must be a valid Fernet key.")
         if self.background_job_poll_seconds < 0.1:
             errors.append("BACKGROUND_JOB_POLL_SECONDS must be at least 0.1.")
         if self.idempotency_ttl_hours < 1:
@@ -360,9 +354,7 @@ class Settings(BaseSettings):
             from importlib.util import find_spec
 
             if find_spec("sentry_sdk") is None:
-                errors.append(
-                    "SENTRY_DSN requires the observability extra (sentry-sdk)."
-                )
+                errors.append("SENTRY_DSN requires the observability extra (sentry-sdk).")
 
         if self.environment != "production":
             return errors
@@ -375,9 +367,7 @@ class Settings(BaseSettings):
             errors.append("CORS_ORIGINS must be an explicit allow-list in production.")
         if not self.app_base_url.lower().startswith("https://"):
             errors.append("APP_BASE_URL must use HTTPS in production.")
-        if self.oauth_providers and not self.oauth_redirect_base_url.lower().startswith(
-            "https://"
-        ):
+        if self.oauth_providers and not self.oauth_redirect_base_url.lower().startswith("https://"):
             errors.append("OAUTH_REDIRECT_BASE_URL must use HTTPS in production.")
         if self.email_delivery == "console":
             errors.append("EMAIL_DELIVERY=console is not allowed in production.")
@@ -426,9 +416,7 @@ class Settings(BaseSettings):
                     raise ValueError("expected a JSON array")
                 for index, item in enumerate(parsed):
                     if not isinstance(item, dict):
-                        errors.append(
-                            f"KUBERNETES_CLUSTERS entry {index} must be an object."
-                        )
+                        errors.append(f"KUBERNETES_CLUSTERS entry {index} must be an object.")
                         continue
                     path = item.get("kubeconfig")
                     if path is not None and not isinstance(path, str):

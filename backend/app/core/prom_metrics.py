@@ -31,9 +31,7 @@ def _fmt(value: float) -> str:
     return f"{value:.12g}"
 
 
-def _labels(
-    names: Sequence[str], values: Mapping[str, str]
-) -> str:
+def _labels(names: Sequence[str], values: Mapping[str, str]) -> str:
     if not names:
         return ""
     rendered = ",".join(f'{name}="{_escape(str(values[name]))}"' for name in names)
@@ -45,11 +43,9 @@ class Counter:
     name: str
     help: str
     labelnames: tuple[str, ...] = ()
-    values: dict[tuple[str, ...], float] = field(
-        default_factory=lambda: defaultdict(float)
-    )
+    values: dict[tuple[str, ...], float] = field(default_factory=lambda: defaultdict(float))
 
-    def labels(self, **values: str) -> Counter:
+    def labels(self, **values: str) -> _BoundCounter:
         missing = set(self.labelnames) - set(values)
         extra = set(values) - set(self.labelnames)
         if missing or extra:
@@ -95,7 +91,7 @@ class Gauge:
     def dec(self, amount: float = 1.0) -> None:
         self.inc(-amount)
 
-    def labels(self, **values: str) -> Gauge:
+    def labels(self, **values: str) -> _BoundGauge:
         missing = set(self.labelnames) - set(values)
         extra = set(values) - set(self.labelnames)
         if missing or extra:
@@ -140,24 +136,16 @@ class Histogram:
     help: str
     labelnames: tuple[str, ...] = ()
     buckets: tuple[float, ...] = DEFAULT_BUCKETS
-    values: dict[tuple[str, ...], list[float]] = field(
-        default_factory=lambda: defaultdict(list)
-    )
-    sums: dict[tuple[str, ...], float] = field(
-        default_factory=lambda: defaultdict(float)
-    )
-    counts: dict[tuple[str, ...], int] = field(
-        default_factory=lambda: defaultdict(int)
-    )
+    values: dict[tuple[str, ...], list[float]] = field(default_factory=lambda: defaultdict(list))
+    sums: dict[tuple[str, ...], float] = field(default_factory=lambda: defaultdict(float))
+    counts: dict[tuple[str, ...], int] = field(default_factory=lambda: defaultdict(int))
 
-    def labels(self, **values: str) -> Histogram:
+    def labels(self, **values: str) -> _BoundHistogram:
         missing = set(self.labelnames) - set(values)
         extra = set(values) - set(self.labelnames)
         if missing or extra:
             raise ValueError(f"Histogram {self.name} label mismatch")
-        return _BoundHistogram(
-            self, tuple(str(values[name]) for name in self.labelnames)
-        )
+        return _BoundHistogram(self, tuple(str(values[name]) for name in self.labelnames))
 
     def observe(self, value: float) -> None:
         with _LOCK:
@@ -228,9 +216,7 @@ HTTP_DURATION = Histogram(
     "HTTP request latency by method and route template.",
     ("method", "route"),
 )
-HTTP_IN_FLIGHT = Gauge(
-    "sre_copilot_http_requests_in_flight", "Requests currently being processed."
-)
+HTTP_IN_FLIGHT = Gauge("sre_copilot_http_requests_in_flight", "Requests currently being processed.")
 DB_READY = Gauge("sre_copilot_database_ready", "1 when the readiness DB probe succeeds.")
 JOBS_PROCESSED = Counter(
     "sre_copilot_background_jobs_total",

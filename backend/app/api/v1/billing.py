@@ -46,9 +46,7 @@ def checkout(_: OwnerUser) -> None:
 
 @router.post("/portal", status_code=501)
 def portal(_: OwnerUser) -> None:
-    raise service.BillingDisabledError(
-        "The billing portal is not implemented in this release."
-    )
+    raise service.BillingDisabledError("The billing portal is not implemented in this release.")
 
 
 @router.post("/webhook/stripe", response_model=WebhookAcknowledgement)

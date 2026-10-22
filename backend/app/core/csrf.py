@@ -50,7 +50,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             allowed.add(base)
         self.allowed_origins = allowed
 
-    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next):
         if not self.settings.effective_csrf_protection:
             return await call_next(request)
         if request.method not in _UNSAFE_METHODS:
@@ -60,28 +60,22 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         referer = _origin(request.headers.get("referer"))
         presented = origin or referer
         if presented is not None and presented not in self.allowed_origins:
-            return self._reject(
-                "Cross-origin request rejected.", code="csrf_origin_rejected"
-            )
+            return self._reject("Cross-origin request rejected.", code="csrf_origin_rejected")
 
-        has_session_cookie = bool(
-            request.cookies.get(self.settings.auth_cookie_name)
-        )
+        has_session_cookie = bool(request.cookies.get(self.settings.auth_cookie_name))
         if has_session_cookie:
             if presented is None:
                 return self._reject(
                     "Origin or Referer header required.", code="csrf_origin_missing"
                 )
             cookie_token = request.cookies.get(self.settings.auth_csrf_cookie_name, "")
-            header_token = request.headers.get(
-                self.settings.auth_csrf_header_name, ""
-            )
-            if not cookie_token or not header_token or not hmac.compare_digest(
-                cookie_token, header_token
+            header_token = request.headers.get(self.settings.auth_csrf_header_name, "")
+            if (
+                not cookie_token
+                or not header_token
+                or not hmac.compare_digest(cookie_token, header_token)
             ):
-                return self._reject(
-                    "CSRF token missing or invalid.", code="csrf_token_invalid"
-                )
+                return self._reject("CSRF token missing or invalid.", code="csrf_token_invalid")
         return await call_next(request)
 
     @staticmethod

@@ -31,7 +31,7 @@ class OAuthError(Exception):
 def _get_json(url: str, *, headers: dict[str, str]) -> Any:
     request = urllib.request.Request(url, headers=headers, method="GET")
     try:
-        with urllib.request.urlopen(request, timeout=_HTTP_TIMEOUT_SECONDS) as response:
+        with urllib.request.urlopen(request, timeout=_HTTP_TIMEOUT_SECONDS) as response:  # nosec B310
             payload = response.read(_MAX_RESPONSE_BYTES)
     except Exception as exc:  # noqa: BLE001 - normalized to a safe error
         log.warning("OAuth userinfo request failed: %s", type(exc).__name__)
@@ -46,7 +46,7 @@ def _post_json(url: str, *, data: dict[str, str], headers: dict[str, str]) -> di
     body = urllib.parse.urlencode(data).encode("utf-8")
     request = urllib.request.Request(url, data=body, headers=headers, method="POST")
     try:
-        with urllib.request.urlopen(request, timeout=_HTTP_TIMEOUT_SECONDS) as response:
+        with urllib.request.urlopen(request, timeout=_HTTP_TIMEOUT_SECONDS) as response:  # nosec B310
             payload = response.read(_MAX_RESPONSE_BYTES)
     except Exception as exc:  # noqa: BLE001
         log.warning("OAuth token exchange failed: %s", type(exc).__name__)
@@ -61,10 +61,7 @@ def _post_json(url: str, *, data: dict[str, str], headers: dict[str, str]) -> di
 
 
 def redirect_uri(settings: Settings, provider: str) -> str:
-    return (
-        f"{settings.oauth_redirect_base_url.rstrip('/')}"
-        f"/api/v1/auth/oauth/{provider}/callback"
-    )
+    return f"{settings.oauth_redirect_base_url.rstrip('/')}/api/v1/auth/oauth/{provider}/callback"
 
 
 def authorize_url(settings: Settings, provider: str, state: str) -> str:
@@ -77,9 +74,7 @@ def authorize_url(settings: Settings, provider: str, state: str) -> str:
             "state": state,
             "prompt": "select_account",
         }
-        return "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(
-            params
-        )
+        return "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
     if provider == "github":
         params = {
             "client_id": settings.github_oauth_client_id or "",
@@ -87,9 +82,7 @@ def authorize_url(settings: Settings, provider: str, state: str) -> str:
             "scope": "read:user user:email",
             "state": state,
         }
-        return "https://github.com/login/oauth/authorize?" + urllib.parse.urlencode(
-            params
-        )
+        return "https://github.com/login/oauth/authorize?" + urllib.parse.urlencode(params)
     raise OAuthError("Unsupported identity provider.")
 
 
@@ -132,9 +125,7 @@ def fetch_profile(provider: str, access_token: str) -> dict[str, str | None]:
         "User-Agent": "SRE-Copilot",
     }
     if provider == "google":
-        data = _get_json(
-            "https://openidconnect.googleapis.com/v1/userinfo", headers=headers
-        )
+        data = _get_json("https://openidconnect.googleapis.com/v1/userinfo", headers=headers)
         if not isinstance(data, dict):
             raise OAuthError("The identity provider returned an invalid response.")
         if data.get("email_verified") is not True:

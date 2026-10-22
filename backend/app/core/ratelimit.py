@@ -71,12 +71,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.trusted_proxies = set(trusted_proxies or [])
         self._hits: dict[str, deque[float]] = defaultdict(deque)
 
-    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next):
         if request.url.path.startswith(_EXEMPT_PREFIXES) or request.method == "OPTIONS":
             return await call_next(request)
         is_auth = (
-            request.url.path.startswith(_AUTH_PATH_PREFIX)
-            and request.method in _UNSAFE_METHODS
+            request.url.path.startswith(_AUTH_PATH_PREFIX) and request.method in _UNSAFE_METHODS
         )
         limit = self.auth_limit if is_auth else self.limit
         if limit <= 0:

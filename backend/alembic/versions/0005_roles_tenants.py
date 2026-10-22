@@ -24,30 +24,20 @@ def upgrade() -> None:
     )
     op.add_column(
         "users",
-        sa.Column(
-            "tenant_id", sa.String(length=36), nullable=False, server_default="default"
-        ),
+        sa.Column("tenant_id", sa.String(length=36), nullable=False, server_default="default"),
     )
     op.add_column(
         "investigations",
-        sa.Column(
-            "tenant_id", sa.String(length=36), nullable=False, server_default="default"
-        ),
+        sa.Column("tenant_id", sa.String(length=36), nullable=False, server_default="default"),
     )
     op.add_column(
         "audit_events",
-        sa.Column(
-            "tenant_id", sa.String(length=36), nullable=False, server_default="default"
-        ),
+        sa.Column("tenant_id", sa.String(length=36), nullable=False, server_default="default"),
     )
     op.create_index("ix_users_role", "users", ["role"])
     op.create_index("ix_users_tenant_id", "users", ["tenant_id"])
-    op.create_index(
-        "ix_users_tenant_role", "users", ["tenant_id", "role"]
-    )
-    op.create_index(
-        "ix_investigations_tenant_id", "investigations", ["tenant_id"]
-    )
+    op.create_index("ix_users_tenant_role", "users", ["tenant_id", "role"])
+    op.create_index("ix_investigations_tenant_id", "investigations", ["tenant_id"])
     op.create_index(
         "ix_investigations_tenant_created",
         "investigations",

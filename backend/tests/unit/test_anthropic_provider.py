@@ -32,9 +32,7 @@ def test_anthropic_adapter_uses_messages_api_shape(monkeypatch: pytest.MonkeyPat
     def fake_urlopen(request, timeout):
         captured["request"] = request
         captured["timeout"] = timeout
-        return _FakeResponse(
-            {"content": [{"type": "text", "text": "{\"summary\": \"ok\"}"}]}
-        )
+        return _FakeResponse({"content": [{"type": "text", "text": '{"summary": "ok"}'}]})
 
     monkeypatch.setattr(anthropic_module.urllib.request, "urlopen", fake_urlopen)
     provider = AnthropicProvider(
@@ -52,7 +50,7 @@ def test_anthropic_adapter_uses_messages_api_shape(monkeypatch: pytest.MonkeyPat
         ]
     )
 
-    assert result == "{\"summary\": \"ok\"}"
+    assert result == '{"summary": "ok"}'
     request = captured["request"]
     payload = json.loads(request.data.decode())
     assert request.full_url == "https://api.anthropic.com/v1/messages"
@@ -62,9 +60,7 @@ def test_anthropic_adapter_uses_messages_api_shape(monkeypatch: pytest.MonkeyPat
 
 
 def test_factory_builds_anthropic_when_key_is_set() -> None:
-    provider = build_provider(
-        Settings(ai_provider="anthropic", anthropic_api_key="sk-ant-test")
-    )
+    provider = build_provider(Settings(ai_provider="anthropic", anthropic_api_key="sk-ant-test"))
 
     assert isinstance(provider, AnthropicProvider)
     assert provider.model == Settings().ai_model

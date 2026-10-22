@@ -36,9 +36,7 @@ def _validate(query: str, step: str) -> None:
     if len(query) > 2000:
         raise ValidationError("Metric query is too long.")
     if not _STEP_RE.fullmatch(step) or step.startswith("0"):
-        raise ValidationError(
-            "step must be a positive Prometheus duration such as 15s, 1m, or 1h."
-        )
+        raise ValidationError("step must be a positive Prometheus duration such as 15s, 1m, or 1h.")
 
 
 def _window(minutes: int) -> tuple[datetime, datetime]:
@@ -55,9 +53,7 @@ def _stats(series: MetricSeries) -> tuple[float, float, float, float]:
     return min(values), max(values), mean, math.sqrt(variance)
 
 
-def query_metrics(
-    query: str, *, minutes: int = 15, step: str = "15s"
-) -> MetricQueryResponse:
+def query_metrics(query: str, *, minutes: int = 15, step: str = "15s") -> MetricQueryResponse:
     _validate(query, step)
     start, end = _window(minutes)
     client = build_prometheus_client(get_settings())
@@ -90,10 +86,7 @@ def query_metrics(
         )
 
     point_count = sum(len(series.points) for series in result.series)
-    summary = (
-        f"Prometheus returned {len(result.series)} series with "
-        f"{point_count} data point(s)."
-    )
+    summary = f"Prometheus returned {len(result.series)} series with {point_count} data point(s)."
     if not result.series:
         summary += " The query produced no series; check the metric name and labels."
     return MetricQueryResponse(
@@ -114,7 +107,9 @@ def _closest_point(series: MetricSeries, timestamp: datetime):
     return min(series.points, key=lambda point: abs((point.timestamp - timestamp).total_seconds()))
 
 
-def correlate_events(payload_query: str, *, minutes: int, step: str, events: list[CorrelationEvent]) -> CorrelationResponse:
+def correlate_events(
+    payload_query: str, *, minutes: int, step: str, events: list[CorrelationEvent]
+) -> CorrelationResponse:
     _validate(payload_query, step)
     start, end = _window(minutes)
     client = build_prometheus_client(get_settings())
@@ -169,11 +164,7 @@ def correlate_events(payload_query: str, *, minutes: int, step: str, events: lis
             },
             source_resource=payload_query[:300],
             timestamp=match.event_timestamp,
-            severity=(
-                Severity.high
-                if abs(match.z_score) >= 3
-                else Severity.medium
-            ),
+            severity=(Severity.high if abs(match.z_score) >= 3 else Severity.medium),
             provenance="prometheus.correlate",
             demo=result.demo,
         )

@@ -21,17 +21,11 @@ def upgrade() -> None:
         "subscriptions",
         sa.Column("id", sa.String(length=36), nullable=False),
         sa.Column("organization_id", sa.String(length=36), nullable=False),
-        sa.Column(
-            "provider", sa.String(length=32), nullable=False, server_default="stripe"
-        ),
+        sa.Column("provider", sa.String(length=32), nullable=False, server_default="stripe"),
         sa.Column("provider_customer_id", sa.String(length=255), nullable=True),
         sa.Column("provider_subscription_id", sa.String(length=255), nullable=True),
-        sa.Column(
-            "plan_id", sa.String(length=32), nullable=False, server_default="free"
-        ),
-        sa.Column(
-            "status", sa.String(length=32), nullable=False, server_default="inactive"
-        ),
+        sa.Column("plan_id", sa.String(length=32), nullable=False, server_default="free"),
+        sa.Column("status", sa.String(length=32), nullable=False, server_default="inactive"),
         sa.Column("current_period_end", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
             "cancel_at_period_end",
@@ -41,9 +35,7 @@ def upgrade() -> None:
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("organization_id"),
         sa.UniqueConstraint("provider_subscription_id"),
@@ -66,16 +58,12 @@ def upgrade() -> None:
         sa.Column("properties", sa.JSON(), nullable=True),
         sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("idempotency_key"),
     )
-    op.create_index(
-        "ix_usage_events_organization_id", "usage_events", ["organization_id"]
-    )
+    op.create_index("ix_usage_events_organization_id", "usage_events", ["organization_id"])
     op.create_index("ix_usage_events_user_id", "usage_events", ["user_id"])
     op.create_index("ix_usage_events_metric", "usage_events", ["metric"])
     op.create_index(
@@ -92,14 +80,10 @@ def upgrade() -> None:
     op.create_table(
         "billing_webhook_events",
         sa.Column("id", sa.String(length=36), nullable=False),
-        sa.Column(
-            "provider", sa.String(length=32), nullable=False, server_default="stripe"
-        ),
+        sa.Column("provider", sa.String(length=32), nullable=False, server_default="stripe"),
         sa.Column("event_id", sa.String(length=255), nullable=False),
         sa.Column("event_type", sa.String(length=120), nullable=False),
-        sa.Column(
-            "status", sa.String(length=32), nullable=False, server_default="received"
-        ),
+        sa.Column("status", sa.String(length=32), nullable=False, server_default="received"),
         sa.Column("payload", sa.JSON(), nullable=True),
         sa.Column("received_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("processed_at", sa.DateTime(timezone=True), nullable=True),
@@ -124,9 +108,7 @@ def downgrade() -> None:
         "ix_billing_webhook_events_provider_received",
         table_name="billing_webhook_events",
     )
-    op.drop_index(
-        "ix_billing_webhook_events_event_id", table_name="billing_webhook_events"
-    )
+    op.drop_index("ix_billing_webhook_events_event_id", table_name="billing_webhook_events")
     op.drop_table("billing_webhook_events")
     op.drop_index("ix_usage_events_org_metric", table_name="usage_events")
     op.drop_index("ix_usage_events_org_occurred", table_name="usage_events")

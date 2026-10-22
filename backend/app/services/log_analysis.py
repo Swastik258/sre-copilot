@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 
 from app.core.config import get_settings
 from app.core.redaction import redact_text
-from app.schemas.evidence import EvidenceSource, Severity
+from app.schemas.evidence import Evidence, EvidenceSource, Severity
 from app.schemas.logs import LogAnalyzeRequest, LogAnalyzeResponse, LogSignature
 from app.services.evidence import build_evidence
 
@@ -118,7 +118,9 @@ def _normalize(message: str) -> str:
 
 
 def _signature_id(severity: Severity, signature: str) -> str:
-    digest = hashlib.sha1(f"{severity.value}:{signature}".encode()).hexdigest()
+    digest = hashlib.sha1(
+        f"{severity.value}:{signature}".encode(), usedforsecurity=False
+    ).hexdigest()
     return digest[:16]
 
 
@@ -145,9 +147,9 @@ def analyze_logs(request: LogAnalyzeRequest) -> LogAnalyzeResponse:
 
         line = redact_text(raw_line, enabled=redaction_enabled)
         if _STACK_RE.match(line) and last_key and last_key in groups:
-            group = groups[last_key]
-            if len(group.frames) < MAX_FRAMES:
-                group.frames.append(line.strip()[:500])
+            stack_group = groups[last_key]
+            if len(stack_group.frames) < MAX_FRAMES:
+                stack_group.frames.append(line.strip()[:500])
             continue
 
         severity, line = _severity(line)
@@ -157,20 +159,20 @@ def analyze_logs(request: LogAnalyzeRequest) -> LogAnalyzeResponse:
         signature = _normalize(_SEVERITY_RE.sub("", message, count=1))
         key = _signature_id(severity, signature)
 
-        group = groups.get(key)
-        if group is None:
-            group = _Group(
+        current_group = groups.get(key)
+        if current_group is None:
+            current_group = _Group(
                 signature=signature,
                 severity=severity,
                 sample=redact_text(raw_line.strip(), enabled=redaction_enabled)[:1000],
             )
-            groups[key] = group
-        group.count += 1
+            groups[key] = current_group
+        current_group.count += 1
         if timestamp is not None:
-            if group.first_seen is None or timestamp < group.first_seen:
-                group.first_seen = timestamp
-            if group.last_seen is None or timestamp > group.last_seen:
-                group.last_seen = timestamp
+            if current_group.first_seen is None or timestamp < current_group.first_seen:
+                current_group.first_seen = timestamp
+            if current_group.last_seen is None or timestamp > current_group.last_seen:
+                current_group.last_seen = timestamp
         last_key = key
 
     ordered = sorted(
@@ -183,7 +185,7 @@ def analyze_logs(request: LogAnalyzeRequest) -> LogAnalyzeResponse:
     )
     selected = ordered[: request.limit]
 
-    evidence = []
+    evidence: list[Evidence] = []
     signatures: list[LogSignature] = []
     for key, group in selected:
         item = build_evidence(

@@ -21,14 +21,15 @@ def test_preferences_profile_and_integrations_persist_per_user(client):
     update = client.patch("/api/v1/account/preferences", json={"theme": "system"})
     assert update.status_code == 200
     assert update.json()["theme"] == "system"
-    integration = client.put(
-        "/api/v1/account/integrations/github", json={"connected": True}
-    )
+    integration = client.put("/api/v1/account/integrations/github", json={"connected": True})
     assert integration.status_code == 200
     profile = client.patch(
         "/api/v1/account/profile",
-        json={"display_name": "Updated Name", "email": "updated@example.com",
-              "current_password": "correct-horse"},
+        json={
+            "display_name": "Updated Name",
+            "email": "updated@example.com",
+            "current_password": "correct-horse",
+        },
     )
     assert profile.status_code == 200
     assert profile.json() == {"display_name": "Updated Name", "email": "updated@example.com"}
@@ -63,9 +64,7 @@ def test_api_key_is_shown_once_hashed_and_revocable(client, db_session):
     assert "key" not in client.get("/api/v1/account").json()["api_keys"][0]
 
     client.cookies.clear()
-    authenticated = client.get(
-        "/api/v1/auth/me", headers={"Authorization": f"Bearer {raw_key}"}
-    )
+    authenticated = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {raw_key}"})
     assert authenticated.status_code == 200
     assert authenticated.json()["id"] == user_id
     client.cookies.set("sre_session", "")
@@ -74,9 +73,7 @@ def test_api_key_is_shown_once_hashed_and_revocable(client, db_session):
         headers={"Authorization": f"Bearer {raw_key}"},
     )
     assert revoked.status_code == 204
-    invalid = client.get(
-        "/api/v1/auth/me", headers={"Authorization": f"Bearer {raw_key}"}
-    )
+    invalid = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {raw_key}"})
     assert invalid.status_code == 401
 
 
@@ -109,12 +106,8 @@ def test_password_change_and_account_deletion_require_password(client, db_sessio
         json={"current_password": "correct-horse", "new_password": "new-secure-password"},
     )
     assert changed.status_code == 204
-    deleted_wrong = client.request(
-        "DELETE", "/api/v1/account", json={"password": "incorrect"}
-    )
+    deleted_wrong = client.request("DELETE", "/api/v1/account", json={"password": "incorrect"})
     assert deleted_wrong.status_code == 401
-    deleted = client.request(
-        "DELETE", "/api/v1/account", json={"password": "new-secure-password"}
-    )
+    deleted = client.request("DELETE", "/api/v1/account", json={"password": "new-secure-password"})
     assert deleted.status_code == 204
     assert db_session.get(User, user_id) is None

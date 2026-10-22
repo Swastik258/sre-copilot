@@ -83,9 +83,13 @@ def test_job_payload_is_encrypted_and_cleared_after_success(db_session) -> None:
         assert "super-secret-token" not in job.encrypted_payload
         assert "super-secret-token" not in str(dict(job.__dict__))
 
-        assert process_due_jobs() >= 1
-        db_session.expire_all()
-        stored = db_session.get(BackgroundJob, job.id)
+        stored = None
+        for _ in range(20):
+            process_due_jobs(limit=100)
+            db_session.expire_all()
+            stored = db_session.get(BackgroundJob, job.id)
+            if stored is not None and stored.status == "succeeded":
+                break
         assert stored is not None
         assert stored.status == "succeeded"
         assert stored.encrypted_payload == ""

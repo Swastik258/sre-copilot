@@ -41,9 +41,7 @@ class SecretBox:
             raise ValueError("Encrypted payload could not be decrypted.") from exc
 
     def encrypt_json(self, value: dict[str, Any]) -> str:
-        return self.encrypt_text(
-            json.dumps(value, separators=(",", ":"), sort_keys=True)
-        )
+        return self.encrypt_text(json.dumps(value, separators=(",", ":"), sort_keys=True))
 
     def decrypt_json(self, value: str) -> dict[str, Any]:
         parsed = json.loads(self.decrypt_text(value))

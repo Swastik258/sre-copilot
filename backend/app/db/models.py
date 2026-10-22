@@ -34,9 +34,7 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
     failed_login_count: Mapped[int] = mapped_column(default=0, nullable=False)
-    locked_until: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     password_changed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -47,12 +45,22 @@ class User(Base):
     tenant_id: Mapped[str] = mapped_column(
         String(36), default="default", nullable=False, index=True
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
+    )
 
-    conversations: Mapped[list[Conversation]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    investigations: Mapped[list[Investigation]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    sessions: Mapped[list[AuthSession]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    conversations: Mapped[list[Conversation]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    investigations: Mapped[list[Investigation]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    sessions: Mapped[list[AuthSession]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
     account_settings: Mapped[AccountSettings | None] = relationship(
         back_populates="user", cascade="all, delete-orphan", uselist=False
     )
@@ -82,8 +90,12 @@ class Organization(Base):
     created_by: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
+    )
 
     memberships: Mapped[list[OrganizationMembership]] = relationship(
         back_populates="organization", cascade="all, delete-orphan"
@@ -100,8 +112,12 @@ class OrganizationMembership(Base):
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     role: Mapped[str] = mapped_column(String(16), default="member", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
+    )
 
     organization: Mapped[Organization] = relationship(back_populates="memberships")
     user: Mapped[User] = relationship(back_populates="memberships")
@@ -119,7 +135,9 @@ class EmailToken(Base):
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
 
     user: Mapped[User] = relationship(back_populates="email_tokens")
 
@@ -146,11 +164,13 @@ class Subscription(Base):
     current_period_end: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    cancel_at_period_end: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
+    cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
+    )
 
 
 class UsageEvent(Base):
@@ -169,12 +189,14 @@ class UsageEvent(Base):
     )
     metric: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     quantity: Mapped[int] = mapped_column(default=1, nullable=False)
-    idempotency_key: Mapped[str | None] = mapped_column(
-        String(128), unique=True, nullable=True
-    )
+    idempotency_key: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True)
     properties: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
 
 
 class BillingWebhookEvent(Base):
@@ -187,10 +209,10 @@ class BillingWebhookEvent(Base):
     event_type: Mapped[str] = mapped_column(String(120), nullable=False)
     status: Mapped[str] = mapped_column(String(32), default="received", nullable=False)
     payload: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    processed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+    received_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
     )
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class BackgroundJob(Base):
@@ -199,13 +221,9 @@ class BackgroundJob(Base):
     __tablename__ = "background_jobs"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     kind: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
-    dedupe_key: Mapped[str | None] = mapped_column(
-        String(160), unique=True, nullable=True
-    )
+    dedupe_key: Mapped[str | None] = mapped_column(String(160), unique=True, nullable=True)
     encrypted_payload: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(24), default="pending", nullable=False, index=True
-    )
+    status: Mapped[str] = mapped_column(String(24), default="pending", nullable=False, index=True)
     attempts: Mapped[int] = mapped_column(default=0, nullable=False)
     max_attempts: Mapped[int] = mapped_column(default=5, nullable=False)
     available_at: Mapped[datetime] = mapped_column(
@@ -218,9 +236,7 @@ class BackgroundJob(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
     )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class IdempotencyRecord(Base):
@@ -259,9 +275,15 @@ class AuthSession(Base):
     csrf_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(String(300), nullable=True)
     rotated_from_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    last_used_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    last_used_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped[User] = relationship(back_populates="sessions")
@@ -276,7 +298,8 @@ class AccountSettings(Base):
         JSON, default=lambda: {"theme": "dark", "notifications": True}, nullable=False
     )
     integrations: Mapped[dict[str, Any]] = mapped_column(
-        JSON, default=lambda: {"kubernetes": False, "github": False, "prometheus": False},
+        JSON,
+        default=lambda: {"kubernetes": False, "github": False, "prometheus": False},
         nullable=False,
     )
     user: Mapped[User] = relationship(back_populates="account_settings")
@@ -291,7 +314,9 @@ class UserApiKey(Base):
     name: Mapped[str] = mapped_column(String(80), nullable=False)
     prefix: Mapped[str] = mapped_column(String(24), nullable=False)
     key_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     user: Mapped[User] = relationship(back_populates="api_keys")
 
@@ -299,23 +324,35 @@ class UserApiKey(Base):
 class Conversation(Base):
     __tablename__ = "conversations"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     title: Mapped[str] = mapped_column(String(200), default="New conversation", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
+    )
 
     user: Mapped[User] = relationship(back_populates="conversations")
-    messages: Mapped[list[Message]] = relationship(back_populates="conversation", cascade="all, delete-orphan", order_by="Message.created_at")
+    messages: Mapped[list[Message]] = relationship(
+        back_populates="conversation", cascade="all, delete-orphan", order_by="Message.created_at"
+    )
 
 
 class Message(Base):
     __tablename__ = "messages"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    conversation_id: Mapped[str] = mapped_column(String(36), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True)
+    conversation_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     role: Mapped[str] = mapped_column(String(16), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     structured: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
 
     conversation: Mapped[Conversation] = relationship(back_populates="messages")
 
@@ -343,14 +380,20 @@ class Integration(Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     config: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
+    )
 
 
 class Investigation(Base):
     __tablename__ = "investigations"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     tenant_id: Mapped[str] = mapped_column(
         String(36), default="default", nullable=False, index=True
     )
@@ -360,8 +403,12 @@ class Investigation(Base):
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     result: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     evidence: Mapped[list[dict[str, Any]] | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
+    )
 
     user: Mapped[User] = relationship(back_populates="investigations")
     evidence_records: Mapped[list[Evidence]] = relationship(
@@ -391,8 +438,12 @@ class Evidence(Base):
     event_timestamp: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, index=True
     )
-    collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    collected_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
 
     investigation: Mapped[Investigation | None] = relationship(back_populates="evidence_records")
 
@@ -400,7 +451,9 @@ class Evidence(Base):
 class AuditEvent(Base):
     __tablename__ = "audit_events"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     tenant_id: Mapped[str] = mapped_column(
         String(36), default="default", nullable=False, index=True
     )
@@ -411,7 +464,9 @@ class AuditEvent(Base):
     reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
     outcome: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     request_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
 
     user: Mapped[User | None] = relationship(back_populates="audit_events")
 

@@ -8,7 +8,7 @@ attribute values, because plan files can contain sensitive data.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from app.core.errors import ValidationError
 from app.schemas.evidence import Evidence, EvidenceSource, Severity
@@ -150,8 +150,9 @@ def _risk(
     actions: list[str],
     stateful: bool,
     unknown_attributes: list[str],
-) -> tuple[str, list[str]]:
+) -> tuple[Literal["low", "medium", "high", "critical"], list[str]]:
     reasons: list[str] = []
+    risk: Literal["low", "medium", "high", "critical"]
     if stateful:
         reasons.append("Stateful resource type")
     if action == "replace":
@@ -198,13 +199,9 @@ def _finding_detail(change: TerraformChange) -> str:
     if change.replace_paths:
         parts.append("Replacement paths: " + ", ".join(change.replace_paths[:10]) + ".")
     if change.changed_attributes:
-        parts.append(
-            "Changed attributes: " + ", ".join(change.changed_attributes[:10]) + "."
-        )
+        parts.append("Changed attributes: " + ", ".join(change.changed_attributes[:10]) + ".")
     if change.unknown_attributes:
-        parts.append(
-            "Unknown attributes: " + ", ".join(change.unknown_attributes[:10]) + "."
-        )
+        parts.append("Unknown attributes: " + ", ".join(change.unknown_attributes[:10]) + ".")
     return " ".join(parts)
 
 
@@ -373,9 +370,7 @@ def review_plan(plan: dict[str, Any]) -> TerraformReviewResponse:
             str(plan["format_version"]) if plan.get("format_version") is not None else None
         ),
         terraform_version=(
-            str(plan["terraform_version"])
-            if plan.get("terraform_version") is not None
-            else None
+            str(plan["terraform_version"]) if plan.get("terraform_version") is not None else None
         ),
         summary=summary,
         changes=changes,

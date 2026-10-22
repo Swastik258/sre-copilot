@@ -10,9 +10,7 @@ from app.db.local_schema import upgrade_local_sqlite_schema
 def _legacy_engine(tmp_path, users: list[tuple[str, str]]):
     engine = create_engine(f"sqlite:///{tmp_path / 'legacy.db'}")
     with engine.begin() as conn:
-        conn.exec_driver_sql(
-            "CREATE TABLE users (id VARCHAR(36) PRIMARY KEY, email VARCHAR(320))"
-        )
+        conn.exec_driver_sql("CREATE TABLE users (id VARCHAR(36) PRIMARY KEY, email VARCHAR(320))")
         for user_id, email in users:
             conn.execute(
                 text("INSERT INTO users (id, email) VALUES (:id, :email)"),
@@ -66,9 +64,7 @@ def test_is_idempotent(tmp_path):
 
 
 def test_duplicate_emails_do_not_break_the_upgrade(tmp_path):
-    engine = _legacy_engine(
-        tmp_path, [("u1", "dup@example.com"), ("u2", "dup@example.com")]
-    )
+    engine = _legacy_engine(tmp_path, [("u1", "dup@example.com"), ("u2", "dup@example.com")])
 
     applied = upgrade_local_sqlite_schema(engine)
 

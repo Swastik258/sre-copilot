@@ -59,7 +59,7 @@ class ObservabilityMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.access_log_enabled = access_log_enabled
 
-    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next):
         started = time.perf_counter()
         HTTP_IN_FLIGHT.inc()
         tracer = _tracer()
@@ -99,19 +99,17 @@ class ObservabilityMiddleware(BaseHTTPMiddleware):
                     if result is None or result.status_code >= 500:
                         span.set_status(Status(StatusCode.ERROR))
                     span.__exit__(None, None, None)
-                except Exception:  # noqa: BLE001
+                except Exception:  # noqa: BLE001  # nosec B110
                     pass
 
-    def _record(
-        self, request: Request, status: int, started: float, *, failed: bool
-    ) -> None:
+    def _record(self, request: Request, status: int, started: float, *, failed: bool) -> None:
         duration = max(0.0, time.perf_counter() - started)
         route = _route_template(request)
         method = request.method
         try:
             HTTP_REQUESTS.labels(method=method, route=route, status=str(status)).inc()
             HTTP_DURATION.labels(method=method, route=route).observe(duration)
-        except Exception:  # noqa: BLE001 - metrics must never break requests
+        except Exception:  # noqa: BLE001  # nosec B110
             pass
         if not self.access_log_enabled:
             return

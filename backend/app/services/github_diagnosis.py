@@ -39,7 +39,9 @@ class LogRule:
 LOG_RULES: tuple[LogRule, ...] = (
     LogRule(
         kind="dependency_install",
-        pattern=re.compile(r"(?i)\bnpm ERR!|pnpm ERR|yarn error|ERESOLVE|Could not resolve dependencies"),
+        pattern=re.compile(
+            r"(?i)\bnpm ERR!|pnpm ERR|yarn error|ERESOLVE|Could not resolve dependencies"
+        ),
         statement="Dependency installation failed before the workflow could run.",
         remediation="Fix the dependency resolution error and update the lockfile in a branch.",
         risk=RiskLevel.low,
@@ -153,13 +155,10 @@ def _log_evidence(
     severity: Severity,
 ) -> Evidence:
     matched = [
-        line
-        for line in excerpt.lines
-        if any(rule.pattern.search(line) for rule in LOG_RULES)
+        line for line in excerpt.lines if any(rule.pattern.search(line) for rule in LOG_RULES)
     ][:5]
     summary = (
-        f"Job '{job.name}' log excerpt ({len(excerpt.lines)} lines, "
-        f"truncated={excerpt.truncated})."
+        f"Job '{job.name}' log excerpt ({len(excerpt.lines)} lines, truncated={excerpt.truncated})."
     )
     if matched:
         summary += " Matched: " + " | ".join(matched)
@@ -302,9 +301,7 @@ def diagnose_run(
             severity=Severity.high,
         )
         evidence.append(log_ev)
-        confirmed.append(
-            f"Collected {len(excerpt.lines)} log line(s) from job '{job.name}'."
-        )
+        confirmed.append(f"Collected {len(excerpt.lines)} log line(s) from job '{job.name}'.")
         if not excerpt.lines:
             missing.append(f"Job '{job.name}' returned an empty log excerpt.")
             continue
@@ -462,8 +459,7 @@ def diagnose_run(
         evidence_ids=[item.id for item in evidence],
         confidence=confidence,
         confidence_basis=(
-            "Deterministic correlation of run, jobs, failed steps and bounded "
-            "log excerpts."
+            "Deterministic correlation of run, jobs, failed steps and bounded log excerpts."
         ),
         missing_evidence=missing[:12],
         next_steps=next_steps[:5],

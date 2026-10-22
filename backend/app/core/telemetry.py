@@ -40,8 +40,7 @@ def _configure_tracing(settings: Settings) -> None:
         )
     except ImportError:
         log.warning(
-            "OTEL_ENABLED is set but the OpenTelemetry SDK is not installed; "
-            "spans remain no-op."
+            "OTEL_ENABLED is set but the OpenTelemetry SDK is not installed; spans remain no-op."
         )
         return
 
@@ -71,9 +70,7 @@ def _configure_tracing(settings: Settings) -> None:
                 )
             )
         except ImportError:
-            log.warning(
-                "OTLP exporter package is missing; traces are sampled but not exported."
-            )
+            log.warning("OTLP exporter package is missing; traces are sampled but not exported.")
     trace.set_tracer_provider(provider)
     _tracer_provider = provider
     log.info("OpenTelemetry tracing enabled")

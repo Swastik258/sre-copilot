@@ -242,11 +242,11 @@ def store_webhook(db: Session, *, payload: dict[str, Any]) -> BillingWebhookEven
         db.commit()
     except IntegrityError:
         db.rollback()
-        event = db.scalar(
+        duplicate = db.scalar(
             select(BillingWebhookEvent).where(BillingWebhookEvent.event_id == event_id)
         )
-        if event is None:
+        if duplicate is None:
             raise
-        return event
+        return duplicate
     db.refresh(event)
     return event

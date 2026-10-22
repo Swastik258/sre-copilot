@@ -251,9 +251,7 @@ def test_password_reset_flow_revokes_sessions(client, monkeypatch):
     try:
         _signup(client, email="reset@example.com")
         old_session = client.cookies.get("sre_session")
-        forgot = client.post(
-            "/api/v1/auth/forgot-password", json={"email": "reset@example.com"}
-        )
+        forgot = client.post("/api/v1/auth/forgot-password", json={"email": "reset@example.com"})
         assert forgot.status_code == 202
         assert len(captured) == 1
 
@@ -281,9 +279,7 @@ def test_password_reset_flow_revokes_sessions(client, monkeypatch):
 
 
 def test_forgot_password_does_not_enumerate_accounts(client):
-    response = client.post(
-        "/api/v1/auth/forgot-password", json={"email": "nobody@example.com"}
-    )
+    response = client.post("/api/v1/auth/forgot-password", json={"email": "nobody@example.com"})
     assert response.status_code == 202
     assert "If an account exists" in response.json()["message"]
 

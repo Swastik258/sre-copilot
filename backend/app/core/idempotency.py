@@ -86,11 +86,9 @@ class IdempotencyMiddleware:
                 )
             )
             if record is not None:
-                stale_pending = (
-                    record.status_code is None
-                    and _as_aware(record.created_at)
-                    < _now() - timedelta(seconds=_PENDING_STALE_SECONDS)
-                )
+                stale_pending = record.status_code is None and _as_aware(
+                    record.created_at
+                ) < _now() - timedelta(seconds=_PENDING_STALE_SECONDS)
                 if _as_aware(record.expires_at) < _now() or stale_pending:
                     db.delete(record)
                     db.commit()
@@ -225,9 +223,7 @@ class IdempotencyMiddleware:
             db.close()
 
     @staticmethod
-    async def _json(
-        send: Send, status: int, code: str, message: str
-    ) -> None:
+    async def _json(send: Send, status: int, code: str, message: str) -> None:
         body = json.dumps(
             {
                 "error": {
@@ -254,9 +250,7 @@ def _scope_hash(request: Request, path: str) -> str:
     if not identity:
         identity = request.headers.get("cookie", "")
     return hashlib.sha256(
-        f"{request.method}:{path}?{request.url.query}:{identity}".encode(
-            "utf-8", "replace"
-        )
+        f"{request.method}:{path}?{request.url.query}:{identity}".encode("utf-8", "replace")
     ).hexdigest()
 
 

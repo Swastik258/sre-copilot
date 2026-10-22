@@ -41,11 +41,9 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp) -> None:
         super().__init__(app)
 
-    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next):
         incoming = (request.headers.get(REQUEST_ID_HEADER) or "").strip()
-        request_id = (
-            incoming if _REQUEST_ID_RE.fullmatch(incoming) else new_request_id()
-        )
+        request_id = incoming if _REQUEST_ID_RE.fullmatch(incoming) else new_request_id()
 
         token = _request_id_ctx.set(request_id)
         try:
