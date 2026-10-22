@@ -5,10 +5,12 @@ network access**. External systems are represented by fixtures, mock adapters,
 or dependency audits run separately in CI. Browser end-to-end coverage is not
 included yet.
 
-> **Current status (2026-10-22).** 266 backend tests pass. Backend line+branch
+> **Current status (2026-10-22).** 267 backend tests pass. Backend line+branch
 > coverage is gated at 80% over `backend/app` and currently measures **82.9%**
-> with 293 partial/missed branches. `ruff` lint and format, `mypy`, `bandit`,
+> with 296 partial/missed branches. `ruff` lint and format, `mypy`, `bandit`,
 > `pip-audit`, frontend lint/type-check/build, and `npm audit` pass locally.
+> Deployment validation covers two Compose configurations, Helm lint/template,
+> kubeconform, Terraform fmt/validate, actionlint, and hadolint.
 
 ## Backend
 
@@ -59,11 +61,11 @@ pip-audit --progress-spinner off
 | Runbooks, infra generation, Terraform explain | `tests/integration/test_runbooks_infra_api.py` |
 | Investigations, messages, evidence, tenant scoping | `tests/integration/test_investigations_api.py` |
 | Account settings, integrations, API-key isolation | `tests/integration/test_account_settings_api.py` |
-| Audit/settings API, retention, tenant policy | `tests/integration/test_audit_settings_api.py` |
-| Roles, tenant moves, session revocation, security headers | `tests/integration/test_admin_tenancy.py` |
-| Last-admin guard, tenant migration, bootstrap promotion | `tests/integration/test_admin_service.py` |
+| Audit/settings API, retention, tenant policy, cross-tenant isolation | `tests/integration/test_audit_settings_api.py` |
+| Roles, cross-workspace isolation, session revocation, security headers | `tests/integration/test_admin_tenancy.py` |
+| Last-admin guard, cross-tenant move rejection, bootstrap promotion | `tests/integration/test_admin_service.py` |
 | Auth flows, CSRF, lockout, recovery, `AUTH_REQUIRED` gate | `tests/integration/test_auth.py` |
-| Organizations, invitations, roles, workspace switching | `tests/integration/test_organizations.py` |
+| Organizations, membership, roles, workspace switching | `tests/integration/test_organizations.py` |
 | Billing entitlements, usage, webhook handling | `tests/integration/test_billing.py` |
 | Persistence + cascade deletion | `tests/integration/test_db_persistence.py` |
 | Audit redaction | `tests/integration/test_audit.py` |
@@ -73,7 +75,8 @@ The migration test runs `alembic upgrade head` in a subprocess against a
 temporary SQLite database and checks the expected tables and role/tenant columns;
 it also exercises upgrade from earlier revisions, backfills, and the latest
 downgrade/upgrade path. It exercises the real migration path, not
-`Base.metadata.create_all`.
+`Base.metadata.create_all`. CI also runs `alembic check` after `upgrade head` to
+fail on model/schema drift.
 
 ## Pre-commit
 
@@ -81,16 +84,17 @@ Install the hook once after creating the backend virtualenv:
 
 ```bash
 cd backend
-pip install -e ".[dev]"
+.venv/bin/pip install -e ".[dev]"
 cd ..
-pre-commit install
-pre-commit run --all-files
+backend/.venv/bin/pre-commit install
+backend/.venv/bin/pre-commit run --all-files
 ```
 
-The hook runs whitespace/secret checks, Ruff lint+format, mypy, and Bandit. It
-assumes the backend virtualenv is active so `python -m mypy` and
-`python -m bandit` resolve. Full tests, coverage, dependency audits, and the
-frontend build remain CI/pre-push responsibilities because they are slower.
+The hook runs whitespace/secret checks, Ruff lint+format, mypy, and Bandit. The
+local mypy/Bandit hooks call `backend/.venv/bin/python`, so keep that virtualenv
+in place (or update the hook entry for a different path). Full tests, coverage,
+dependency audits, and the frontend build remain CI/pre-push responsibilities
+because they are slower.
 
 ## Frontend
 
@@ -102,7 +106,8 @@ npm audit --omit=dev --audit-level=high
 npm run build     # production build
 ```
 
-The production build currently has **40 routes**.
+The production build currently has **43 routes**, including metadata, robots,
+sitemap, icon, 404, and error boundaries.
 
 ### Release route smoke
 
@@ -117,7 +122,8 @@ npm run start &
 RELEASE_BASE_URL=http://localhost:3000 npm run smoke
 ```
 
-It checks 16 routes. CI runs the same step after the build. This is **not** a
+It checks 16 HTML routes plus `robots.txt`, `sitemap.xml`, the icon, and the
+branded 404. CI runs the same step after the build. This is **not** a
 substitute for interactive browser E2E; it catches route/build regressions only.
 
 ## Tests not yet possible or not automated
@@ -151,3 +157,8 @@ authorization and destructive paths when changing them.
   then start the production server and run the route smoke.
 
 CI never requires real credentials.
+
+Deployment workflows add `helm lint`/`helm template`, kubeconform, both Compose
+configs, Terraform fmt/init/validate, actionlint, hadolint, and image builds
+where a Docker daemon is available. Live registry pushes and cluster installs
+require approved environment secrets and are not part of pull-request CI.

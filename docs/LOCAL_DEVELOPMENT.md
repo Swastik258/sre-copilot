@@ -30,19 +30,25 @@ uvicorn app.main:app --reload --port 8000
 
 ### Accounts, roles, and tenants
 
-Signup and sign-in are self-hosted. New accounts are always members in
-`DEFAULT_TENANT_ID`. To grant admin privileges, first register the operator's
-account, then run the following from the `backend` directory using a trusted
-local shell:
+Signup and sign-in are self-hosted. With the default configuration, each public
+signup creates a personal workspace and that account is its `owner`. A
+configured non-default `DEFAULT_TENANT_ID` creates a shared workspace and new
+accounts join as `member`. Workspace owners/admins manage users from
+`/admin/settings` or `/api/v1/admin/*`; admin APIs are scoped to the active
+workspace. The last active owner/administrator cannot be demoted or deactivated.
+
+For trusted operator recovery or shared-deployment provisioning, run this from
+the `backend` directory with a trusted shell:
 
 ```bash
+echo "email: you@example.com"   # confirm the target account first
 python scripts/set_admin.py you@example.com
 ```
 
-There is no email-based or first-registrant admin bootstrap. Admins can manage
-users and tenants from `/admin/settings` or via `/api/v1/admin/*`. The last
-active admin cannot be demoted or deactivated. Moving a member migrates their
-investigations. Settings and audit views are tenant-scoped.
+There is no email-based or first-registrant admin bootstrap. Membership changes
+do not move records between workspaces. Audit reads, exports, and retention are
+scoped to the active workspace.
+
 Existing databases retain roles already assigned by earlier versions. Review
 the current admin list after upgrading, then demote any unintended account from
 a trusted shell with `python scripts/set_admin.py email@example.com --member`.
@@ -82,6 +88,7 @@ Alembic and are never altered this way.
 ```bash
 cd backend
 alembic upgrade head
+alembic check
 alembic revision --autogenerate -m "msg"
 alembic downgrade -1
 ```
@@ -90,8 +97,11 @@ alembic downgrade -1
 
 ```bash
 cd frontend
-npm install
-NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
+npm ci
+NEXT_PUBLIC_API_URL=http://localhost:8000 \
+NEXT_PUBLIC_SITE_URL=http://localhost:3000 \
+NEXT_PUBLIC_SUPPORT_EMAIL= \
+npm run dev
 ```
 
 Open http://localhost:3000. Accounts and sessions live in the backend; the
@@ -101,12 +111,12 @@ session is carried in an `HttpOnly` cookie. After signing in you land on
 Live product pages: `/kubernetes`, `/cicd`, `/terraform`, `/logs`, `/assistant`,
 `/metrics`, `/runbooks`, `/audit`, `/settings`, `/admin/settings`, and `/infra-code`.
 
-### Clerk status
+`NEXT_PUBLIC_SITE_URL` controls canonical metadata, `robots.txt`, and
+`sitemap.xml`; `NEXT_PUBLIC_SUPPORT_EMAIL` is optional and appears on the support
+page only when set. All `NEXT_PUBLIC_*` values are build-time values.
 
-Clerk is **not used by the UI**. The `@clerk/nextjs` package remains in
-`package.json`, but no component imports it and there is no Clerk provider or
-modal. Use the self-hosted `/sign-up` and `/login` pages. `lib/auth.ts` is a
-legacy configuration shim and is not part of the authentication flow.
+Authentication is entirely self-hosted. Use the `/sign-up` and `/login` pages;
+there is no Clerk provider, dependency, or runtime path.
 
 ## Optional live integrations
 
@@ -153,7 +163,7 @@ server-side. See [docs/AI_PROVIDERS.md](AI_PROVIDERS.md).
 
 ```bash
 cp .env.example .env
-docker compose -f deploy/docker-compose.yml up --build
+docker compose --env-file .env -f deploy/docker-compose.yml up --build
 ```
 
 Services: Postgres (`db`), backend (migrates then serves on 8000), frontend on
@@ -169,6 +179,7 @@ Services: Postgres (`db`), backend (migrates then serves on 8000), frontend on
 | `alembic upgrade head` | Apply migrations |
 | `npm run dev` | Run frontend |
 | `npm run lint` | Frontend lint |
+| `npm run typecheck` | Frontend TypeScript check |
 | `npm run build` | Frontend production build |
 | `npm run start` | Start production build |
 | `npm run smoke` | HTTP route smoke against `RELEASE_BASE_URL` |
@@ -182,8 +193,7 @@ Services: Postgres (`db`), backend (migrates then serves on 8000), frontend on
 - **Empty database** — run `alembic upgrade head`, or ensure
   `AUTO_CREATE_SCHEMA=true` for local SQLite.
 - **Cannot stay signed in** — check `CORS_ORIGINS`, the `HttpOnly` cookie, and
-  that the frontend/backend origins match. Clerk environment variables are not
-  used.
-- **403 on admin settings/audit retention** — the signed-in account is a member.
-  Ask an existing admin to change the role, or use the trusted
+  that the frontend/backend origins match.
+- **403 on admin settings/audit retention** — the signed-in account is a member
+  or viewer. Ask a workspace owner/admin to change the role, or use the trusted
   `backend/scripts/set_admin.py` command from a local operator shell.

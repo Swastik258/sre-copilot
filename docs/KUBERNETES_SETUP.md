@@ -79,8 +79,8 @@ rules:
   (`tests/unit/test_kubernetes_readonly.py`) enforces this structurally.
 - Logs are bounded by `tail_lines` and redacted before becoming evidence.
 - If no cluster is available, use clearly labelled demo fixtures (`demo: true`).
-- Remediation is emitted as *recommendations* that require explicit human
-  approval and are never executed.
+- Remediation is emitted as *recommendations* for human review. There is no
+  execution or apply path in the product.
 - Cluster selection is a read-only target selector; it does not grant or change
   cluster permissions.
 

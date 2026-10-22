@@ -5,10 +5,12 @@
 > limits, API idempotency, outbound URL policy, prompt-injection boundaries,
 > encrypted durable job payloads, retrying background jobs, PII-minimised
 > structured logs, Prometheus metrics, readiness checks, and optional
-> OpenTelemetry/Sentry export are implemented and covered by backend tests. Shared multi-instance rate limiting, dependency
-> and image scanning, DNS pinning/egress controls, external key management, and
-> browser E2E remain open. Do not expose the API to untrusted networks until the
-> release checklist and the "Remaining controls" below are complete.
+> OpenTelemetry/Sentry export are implemented and covered by backend tests.
+> Dependency audits are enforced in CI. Shared multi-instance rate limiting,
+> container-image vulnerability scanning, DNS pinning/egress controls, external
+> key management, browser E2E, MFA, and SSO remain open. Do not expose the API to
+> untrusted networks until the release checklist and the "Remaining controls"
+> below are complete.
 
 ## Threat model (summary)
 
@@ -24,14 +26,14 @@ Primary threats:
    issues attempting to steer the AI.
 4. **Data exfiltration** — sending sensitive operational data to external LLM
    providers.
-5. **Mutating actions** — any code path that changes infrastructure without
-   explicit human approval.
+5. **Mutating actions** — any code path that changes infrastructure. The
+   product must have none.
 6. **Tenant crossover** — one organization reading another's data.
 7. **Account lockout** — losing the only administrator or leaving stale sessions.
 
 Design responses: read-only-by-default, redaction, privacy mode, evidence
-provenance, approval workflow, audit logging, tenant scoping, and admin lockout
-protection.
+provenance, proposal-only changes, audit logging, tenant scoping, and
+administrator lockout protection.
 
 ## Implemented controls
 
@@ -51,7 +53,7 @@ protection.
 | CORS allowlist | `app/main.py` | Explicit origins; methods/headers enumerated. |
 | Integration status without secrets | `app/services/integrations.py` | Reports configuration state only; never returns tokens. |
 | Demo labelling | `schemas/evidence.py`, frontend | Fixture data flagged `demo=true`. |
-| Audit events | `app/services/audit.py` | Redacted resource/outcome payloads; tenant-scoped; retention is audited. |
+| Audit events | `app/services/audit.py` | Redacted resource/outcome payloads; reads, exports, and retention are workspace-scoped and audited. |
 | Account passwords | `app/security/passwords.py`, `app/security/password_policy.py` | Argon2id with per-user salt; legacy scrypt/PBKDF2 verified and upgraded on login; 12-character minimum, denylist, and email-name rejection. |
 | Local signup/login | `app/services/auth.py`, `app/api/v1/auth.py` | Self-hosted accounts; the session token is never returned in a body; failed logins are counted and temporarily locked. |
 | Signup privilege boundary | `app/services/auth.py`, `app/api/v1/organizations.py` | Public signup owns a personal workspace; shared-workspace mode creates members. Roles are never derived from email or signup order. |
@@ -73,6 +75,7 @@ protection.
 | Terraform value omission | `app/services/terraform_review.py` | Attribute names and change metadata only, never plan values. |
 | AI evidence minimisation | `app/services/ai.py` | Sends redacted evidence summaries and the question only; privacy mode blocks external providers. |
 | Prompt-injection boundary | `app/services/ai.py`, `tests/unit/test_prompt_boundaries.py` | Evidence is delimited as untrusted data and the system prompt forbids following embedded instructions or requesting writes. |
+| Dependency audits | `.github/workflows/ci.yml`, `pyproject.toml` | Bandit, pip-audit, npm audit, and pre-commit run in CI. |
 | Database hardening | `app/db/session.py` | PostgreSQL pool sizing/overflow/timeout/recycle and pre-ping; SQLite foreign keys and busy timeout enabled. |
 | Structured access logs | `app/core/observability.py`, `app/core/logging.py` | Route templates, status, duration, request/trace ids; no query strings, bodies, cookies, addresses, or users. |
 | Metrics | `app/core/prom_metrics.py`, `/metrics` | Prometheus text format with bounded labels; optional bearer token and production fail-fast. |
@@ -121,8 +124,9 @@ protection.
 - **Shared rate limiting** — the limiter is still per-process/in-memory. Use an
   edge limiter or Redis for a multi-instance deployment; do not treat this as a
   distributed quota.
-- **Dependency and image scanning** — scheduled for the CI phase; not yet wired
-  into an enforced workflow.
+- **Container-image scanning** — images are built with SBOM/provenance and pass
+  hadolint, but no registry vulnerability scanner is enforced yet. Dependency
+  audits (`pip-audit`, `npm audit`) and Bandit are in CI.
 - **SSRF completion** — configuration URLs are validated and metadata endpoints
   are rejected, but there is no DNS-resolution pinning or network egress policy.
   Run the API with an egress allow-list/firewall for defence in depth.
@@ -135,6 +139,10 @@ protection.
 - **Background worker scale-out** — jobs are safe for one worker. Multiple
   workers can race on PostgreSQL unless selected with row locks; deploy one
   worker or add `SKIP LOCKED` leasing before scaling out.
+- **MFA and enterprise identity** — no MFA, SSO, SAML, or SCIM.
+- **Certification** — no SOC 2, ISO 27001, or third-party penetration-test claim.
+- **Self-service data export** — account deletion and audit retention exist, but a
+  complete self-service export of all workspace data is not implemented.
 - **Retention completeness** — the worker can enqueue per-workspace audit
   retention when enabled. Investigation/evidence soft-delete and a full data
   retention matrix are still to be completed.
@@ -165,8 +173,8 @@ protection.
 - GitHub access must use a fine-grained token with `Actions: read`,
   `Contents: read`, and `Metadata: read` only. Never grant write scopes.
 - No endpoint may create, delete, patch, restart, or scale resources as part of
-  diagnosis. Infrastructure-changing actions require an explicit human approval
-  workflow that is not implemented here.
+  diagnosis. There is no infrastructure-changing action or apply path in the
+  product. Generated infrastructure code is review-only.
 - Terraform review parses supplied JSON only; it never reads state or applies a
   plan. Values are omitted from responses and evidence.
 - Infrastructure-code generation returns proposals only; it never writes to a
@@ -175,5 +183,6 @@ protection.
 
 ## Reporting a vulnerability
 
-Report suspected issues privately to the maintainers. Do not include
-credentials in reports. Include reproduction steps and affected versions.
+Report suspected issues privately through the support channel configured by the
+operator of this deployment. Do not include credentials in reports. Include
+reproduction steps and affected versions.

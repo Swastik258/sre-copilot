@@ -22,6 +22,8 @@ cd backend
 .venv/bin/ruff check .
 .venv/bin/ruff format --check .
 .venv/bin/mypy app
+.venv/bin/alembic upgrade head
+.venv/bin/alembic check
 .venv/bin/pytest --cov=app --cov-branch --cov-fail-under=80
 .venv/bin/bandit -q -c pyproject.toml -r app
 .venv/bin/pip-audit --progress-spinner off
@@ -36,10 +38,11 @@ npm run start &
 RELEASE_BASE_URL=http://localhost:3000 npm run smoke
 ```
 
-Expected: all checks clean, **266 backend tests** passing with **82.9%**
-line+branch coverage, a production build with **40 routes**, and **16/16** route
-smoke checks. CI also validates Helm, Compose, Terraform, and builds both
-container images as UID 10001. See [DEPLOYMENT.md](DEPLOYMENT.md).
+Expected: all checks clean, **267 backend tests** passing with **82.9%**
+line+branch coverage, a production build with **43 routes**, **16/16** HTML
+routes, all **4/4** metadata/error checks, and no Alembic schema drift. CI also
+validates Helm, Compose, and Terraform, and builds both container images as UID
+10001. See [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## 3. Security configuration
 
@@ -51,10 +54,14 @@ container images as UID 10001. See [DEPLOYMENT.md](DEPLOYMENT.md).
 - [ ] TLS terminates in front of both services.
 - [ ] Postgres + Alembic migrations are used; `AUTO_CREATE_SCHEMA` is not used for
       production.
-- [ ] At least two active admins exist; the last-admin guard is verified.
-- [ ] Administrators are provisioned from a trusted backend shell; public
-      signup never assigns admin privileges.
-- [ ] Audit retention policy is set and tested.
+- [ ] At least two active owners/admins exist in each shared workspace; the
+      last-administrator guard is verified.
+- [ ] Shared-workspace administrators are provisioned from a trusted backend
+      shell. Public signup creates a personal workspace owner only; it never
+      grants access to another tenant.
+- [ ] Audit reads, exports, and retention are workspace-scoped and tested.
+- [ ] `NEXT_PUBLIC_SITE_URL` matches the public frontend origin, and
+      `/robots.txt` plus `/sitemap.xml` use it.
 
 ## 4. Demo-mode verification (no credentials)
 
@@ -69,9 +76,10 @@ container images as UID 10001. See [DEPLOYMENT.md](DEPLOYMENT.md).
 - [ ] `/infra-code` generates a Deployment/Service/Terraform proposal.
 - [ ] `/terraform` reviews the sample plan and shows the AI explanation path
       (mock provider).
-- [ ] `/audit` lists events and exports CSV; retention is disabled for a member.
+- [ ] `/audit` lists events and exports CSV; retention is disabled for a member
+      and cannot delete another workspace's records.
 - [ ] `/settings` saves customer profile/preferences; `/admin/settings` is
-      restricted to administrators.
+      restricted to workspace owners/admins.
 
 ## 5. Live integration verification
 
@@ -131,7 +139,7 @@ uvicorn app.main:app --port 8000
 
 ```powershell
 cd D:\sre-copilot\openai-agent\frontend
-npm install
+npm ci
 npm run build
 npm run start
 ```
@@ -139,10 +147,13 @@ npm run start
 Checklist:
 
 - [ ] Backend and frontend restarted after sync.
-- [ ] `alembic upgrade head` applied (including `0005_roles_tenants`).
+- [ ] `alembic upgrade head` applied through the current revision, with a backup.
 - [ ] Windows env uses `C:/Users/...` kubeconfig paths.
 - [ ] `/dashboard`, `/kubernetes`, `/logs`, `/assistant`, `/metrics`, `/runbooks`,
       `/audit`, `/settings`, `/terraform`, `/infra-code`, and `/cicd` load.
+- [ ] `/robots.txt` and `/sitemap.xml` use the intended public origin.
+- [ ] A missing route renders the branded 404 page, and the skip link reaches the
+      main landmark.
 - [ ] Existing local SQLite data survived the additive upgrade.
 - [ ] Logs show no credential values or stack traces.
 
@@ -169,3 +180,5 @@ Checklist:
   workflows.
 - Encryption at rest is delegated to the database/platform.
 - No apply path exists for generated infrastructure code or remediation.
+- Public customer references, support email, and jurisdiction-specific legal
+  review must be supplied by the operator; do not add invented examples.

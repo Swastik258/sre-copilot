@@ -5,27 +5,24 @@ Prometheus. Ask why a pod is failing or a pipeline broke and get back structured
 findings that separate **observed facts** from **hypotheses**, each with citations
 to the evidence used.
 
-> **Status: all planned vertical slices are implemented in the working tree.**
-> The product includes log analysis, investigations/assistant chat, audit and
-> settings, Prometheus queries and correlation, multi-cluster Kubernetes, a
-> runbook library, proposal-only infrastructure-code generation, Terraform AI
-> explanations, Anthropic's native Messages API, and admin/tenant controls.
-> Everything infrastructure-facing is **read-only** or a human-approved proposal.
-> See [BUILD_STATUS.md](BUILD_STATUS.md) for the exact verification state and
-> remaining release blockers.
+> **Status: production-readiness work is on `chore/production-readiness`.**
+> The visual baseline is `master` at `85ef4d9`. Every live product surface is
+> available in Free; Pro and Team are explicitly planned, unpriced, and not for
+> sale. Infrastructure-facing paths are read-only or proposal-only. See
+> [BUILD_STATUS.md](BUILD_STATUS.md) for verification state and release blockers.
 
 ## Principles
 
 1. Evidence before conclusions.
 2. Read-only access by default.
 3. Explain why a diagnosis was reached.
-4. Never fabricate logs, metrics, events, or results.
+4. Never fabricate logs, metrics, events, results, customers, or status.
 5. Separate observed facts from hypotheses and recommendations.
-6. Require explicit human approval before any infrastructure-changing action.
+6. Never change infrastructure; generated changes are proposals only.
 7. Protect credentials, secrets, and customer data.
 8. Make investigations reproducible and auditable.
 9. Work locally in demo mode with no paid services.
-10. Clearly distinguish live integrations from simulated demonstrations.
+10. Clearly distinguish live integrations from labelled demonstrations.
 
 ## Repository layout
 
@@ -33,9 +30,9 @@ to the evidence used.
 |------|---------|
 | `backend/` | FastAPI application, SQLAlchemy models, Alembic migrations, tests |
 | `frontend/` | Next.js (App Router) UI and typed API client |
-| `deploy/` | Docker Compose for local Postgres + backend + frontend |
-| `docs/` | Architecture, security, setup, testing, release, and roadmap docs |
-| `.github/workflows/ci.yml` | CI: backend lint + tests, frontend lint/build + route smoke |
+| `deploy/` | Local production-style Compose, Helm chart, Terraform wrapper, backups |
+| `docs/` | Architecture, security, deployment, testing, release, and roadmap docs |
+| `.github/workflows/` | CI, approved image release, deploy, and rollback workflows |
 
 ## Quick start (demo mode — no credentials)
 
@@ -49,41 +46,49 @@ uvicorn app.main:app --reload    # http://localhost:8000
 
 # 2. Frontend (new terminal)
 cd frontend
-npm install
-NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev   # http://localhost:3000
+npm ci
+NEXT_PUBLIC_API_URL=http://localhost:8000 \
+NEXT_PUBLIC_SITE_URL=http://localhost:3000 \
+npm run dev                      # http://localhost:3000
 ```
 
 The app starts with **no API keys, no cluster, and no cloud account**. The
 backend defaults to SQLite and creates its schema automatically for local use.
-New registrations are members. After creating your account, grant administrator
-access only from a trusted backend shell with
-`cd backend; python scripts/set_admin.py your-email@example.com`. Use
-`--member` to revoke an existing admin role after confirming the target.
+Public signup creates an account with its own personal workspace; that account is
+the owner of its workspace, not a global administrator. A configured non-default
+`DEFAULT_TENANT_ID` creates a shared `member` workspace instead. Admin APIs are
+always scoped to the active workspace. For trusted operator provisioning in a
+shared deployment, use `backend/scripts/set_admin.py` from a backend shell.
 
 ### Docker Compose
 
 ```bash
 cp .env.example .env
-docker compose -f deploy/docker-compose.yml up --build
+docker compose --env-file .env -f deploy/docker-compose.yml up --build
 ```
+
+The local stack includes PostgreSQL, the backend, and the frontend. The production
+Compose file runs only the app containers and expects an external PostgreSQL
+database. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for images, Helm,
+Terraform, secrets, migration jobs, rollback, and release promotion.
 
 ## What works today
 
 - Versioned API (`/api/v1`) with OpenAPI docs at `/docs`, health/readiness, and
   integration status that never returns secrets.
-- Structured logging, request IDs, redaction, consistent JSON errors, request
-  size limits, rate limiting, and response security headers.
+- Structured logs with request IDs, redaction, consistent JSON errors, request
+  size limits, trusted-proxy rate limiting, idempotency, and security headers.
 - Shared **Evidence** model with provenance, redaction, integrity fingerprints,
   and `demo` labels.
-- Self-hosted accounts, server-side sessions, `admin`/`member` roles, tenant
-  scoping, per-user settings, revocable API keys, and an admin user/tenant API.
-  Public signup never grants administrator privileges. Production always
-  requires auth.
-- **Customer dashboard**: authenticated overview, quick starts, recent saved
-  investigations, responsive workspace sidebar, and personal account settings.
-  Admin operational settings remain at `/admin/settings`.
+- Self-hosted accounts, Argon2id passwords, CSRF, sessions with idle/absolute
+  expiry, lockout, recovery, email verification, revocable API keys, account
+  deletion, and owner/admin/member/viewer roles.
+- **Product dashboard**: authenticated overview, quick starts, recent saved
+  investigations, live Kubernetes/integration state, responsive workspace shell,
+  history, customer settings, and `/admin/settings` for workspace operators.
 - **Plan entitlements**: centrally configured in
-  `frontend/lib/feature-access.ts`; Free currently includes every feature.
+  `frontend/lib/feature-access.ts`; Free includes every live feature, and billing
+  is disabled.
 - **Kubernetes**: read-only multi-cluster selection, namespace/pod/workload
   listing, bounded logs, and evidence-backed diagnosis for CrashLoopBackOff,
   OOMKilled, ImagePullBackOff, Pending, probe failures, and related signals.
@@ -92,77 +97,49 @@ docker compose -f deploy/docker-compose.yml up --build
 - **Terraform**: plan review (replacements, deletions, blast radius, stateful
   risk) with values omitted, plus an optional AI explanation.
 - **Logs**: signature grouping/deduplication, severity, timestamps, stack frames,
-  redaction, evidence, and a live `/logs` console.
+  redaction, evidence, and a live `/logs` console. Raw analyzed text is not
+  persisted.
 - **Prometheus**: read-only query/query-range adapter, labelled fixtures, z-score
   timing correlation, evidence, and a live `/metrics` console.
 - **Assistant**: persisted investigations, message history, evidence, and AI
   exchanges at `/assistant`.
-- **Audit and settings**: filters, CSV export, admin-only retention, per-tenant
-  privacy/retention policy, and admin user/tenant management.
-- **Runbooks**: searchable read-only operator sequences with guardrails at
-  `/runbooks`.
+- **Audit and settings**: filters, CSV export, workspace-scoped retention,
+  per-tenant privacy/retention policy, and workspace user management.
+- **Runbooks**: searchable read-only operator sequences with guardrails.
 - **Infrastructure code**: deterministic Kubernetes Deployment/Service and
-  Terraform module proposals with baseline policy findings at `/infra-code`.
-  Nothing is written or applied.
+  Terraform module proposals with baseline policy findings. Nothing is written or
+  applied.
 - **AI providers**: deterministic mock, OpenAI-compatible APIs including Groq,
   OpenRouter, and native Anthropic Messages API. Deterministic diagnosis remains
-  authoritative. Configure `GROQ_API_KEY` server-side; never expose it in the
-  frontend.
-- Paper/ink route-group themes, semantic utilities, 4px corners, and a
-  reduced-motion-safe motion system.
+  authoritative. Keys stay server-side.
+- **Operations**: Prometheus metrics, optional OpenTelemetry/Sentry export,
+  graceful shutdown, PostgreSQL pooling/migrations/indexes, encrypted retrying
+  jobs, backup/restore scripts, and refusal of unsafe production combinations.
+- Paper/ink route-group themes, semantic utilities, 4px corners, SEO metadata,
+  sitemap/robots, accessible error states, and a reduced-motion-safe motion system.
 
 ## Security boundary
 
-- Kubernetes, GitHub, Terraform, Prometheus, and infrastructure-code paths are
-  read-only or proposal-only.
+- Kubernetes, GitHub, Terraform, and Prometheus paths are read-only.
+  Infrastructure-code output is a proposal and has no apply path.
 - AI keys and integration credentials stay in the backend environment. Only
   redacted evidence summaries and the question leave the server; privacy mode
   blocks external providers.
-- `AUTH_REQUIRED` is off by default for the local demo, but production always
-  requires authentication. Shared deployments should set it explicitly and use
-  HTTPS.
-- The last active admin cannot be demoted or deactivated; deactivating an
-  account revokes its sessions.
-- Do not expose the API publicly until the hardening and release items in
-  [docs/SECURITY.md](docs/SECURITY.md) and [docs/RELEASE.md](docs/RELEASE.md) are
-  complete.
+- Production always requires authentication and rejects unsafe SMTP, jobs, or
+  metrics combinations at startup.
+- The last active workspace administrator cannot be demoted or deactivated;
+  deactivating an account revokes its sessions.
+- Review [docs/SECURITY.md](docs/SECURITY.md) and
+  [docs/RELEASE.md](docs/RELEASE.md) before exposing a deployment.
 
 ## Customer account API
 
 Authenticated account data is scoped to the current user under `/api/v1/account`:
-profile, password, preferences, integration enablement flags, API key create
-and revoke, and account deletion. API key secrets are displayed once and stored
-as hashes. Live integration credentials remain operator-managed in backend
-environment variables. The admin workspace configuration page is `/admin/settings`.
-
-## Changelog
-
-- Added an authenticated dashboard workspace with responsive navigation,
-  account overview, recent investigations, history, and planned-feature pages.
-- Added centralized Free/Pro/Team entitlements. Free currently unlocks all
-  features; no payment or billing is implemented.
-- Added persistent per-user profile, password, preferences, integration flags,
-  API key, and account-deletion endpoints and settings forms.
-- **Backend security fix — privilege escalation during registration:** public
-  signup previously made the first registrant an administrator and promoted a
-  matching `BOOTSTRAP_ADMIN_EMAIL` without verifying ownership. Removed
-  first-user and email-based admin promotion from signup, startup, local schema
-  upgrades, and fresh role migrations (`backend/app/services/auth.py`,
-  `backend/app/main.py`, `backend/app/db/local_schema.py`, and
-  `backend/alembic/versions/0005_roles_tenants.py`). New accounts are members;
-  administrators are provisioned through the trusted
-  `backend/scripts/set_admin.py` command. Existing installations should review
-  administrator roles assigned by older versions and demote any account that
-  was not deliberately authorized.
-- Added hashed, owner-scoped API keys, account settings migrations, and route
-  tests covering persistence, ownership, password checks, revocation, and the
-  signup privilege boundary.
-- Preserved existing admin operational settings at `/admin/settings` while
-  using `/settings` for customer account settings.
-- Added Groq support through the existing OpenAI-compatible chat completions
-  adapter using server-side `GROQ_API_KEY`/`GROQ_BASE_URL`; no SDK dependency
-  was added.
-- Removed the Customers dropdown and its links from the marketing navbar.
+profile, password, preferences, integration enablement flags, API key create and
+revoke, and account deletion. API key secrets are displayed once and stored as
+hashes. Live integration credentials remain operator-managed in backend
+environment variables. Workspace membership is managed through the organizations
+API; `/admin/settings` manages roles inside the active workspace.
 
 ## Verification
 
@@ -175,12 +152,14 @@ cd backend
 # Frontend
 cd frontend
 npm run lint
+npm run typecheck
 npm run build
 npm run start &
-npm run smoke      # dependency-free route smoke against http://localhost:3000
+npm run smoke      # dependency-free smoke against http://localhost:3000
 ```
 
-See [docs/TESTING.md](docs/TESTING.md) for coverage and known limits.
+See [docs/TESTING.md](docs/TESTING.md) for coverage gates, deployment validation,
+and known limits.
 
 ## Documentation
 
@@ -189,6 +168,10 @@ See [docs/TESTING.md](docs/TESTING.md) for coverage and known limits.
 - [docs/SECURITY.md](docs/SECURITY.md) — threat model, controls, known risks
 - [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) — setup and commands
 - [docs/API.md](docs/API.md) — endpoints and examples
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — images, Compose, Helm, Terraform, rollback
+- [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md) — logs, metrics, tracing, error tracking
+- [docs/AUDIT.md](docs/AUDIT.md) — audit events and retention
+- [docs/BILLING.md](docs/BILLING.md) — plan catalog and disabled billing boundary
 - [docs/GITHUB_SETUP.md](docs/GITHUB_SETUP.md) — read-only GitHub token and endpoints
 - [docs/KUBERNETES_SETUP.md](docs/KUBERNETES_SETUP.md) — single and multi-cluster setup
 - [docs/TERRAFORM_REVIEW.md](docs/TERRAFORM_REVIEW.md) — plan review and blast radius
@@ -200,5 +183,8 @@ See [docs/TESTING.md](docs/TESTING.md) for coverage and known limits.
 
 ## License
 
-See the repository license. This scaffold contains no production secrets; replace
-example credentials before deploying anywhere.
+No license file is included in this repository. Deployment, redistribution, or
+commercial use requires permission from the repository owner; add an explicit
+license before publishing. No secrets are included. Replace every example value
+before deploying. Customer references, support addresses, and legal terms must be
+supplied and reviewed by the deployment operator before public launch.

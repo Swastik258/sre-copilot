@@ -1,7 +1,9 @@
 # Build status
 
-Last updated: **2026-10-21**
-Current baseline: `master` at `e9b0966`; the work below is uncommitted.
+Last updated: **2026-10-22**
+Visual baseline: `master` at `85ef4d9` (`Change the UI`).
+Active branch: `chore/production-readiness`, currently ahead of `master`. Phase 7
+frontend and documentation changes are committed on this branch.
 
 This is the concise source of truth for what is implemented, what is deliberately
 bounded, and what remains. The milestone view lives in
@@ -9,157 +11,118 @@ bounded, and what remains. The milestone view lives in
 
 ## Completed
 
-### Product UI and dashboard
+### Product UI and frontend
 
-- Paper/ink route-group themes are in place: `(marketing)` and `(auth)` use
-  paper, `(product)` uses ink, and the root layout sets no theme.
-- Semantic utilities, 4px corners, and the shared motion system are used
-  throughout. Motion collapses under `prefers-reduced-motion: reduce`.
-- `/dashboard` is auth-gated and shows quick starts, account status, recent
-  saved investigations, and empty states. `/history` lists saved runs.
-- Authenticated product views use the separate responsive workspace shell,
-  collapsible desktop sidebar, mobile drawer, plan label, account avatar, and
-  sign-out action. Admin operational settings remain at `/admin/settings`;
-  `/settings` is customer account settings.
-- `frontend/lib/feature-access.ts` centrally maps features to plans. Free
-  currently unlocks everything; billing is not implemented.
-- Live consoles: `/kubernetes`, `/cicd`, `/terraform`, `/logs`, `/assistant`,
-  `/metrics`, `/runbooks`, `/audit`, `/settings`, and `/infra-code`.
-- `/admin/settings` includes admin-only user, role, tenant, and activation
-  controls. `/audit` hides destructive retention actions from members.
+- The `85ef4d9` paper/ink visual system is preserved: semantic utilities, 4px
+  corners, fonts, motion, responsive layout, and reduced-motion fallbacks.
+- `/dashboard` and `/history` are authenticated workspace views. The workspace
+  shell includes the collapsible desktop sidebar, mobile drawer, command palette,
+  account menu, and sign-out action. `/admin/settings` is the operational admin
+  view; `/settings` is customer account settings.
+- Live consoles: `/kubernetes`, `/logs`, `/cicd`, `/terraform`, `/assistant`,
+  `/metrics`, `/runbooks`, `/audit`, and `/infra-code`. `/dashboard` now reads
+  Kubernetes and integration state from `/api/v1/integrations` instead of
+  hard-coding a live status.
+- `frontend/lib/feature-access.ts` maps every live surface to Free. Pro and Team
+  remain explicitly `planned`, unpriced, and not purchasable; billing is disabled.
+- Marketing statuses and copy now match the implementation. Logs and Terraform
+  are Live, not Planned. Fabricated customer logos, testimonials, operational
+  metrics, and the footer uptime claim were removed. Illustrative fixtures and
+  demo data remain clearly labelled.
+- SEO and access basics: metadata base, Open Graph/Twitter defaults, `/robots.txt`,
+  `/sitemap.xml`, per-page titles, noindex auth pages, a branded 404/error view,
+  a skip link, main landmarks, and a favicon.
+- The unused Clerk dependency and legacy auth shim were removed.
 
 ### Backend platform
 
-- FastAPI application with a versioned API (`/api/v1`).
-- Health, readiness, and liveness endpoints with a real database check.
-- Integration status endpoint that reports configured/live/demo/off state
-  without returning secrets.
-- Structured logging, request IDs, secret redaction, consistent JSON errors,
-  request-size limits, optional in-memory rate limiting, and response security
-  headers. Production gets a conservative 120 req/min default and always
-  requires authentication.
-- Shared Evidence schema, SQLAlchemy model, and Alembic migrations.
-- Self-hosted accounts: signup/login/logout/me, scrypt password hashing, and
-  server-side sessions in an `HttpOnly` cookie.
-- Workspace authorization: `admin` and `member` roles; public signup always
-  creates members. Trusted operators promote users with
-  `backend/scripts/set_admin.py`.
-  Admin APIs list users/tenants and change role, tenant, or activation. The last
-  active admin cannot be demoted or deactivated, and deactivation revokes the
-  user's sessions.
-- Customer account settings: persisted profile, password, preferences,
-  per-user integration flags, one-time API key display/revocation, and
-  password-confirmed account deletion. API key secrets are stored as hashes.
-- Tenant boundaries: investigations carry a tenant, members only see their own
-  records, admins can inspect across tenants, and settings are per-tenant.
-  Moving a member migrates their investigations to the new tenant. New schema
-  upgrades never grant admin based on account age.
-- Audit service and `AuditEvent` model with tenant scoping, read/filter/export,
-  and admin-only retention (currently workspace-wide across tenants).
-- Local SQLite databases from older milestones are upgraded additively on
-  startup through `app/db/local_schema.py`.
+- FastAPI application with a versioned API (`/api/v1`), health, readiness, and
+  liveness endpoints with a real database check.
+- Argon2id password hashing with legacy hash upgrade, password policy, login
+  lockout, session rotation, idle/absolute expiry, CSRF, revocable API keys, and
+  password-confirmed account deletion.
+- Personal workspaces on public signup; a configured non-default
+  `DEFAULT_TENANT_ID` creates a shared `member` workspace. Roles are
+  `owner`, `admin`, `member`, and `viewer`; tenant-scoped resources and the last
+  active admin are protected.
+- Email verification and password reset, disabled by default and requiring a
+  working email delivery path. Production startup rejects SMTP without durable
+  jobs.
+- Tenant-scoped audit log with filtering, CSV export, configurable retention, and
+  request IDs. Structured logs redact known secrets and minimize PII.
+- Idempotency keys for unsafe API requests (except auth/webhook routes),
+  request-size limits, trusted-proxy rate limits, SSRF/outbound URL policy,
+  prompt-injection delimiters, and optional background jobs with encrypted,
+  retrying payloads.
+- Prometheus metrics, optional OpenTelemetry traces, optional Sentry error
+  tracking, graceful shutdown, PostgreSQL pooling/migrations/indexes, and
+  documented backup/restore procedures.
 
 ### Read-only integrations
 
-- **Kubernetes diagnosis** (`app/adapters/kubernetes/*`,
-  `app/services/kubernetes_diagnosis.py`, `app/api/v1/kubernetes.py`):
-  normalized pods/workloads/events/logs, a structurally read-only client,
-  fixture and real clients, deterministic rules, and evidence-backed diagnoses.
-  Verified against fixtures and a live local Kind cluster. Named multi-cluster
-  configuration is available through `KUBERNETES_CLUSTERS`, with the legacy
-  single-target settings as fallback.
-- **GitHub Actions diagnosis** (`app/adapters/github/*`,
-  `app/services/github_diagnosis.py`, `app/api/v1/github.py`): structurally
-  read-only client, normalized runs/jobs/steps, bounded log excerpts,
-  deterministic failure rules, evidence, and diagnosis endpoints. Every request
-  is a `GET`; authorization headers are stripped on cross-host log redirects.
-- **Terraform plan review** (`app/services/terraform_review.py`,
-  `app/api/v1/terraform.py`): parses `terraform show -json`, detects
-  replacements/deletions, replacement paths, attribute-name changes, unknown
-  values, and stateful-resource risk; reports blast radius and evidence without
-  returning attribute values. `POST /api/v1/terraform/explain` adds an optional
-  AI explanation backed by the same deterministic evidence.
-- **Log analysis** (`app/services/log_analysis.py`,
-  `app/api/v1/logs.py`): size-validated paste/upload, signature grouping and
-  deduplication, severity/timestamps, stack-frame extraction, redaction,
-  evidence, and `POST /api/v1/logs/analyze`. `/logs` is live.
-- **Prometheus and correlation** (`app/adapters/prometheus/*`,
-  `app/services/metrics.py`, `app/api/v1/metrics.py`): standard-library
-  read-only query/query-range adapter, labelled fixture mode, z-score timing
-  correlation, evidence, and `/metrics`.
-- **Runbooks** (`app/services/runbooks.py`, `app/api/v1/runbooks.py`): static
-  read-only catalog, search, finding matching, guardrails, and `/runbooks`.
-- **Infrastructure-code generation** (`app/services/infra_code.py`,
-  `app/api/v1/infra.py`): deterministic Kubernetes Deployment/Service and
-  Terraform module templates, baseline policy findings, and evidence. Output is
-  proposal-only; nothing is written or applied. `/infra-code` is live.
-- **AI explanation layer** (`app/ai/providers/*`, `app/services/ai.py`,
-  `app/api/v1/ai.py`): provider-independent interface, deterministic mock,
-  OpenAI-compatible adapter including Groq, OpenRouter support, native
-  Anthropic Messages API adapter, strict validated JSON, privacy mode, and
-  redaction before transmission. AI explanations are optional and deterministic
-  diagnosis remains authoritative.
-- **Investigations and assistant** (`app/services/investigations.py`,
-  `app/api/v1/investigations.py`): authenticated create/read/list/close,
-  persisted message history, evidence attachment, AI exchange, tenant scoping,
-  and `/assistant`.
+- **Kubernetes diagnosis**: normalized pods/workloads/events/logs, structurally
+  read-only clients, deterministic rules, evidence-backed diagnoses, named
+  multi-cluster selection, and a live console.
+- **GitHub Actions diagnosis**: read-only runs/jobs/steps, bounded log excerpts,
+  deterministic failure rules, evidence, and cross-host redirect protection.
+- **Terraform plan review**: `terraform show -json` parsing, blast radius,
+  replacements/deletions, evidence, and optional AI explanation.
+- **Log analysis**: size-validated input, grouping/deduplication, stack frames,
+  redaction, evidence, and a live console. Raw analyzed log text is not persisted.
+- **Prometheus/correlation**, **runbooks**, **infrastructure-code proposals**, and
+  **investigations/assistant**: implemented and available in Free.
+- **AI explanations**: deterministic mock plus OpenAI-compatible, Groq,
+  OpenRouter, and Anthropic adapters. AI is optional and never authoritative.
+  Privacy mode blocks external transmission. Prompt evidence is escaped and
+  delimited as untrusted data.
 
-### Authorization, tenancy, and security
+### Deployment, quality, and operations
 
-- Roles: `admin` and `member`; admin-only `/api/v1/admin/users` and
-  `/api/v1/admin/tenants`.
-- Per-tenant settings and audit scoping; admin retention is itself audited.
-- Production always requires authentication even if `AUTH_REQUIRED` is unset.
-- Security headers (`nosniff`, frame denial, referrer policy, permissions policy,
-  API CSP, production HSTS).
-- Session revocation on deactivation; `Secure` cookies off localhost.
-
-### Verification
-
-- Backend: **180 tests passing**; `ruff check` clean.
-- Frontend: ESLint and TypeScript clean; production build succeeds with **33
-  routes**.
-- Dependency-free release route smoke: **16 routes** return a real HTML document
-  from the production build (`npm run smoke`).
-- Browser-verified earlier: dashboard, sign-in/sign-out, Kubernetes, CI/CD,
-  Terraform, logs, assistant, audit, settings, homepage, desktop, and mobile.
-  The new runbooks, metrics, and infra-code pages are covered by lint, build, and
-  HTTP smoke; an interactive browser pass is still recommended before release.
-- Live Kubernetes was verified against a local Kind cluster on the Windows host.
-  Live GitHub testing still requires a fresh read-only token in the server
-  environment.
+- Non-root backend/frontend images, local Compose, external-PostgreSQL production
+  Compose, Helm with a pre-install/pre-upgrade migration Job, optional
+  Kubernetes/Terraform wrapper, NetworkPolicies (off by default), and rollback.
+- GitHub Actions for CI, approved image release, approved deploy, and rollback.
+  Production promotion requires protected environments; repository operators
+  must configure required reviewers.
+- Backend gates: **267 tests**, **82.9%** line+branch coverage over `backend/app`,
+  Ruff, formatting, mypy, Bandit, pip-audit, Alembic checks, and pytest.
+- Frontend gates: ESLint, TypeScript, production build (**43 routes**), npm audit,
+  clean `npm ci --ignore-scripts`, and a standalone smoke test covering **16 HTML
+  routes plus robots, sitemap, icon, and the branded 404**.
+- Deployment checks: `helm lint` and `helm template`, kubeconform, both Compose
+  configs, Terraform fmt/init/validate, actionlint, hadolint, and pre-commit.
 
 ## Remaining and blocked
 
 1. **Credential rotation** — the previously exposed GitHub token and OpenRouter
-   key must be revoked/rotated before any live verification or deployment.
-2. **Live GitHub verification** — needs a fresh fine-grained token with
+   key must be revoked and replaced before live integration verification.
+2. **Live GitHub verification** — needs a fresh read-only fine-grained token with
    `Actions: read`, `Contents: read`, and `Metadata: read`.
-3. **Windows checkout sync** — `D:\sre-copilot\openai-agent` is outside this
-   environment. Sync the working tree, use Windows kubeconfig paths (not WSL
-   `/home/...`), restart both services, and run the release checklist.
-4. **Full browser E2E** — no browser test runner is installed and adding one
-   requires an explicit dependency decision. The current gate is backend tests +
-   frontend lint/build + dependency-free HTTP route smoke. See
-   [`docs/TESTING.md`](docs/TESTING.md).
-5. **Hardening follow-ups** — shared (Redis-backed) rate limiting, dependency and
-   image scanning, CSRF/SSRF review, prompt-injection regression tests,
-   encryption-at-rest/key management, and deployment-specific backup/restore.
-6. **Do not commit** `frontend/public/SRE_Copilot_Build_Report.pdf`; it is a local
-   artifact and remains untracked.
+3. **Live deployment verification** — no Docker daemon or Kubernetes cluster is
+   available here, so image builds, registry pushes, and a live Helm install
+   remain unverified.
+4. **Windows checkout sync** — `D:\sre-copilot\openai-agent` is outside this
+   environment. Sync the branch, run migrations, restart both services, and run
+   the release checklist with Windows kubeconfig paths.
+5. **Browser E2E** — the dependency-free HTTP smoke is the current UI gate. A
+   browser runner requires an explicit dependency/runner decision.
+6. **Hardening follow-ups** — shared/edge rate limiting, KMS/HSM key rotation,
+   DNS pinning/egress allow-listing, and a third-party penetration test.
+7. **Public marketing review** — customer references, support address, and legal
+   terms must be supplied by the operator before public launch. No fake examples
+   should be reintroduced.
+8. **Do not commit** `frontend/public/SRE_Copilot_Build_Report.pdf` or
+   `docs/SRE_Copilot_Build_Report.pdf`; they are local artifacts.
 
 ## Operational notes
 
-- Kubernetes, GitHub, Terraform, Prometheus, and infrastructure-code paths are
-  read-only. Generated code and remediation are proposals only.
-- Multi-cluster selection is supported through `KUBERNETES_CLUSTERS` JSON; the
-  legacy single-target settings remain a fallback.
-- AI keys stay server-side. Only redacted evidence summaries and the question are
-  sent to an external provider; `AI_PRIVACY_MODE=true` or the per-tenant privacy
-  override blocks them entirely.
-- GitHub needs a fine-grained token with `Actions: read`, `Contents: read`, and
-  `Metadata: read` only. Never grant write scopes.
-- `AUTH_REQUIRED` is off by default for the local demo, but production always
-  enforces authentication. Set it explicitly in any shared environment.
-- Do not expose the API publicly until the hardening follow-ups and release
-  checklist are complete.
+- Infrastructure paths are read-only; generated infrastructure code is
+  proposal-only and is never applied by SRE Copilot.
+- `AUTH_REQUIRED` may be off for the local demo, but production always requires
+  authentication.
+- External AI keys stay server-side. Only redacted evidence summaries and the
+  operator's question are sent; `AI_PRIVACY_MODE` blocks transmission.
+- `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SITE_URL` are build-time frontend
+  values. Changing them at container runtime does not update the browser bundle.
+- Before exposing the API, complete the blocked credential, live-deployment, and
+  hardening items above and follow [`docs/RELEASE.md`](docs/RELEASE.md).

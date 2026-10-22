@@ -5,10 +5,36 @@ Working branch: `chore/production-readiness`
 Baseline commit: `85ef4d9` (`Change the UI`)
 Scope: backend, frontend, tests, CI, deployment configuration, and documentation.
 
-> This audit is the starting point for the production-readiness phases. Findings
-> are fixed in later phases and tracked in [`CHANGELOG.md`](../CHANGELOG.md).
-> Nothing in this document should be read as a claim that the application is
-> already production-ready.
+> **Historical document.** This is the Phase 0 audit, preserved to show the
+> starting point. It is not the current status. Use
+> [`BUILD_STATUS.md`](../BUILD_STATUS.md) and [`ROADMAP.md`](ROADMAP.md) for the
+> current implementation and [`SECURITY.md`](SECURITY.md) for remaining risk.
+> The counts and code descriptions below are from the baseline.
+
+## Resolution snapshot
+
+| Finding | Current state |
+|---------|---------------|
+| C1 auth/recovery/verification | Implemented, including lockout and email verification when delivery is configured |
+| C2 sessions/CSRF | Rotation, idle/absolute expiry, CSRF tokens, secure cookies |
+| C3 authorization | Owner/admin/member/viewer with workspace-scoped admin APIs |
+| C4 tenancy | Organizations, memberships, workspace switching, personal/shared workspaces |
+| C5 plans/metering | Backend catalog, entitlements, usage metering; billing intentionally disabled |
+| C6 deployment | Non-root images, Compose, Helm migration Job, Terraform wrapper, approval workflows, rollback; live install unverified |
+| C7 observability/recovery | Prometheus, optional OTel/Sentry, readiness, backup/restore scripts/docs |
+| C8 config/credentials | Production fail-fast checks implemented; exposed credentials still require rotation |
+| C9 hygiene | Backend lockfile, ignored reports, removed redundant environment files |
+| H1 CSRF/SSRF | CSRF and outbound URL policy implemented |
+| H2 rate limiting | Trusted-proxy-aware per-process limits; shared/edge limiter remains open |
+| H3 password hashing | Argon2id with legacy rehash-on-login |
+| H4 request limits/idempotency | Streaming body cap and `Idempotency-Key` support |
+| H5 audit coverage | Expanded, redacted, workspace-scoped events; continue reviewing new routes |
+| H6 retention/export | Retention and account deletion implemented; self-service data export remains open |
+| H7 background work | Opt-in durable encrypted retrying jobs; synchronous request paths remain for diagnosis |
+| H8 tests/scanning | Coverage gate, pre-commit, dependency and image scanning, HTTP smoke; browser E2E open |
+| H9/H10 marketing honesty | Live statuses corrected; fabricated logos/testimonials/metrics/uptime claim removed |
+| M1–M10 | Pooling, validation, SEO, docs, and legal copy improved; browser E2E, test-fixture isolation, shared limiter, and some readiness depth remain open |
+
 
 ## Baseline verification
 
@@ -150,7 +176,7 @@ Items marked **blocker** must be fixed before a public SaaS deployment.
 - Generated infrastructure code is a proposal for human review.
 - Demo mode serves labelled fixtures. It must never be presented as live data.
 - Secrets are operator-managed environment values, not editable through the UI.
-- Public signup does not grant administrator access.
+- Public signup owns only a personal workspace; it never grants access to another workspace.
 
 ## Phase mapping
 

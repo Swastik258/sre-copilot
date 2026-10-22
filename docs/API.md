@@ -58,35 +58,61 @@ Configuration state is not reachability.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| POST | `/api/v1/auth/signup` | Create an account and session |
+| POST | `/api/v1/auth/signup` | Create an account, personal workspace, and session |
 | POST | `/api/v1/auth/login` | Create a session |
+| POST | `/api/v1/auth/refresh` | Rotate a session within its idle/absolute TTL |
 | POST | `/api/v1/auth/logout` | Revoke the current session |
 | GET | `/api/v1/auth/me` | Current user |
-| GET | `/api/v1/admin/users?tenant_id=&page=&page_size=` | List users (admin only) |
-| PATCH | `/api/v1/admin/users/{user_id}` | Change role, tenant, or activation (admin only) |
-| GET | `/api/v1/admin/tenants` | List tenants and user counts (admin only) |
+| POST | `/api/v1/auth/forgot-password` | Request a single-use recovery link |
+| POST | `/api/v1/auth/reset-password` | Complete recovery and revoke sessions |
+| POST | `/api/v1/auth/verify-email` | Consume a verification token |
+| GET | `/api/v1/admin/users?tenant_id=&page=&page_size=` | List users (owner/admin only) |
+| PATCH | `/api/v1/admin/users/{user_id}` | Change role or activation (owner/admin only) |
+| GET | `/api/v1/admin/tenants` | List the active workspace (owner/admin only) |
 
-`UserOut` includes `id`, `email`, `display_name`, `role` (`admin` or `member`),
-`tenant_id`, `is_active`, and `created_at`.
+`UserOut` includes `id`, `email`, `display_name`, `role` (`owner`, `admin`,
+`member`, or `viewer`), `tenant_id`, `is_active`, and `created_at`.
 
-Every public signup is a `member` in `DEFAULT_TENANT_ID`. Administrator
-privileges must be granted from a trusted backend shell with
-`python scripts/set_admin.py account@example.com`; signup email or registration
-order never grants admin access. Admins can move a member to another tenant; their investigations are migrated.
-The last active admin cannot be demoted or deactivated, and deactivation revokes
-the member's sessions.
+With the default configuration, every public signup owns a new personal
+workspace. A configured non-default `DEFAULT_TENANT_ID` creates a shared
+workspace and new accounts join as `member`. Signup email or registration order
+never grants access to another workspace. Shared-workspace administrator
+recovery can use `python scripts/set_admin.py account@example.com` from a trusted
+backend shell. Admin APIs are scoped to the active workspace and cannot move a
+user to another tenant; use the organizations API for membership changes. The
+last active owner/administrator cannot be demoted or deactivated, and
+deactivation revokes the member's sessions.
 
 Example admin update:
 
 ```json
 {
   "role": "member",
-  "tenant_id": "team-payments",
   "is_active": true
 }
 ```
 
-All fields are optional. Invalid tenant IDs return `422 validation_error`.
+All fields are optional. A `tenant_id` that differs from the active workspace
+returns `403 forbidden`.
+
+### Workspaces and membership
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/v1/organizations` | List the caller's workspaces and active ID |
+| POST | `/api/v1/organizations` | Create a workspace owned by the caller |
+| GET | `/api/v1/organizations/{id}` | Read a workspace where the caller is a member |
+| PATCH | `/api/v1/organizations/{id}` | Rename a workspace (owner/admin) |
+| GET | `/api/v1/organizations/{id}/members` | List members |
+| POST | `/api/v1/organizations/{id}/members` | Add an existing account (owner/admin) |
+| PATCH | `/api/v1/organizations/{id}/members/{user_id}` | Change workspace role (owner/admin) |
+| DELETE | `/api/v1/organizations/{id}/members/{user_id}` | Remove a member; last owner is protected |
+| POST | `/api/v1/organizations/{id}/switch` | Set the caller's active workspace |
+
+Membership changes update the active workspace mirror but do not move existing
+investigations or audit events between workspaces. Removing a member does not
+delete the workspace records they created; the removed account keeps any other
+memberships, or becomes owner of a new personal workspace.
 
 ### Customer account settings
 
@@ -130,8 +156,8 @@ serve labelled fixtures (`demo: true`).
 | POST | `/api/v1/kubernetes/pods/{namespace}/{name}/diagnose?log_tail_lines=&cluster=` | Evidence-backed diagnosis |
 
 The diagnose response returns a `Diagnosis` (confirmed observations, hypotheses,
-read-only next steps, approval-gated remediation, confidence and its basis) plus
-the `Evidence` records it cites.
+read-only next steps, review-only remediation suggestions, confidence and its
+basis) plus the `Evidence` records it cites. No remediation is executed.
 
 Configure one legacy target:
 
@@ -219,9 +245,10 @@ unavailable or privacy mode blocks the provider. See `docs/TERRAFORM_REVIEW.md`.
 | POST | `/api/v1/ai/summarize` | Alias for the same operation |
 
 The response is a `StructuredDiagnosis`: summary, confidence, cited hypotheses,
-read-only next steps, risks, unknowns, and approval-gated proposed remediation.
-It is labelled `model_generated: true` except for the deterministic mock.
-Deterministic diagnosis remains authoritative.
+read-only next steps, risks, unknowns, and review-only proposed remediation. It
+is labelled `model_generated: true` except for the deterministic mock.
+Deterministic diagnosis remains authoritative, and no suggested change is
+executed by the product.
 
 Only evidence **summaries** and the question are sent to the provider. Payloads
 and credentials are not forwarded. Providers: `mock`, `openai`, `openrouter`,
@@ -333,8 +360,9 @@ baseline policy issues are reported, not fixed.
 
 ## Investigations and assistant
 
-Authenticated. Members see only their own investigations; admins may inspect
-across tenants.
+Authenticated. Members and viewers see only their own investigations. Owners and
+admins see all investigations in their active workspace; cross-tenant access is
+never granted by role.
 
 | Method | Path | Purpose |
 |--------|------|---------|
@@ -370,12 +398,13 @@ per-tenant privacy policy, and returns an AI `StructuredDiagnosis`.
 |--------|------|---------|
 | GET | `/api/v1/audit-events?limit=&offset=&action=&actor=&decision=&before=&after=` | Filtered audit trail |
 | GET | `/api/v1/audit-events/export.csv` | CSV export |
-| DELETE | `/api/v1/audit-events?older_than_days=` | Delete old events (admin only) |
+| DELETE | `/api/v1/audit-events?older_than_days=` | Delete old events in the active workspace (owner/admin only) |
 
-Members see only audit events they created, within their tenant; admins can
-inspect across tenants. Resource and outcome payloads are redacted before
-persistence. Retention is admin-only, currently applies across all tenants, and
-is itself audited.
+Members and viewers see only audit events they created. Owners and admins see
+all events in their active workspace. Reads, exports, and retention are always
+workspace-scoped and never cross a tenant boundary. Resource and outcome
+payloads are redacted before persistence. Retention is owner/admin-only and is
+itself audited.
 
 ---
 
@@ -384,7 +413,7 @@ is itself audited.
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/api/v1/settings` | Per-tenant operational settings |
-| PATCH | `/api/v1/settings` | Update settings (admin only) |
+| PATCH | `/api/v1/settings` | Update settings (owner/admin only) |
 
 Writable fields: `audit_retention_days`, `ai_privacy_mode`, and
 `default_environment`. Provider keys, tokens, and connection strings are

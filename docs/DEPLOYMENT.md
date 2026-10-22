@@ -4,7 +4,7 @@
 > wrapper, release/deploy/rollback workflows, and frontend standalone server have
 > been validated locally where tooling allowed: `helm lint`/`helm template`,
 > Kubernetes schema validation, `docker compose config`, `terraform
-> fmt`/`validate`, frontend standalone build + 16-route smoke. A container image
+> fmt`/`validate`, frontend standalone build + route/metadata smoke. A container image
 > has **not** been built in this environment and no live cluster or registry
 > deployment was performed. The deploy workflow requires a protected GitHub
 > Environment with a human reviewer before it can run.
@@ -20,7 +20,8 @@ TLS ingress / load balancer
 
 backend -> PostgreSQL (external, TLS recommended)
         -> optional GitHub / Prometheus / Kubernetes / AI APIs (all read-only)
-frontend -> browser; NEXT_PUBLIC_API_URL is compiled at image build time
+frontend -> browser; NEXT_PUBLIC_API_URL, NEXT_PUBLIC_SITE_URL, and the optional
+            NEXT_PUBLIC_SUPPORT_EMAIL are compiled at image build time
 ```
 
 The API listens on port 8000. The frontend serves the Next.js standalone server
@@ -36,6 +37,8 @@ root filesystem.
 docker build -t ghcr.io/OWNER/sre-copilot-backend:VERSION ./backend
 docker build \
   --build-arg NEXT_PUBLIC_API_URL=https://app.example.com \
+  --build-arg NEXT_PUBLIC_SITE_URL=https://app.example.com \
+  --build-arg NEXT_PUBLIC_SUPPORT_EMAIL=support@example.com \
   -t ghcr.io/OWNER/sre-copilot-frontend:VERSION ./frontend
 ```
 
@@ -91,9 +94,9 @@ that the Secret exists; it does not create or print it.
 ### Local
 
 ```sh
-cd deploy
-cp ../.env.example ../.env   # optional; defaults are local-only
-docker compose up --build
+# From the repository root
+cp .env.example .env   # optional; defaults are local-only
+docker compose --env-file .env -f deploy/docker-compose.yml up --build
 ```
 
 The local stack binds published ports to `127.0.0.1` by default, runs the
@@ -155,8 +158,10 @@ helm upgrade --install sre-copilot deploy/helm/sre-copilot \
 
 Set `backend.env.CORS_ORIGINS`, `APP_BASE_URL`, and
 `OAUTH_REDIRECT_BASE_URL` to the public HTTPS origin. The frontend image must
-already have been built with the same `NEXT_PUBLIC_API_URL`; changing it at
-runtime does not rewrite the client bundle.
+already have been built with the same `NEXT_PUBLIC_API_URL` and
+`NEXT_PUBLIC_SITE_URL`; changing either at runtime does not rewrite the client
+bundle. `NEXT_PUBLIC_SUPPORT_EMAIL` is optional and controls whether a public
+support address is rendered.
 
 Useful controls:
 
@@ -192,8 +197,9 @@ restore; see [OBSERVABILITY.md](OBSERVABILITY.md).
 3. Environment variables: `APP_URL`, `INGRESS_HOST`, `APP_SECRET_NAME`,
    `INGRESS_CLASS` (default `nginx`), optional `TLS_SECRET_NAME`, optional
    `TRUSTED_PROXY_IPS`.
-4. Repository variable: `NEXT_PUBLIC_API_URL` set to the public HTTPS origin used
-   when building the frontend image.
+4. Repository variables: `NEXT_PUBLIC_API_URL` (public HTTPS API origin),
+   `NEXT_PUBLIC_SITE_URL` (public HTTPS frontend origin for canonical metadata,
+   robots, and sitemap), and optionally `NEXT_PUBLIC_SUPPORT_EMAIL`.
 5. Make GHCR packages readable by the target cluster, or configure an image pull
    Secret and `imagePullSecrets`.
 
@@ -201,8 +207,8 @@ restore; see [OBSERVABILITY.md](OBSERVABILITY.md).
 
 `.github/workflows/release.yml` builds and pushes both images to GHCR on a `v*`
 tag or manual dispatch. It refuses to build the frontend without
-`NEXT_PUBLIC_API_URL`, adds SBOM/provenance metadata, and publishes both the
-version and `sha-*` tags. It does **not** deploy.
+`NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SITE_URL`, adds SBOM/provenance metadata,
+and publishes both the version and `sha-*` tags. It does **not** deploy.
 
 ### Deploy
 
