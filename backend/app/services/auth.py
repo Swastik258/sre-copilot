@@ -149,6 +149,11 @@ def create_user(
         email_verified_at=None,
     )
     try:
+        # organizations.created_by references users.id. Flush the user first so
+        # SQLite/Postgres foreign-key checks see the referenced row. This order
+        # is explicit rather than relying on unit-of-work heuristics.
+        db.add(user)
+        db.flush()
         organization = db.get(Organization, organization_id) if join_shared_workspace else None
         if organization is None:
             # Each public signup owns a personal workspace, or a configured
@@ -170,9 +175,6 @@ def create_user(
                 plan_id="free",
                 created_by=user.id,
             )
-        # Add both before flushing: SQLAlchemy orders the user insert before the
-        # organization because organizations.created_by references users.
-        db.add(user)
         if organization not in db:
             db.add(organization)
         db.flush()
@@ -242,7 +244,9 @@ def create_external_user(
         created_by=user.id,
     )
     try:
+        # See create_user: the created_by foreign key requires the user row.
         db.add(user)
+        db.flush()
         db.add(organization)
         db.flush()
         db.add(

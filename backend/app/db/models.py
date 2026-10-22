@@ -193,6 +193,55 @@ class BillingWebhookEvent(Base):
     )
 
 
+class BackgroundJob(Base):
+    """Durable, retrying work item with an encrypted payload."""
+
+    __tablename__ = "background_jobs"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    kind: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    dedupe_key: Mapped[str | None] = mapped_column(
+        String(160), unique=True, nullable=True
+    )
+    encrypted_payload: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(24), default="pending", nullable=False, index=True
+    )
+    attempts: Mapped[int] = mapped_column(default=0, nullable=False)
+    max_attempts: Mapped[int] = mapped_column(default=5, nullable=False)
+    available_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False, index=True
+    )
+    last_error: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+
+class IdempotencyRecord(Base):
+    """A reserved and optionally cached response for an Idempotency-Key."""
+
+    __tablename__ = "idempotency_records"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    scope_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    status_code: Mapped[int | None] = mapped_column(nullable=True)
+    response_body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    response_headers: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
+
+
 class AuthSession(Base):
     """A server-side browser session for local auth.
 
@@ -401,4 +450,15 @@ Index(
     "ix_billing_webhook_events_provider_received",
     BillingWebhookEvent.provider,
     BillingWebhookEvent.received_at,
+)
+Index(
+    "ix_background_jobs_status_available",
+    BackgroundJob.status,
+    BackgroundJob.available_at,
+)
+Index(
+    "ix_idempotency_scope_key",
+    IdempotencyRecord.scope_hash,
+    IdempotencyRecord.idempotency_key,
+    unique=True,
 )

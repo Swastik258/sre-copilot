@@ -1,14 +1,13 @@
 # Security
 
-> **Honest status.** Local authentication now includes Argon2id password
-> hashing, password policy, email verification and recovery hooks, account
-> lockout, rotating opaque sessions, CSRF double-submit protection, optional
-> Google/GitHub OAuth, organizations, role-based authorization, and tenant-scoped
-> audit records. Shared rate limiting, dependency/image scanning, a complete
-> SSRF review, prompt-injection regression coverage, and application-level
-> encryption/key management remain open. Do not expose the API to untrusted
-> networks until the release checklist and the "Remaining controls" below are
-> complete.
+> **Honest status.** Authentication, organizations, role-based authorization,
+> tenant-scoped audit records, CSRF, streaming request caps, proxy-aware rate
+> limits, API idempotency, outbound URL policy, prompt-injection boundaries,
+> encrypted durable job payloads, and retrying background jobs are implemented
+> and covered by backend tests. Shared multi-instance rate limiting, dependency
+> and image scanning, DNS pinning/egress controls, external key management, and
+> browser E2E remain open. Do not expose the API to untrusted networks until the
+> release checklist and the "Remaining controls" below are complete.
 
 ## Threat model (summary)
 
@@ -41,8 +40,12 @@ protection.
 | Log redaction filter | `app/core/logging.py` | Redacts formatted records before emission. |
 | Correlation IDs | `app/core/request_context.py` | `X-Request-ID` on every request/response. |
 | Consistent error envelope | `app/core/errors.py` | Internal errors never leak stack traces to clients. |
-| Request size limit | `app/core/ratelimit.py` | `MAX_REQUEST_BYTES` (default 2 MB). |
-| Rate limiting | `app/core/ratelimit.py` | In-memory sliding window; disabled locally by default, production defaults to 120/min. |
+| Request size limit | `app/core/ratelimit.py` | Streaming `MAX_REQUEST_BYTES` cap (default 2 MB); rejects lying or chunked oversized bodies. |
+| Rate limiting | `app/core/ratelimit.py` | In-memory sliding window, separate auth-write budget, standard `RateLimit-*` headers, optional trusted-proxy handling. Production defaults to 120/min and 10 auth writes/min. |
+| API idempotency | `app/core/idempotency.py` | Opt-in `Idempotency-Key` reserves, caches, and replays successful JSON mutations; conflicting reuse is `409`; auth/webhook routes are excluded. |
+| Outbound URL policy | `app/core/urls.py` | Rejects non-HTTP(S), embedded credentials, queries/fragments, and cloud-metadata endpoints; production requires HTTPS for configured external base URLs. |
+| Durable jobs | `app/services/jobs.py`, `app/services/job_handlers.py` | Database-backed retries with bounded attempts/backoff, encrypted payloads, maintenance scheduling, and graceful worker shutdown. |
+| Payload encryption | `app/security/encryption.py` | Fernet envelope encryption for queued email tokens; no plaintext secret in job rows; tamper detection. |
 | Security headers | `app/core/security.py` | `nosniff`, frame denial, referrer policy, permissions policy, API CSP, production HSTS. |
 | CORS allowlist | `app/main.py` | Explicit origins; methods/headers enumerated. |
 | Integration status without secrets | `app/services/integrations.py` | Reports configuration state only; never returns tokens. |
@@ -68,6 +71,8 @@ protection.
 | GitHub read-only adapter | `app/adapters/github/client.py` | Only `GET`; no dispatch/re-run/cancel path; token stripped on cross-host log redirects. |
 | Terraform value omission | `app/services/terraform_review.py` | Attribute names and change metadata only, never plan values. |
 | AI evidence minimisation | `app/services/ai.py` | Sends redacted evidence summaries and the question only; privacy mode blocks external providers. |
+| Prompt-injection boundary | `app/services/ai.py`, `tests/unit/test_prompt_boundaries.py` | Evidence is delimited as untrusted data and the system prompt forbids following embedded instructions or requesting writes. |
+| Database hardening | `app/db/session.py` | PostgreSQL pool sizing/overflow/timeout/recycle and pre-ping; SQLite foreign keys and busy timeout enabled. |
 | Proposal-only infra code | `app/services/infra_code.py` | Deterministic files and policy findings; no write/apply path. |
 
 ## Production deployment policy
@@ -81,7 +86,17 @@ protection.
   local environments; HSTS is emitted in production.
 - Keep `CORS_ORIGINS` to the exact frontend origin and never combine it with `*`.
 - Use Postgres and Alembic migrations (`AUTO_CREATE_SCHEMA` is for local SQLite).
-- Set an explicit `RATE_LIMIT_PER_MINUTE` if 120/min is not appropriate.
+- Set an explicit `RATE_LIMIT_PER_MINUTE` if 120/min is not appropriate. If an
+  ingress proxy is used, list only its address(es) in `TRUSTED_PROXY_IPS`; never
+  trust `X-Forwarded-For` from an arbitrary client.
+- Enable `BACKGROUND_JOBS_ENABLED=true` and set a valid
+  `CREDENTIAL_ENCRYPTION_KEY` whenever email delivery is enabled. The key must
+  come from a secret manager; queued payloads are unreadable without it.
+- Size the PostgreSQL pool for the process count (`DATABASE_POOL_SIZE`,
+  `DATABASE_MAX_OVERFLOW`, timeouts/recycle). Use an external connection pooler
+  when running many replicas.
+- Clients that retry mutations should send a unique `Idempotency-Key`; replayed
+  responses carry `Idempotency-Replayed: true`.
 - Each public signup owns a personal workspace as `owner`. Add teammates through
   `POST /api/v1/organizations/{id}/members`; workspace owners/admins manage roles
   there. The legacy `scripts/set_admin.py` remains available for trusted local
@@ -97,22 +112,29 @@ protection.
 
 ## Remaining controls
 
-- **Shared rate limiting** — the current limiter is per-process/in-memory; a
-  multi-instance deployment should use Redis or an edge limiter.
-- **Dependency and image scanning** — not wired into CI yet.
-- **Distributed auth rate limits** — per-account lockout is durable, but IP-level
-  throttling remains per process. Use an edge/Redis limiter for multi-instance
-  deployments.
-- **SSRF review** — integration endpoints use configured server-side URLs, and
-  OAuth uses fixed provider hosts. A comprehensive egress-address policy and
-  metadata-endpoint denial still need to be implemented and tested.
-- **Prompt-injection defences** — AI providers receive only redacted evidence
-  summaries, but logs and summaries are untrusted data. Regression tests and
-  stronger isolation are still needed.
-- **Encryption at rest / key management** — delegated to the database and
-  deployment platform; no application-level envelope encryption.
-- **Retention scheduling** — retention can be applied by an admin, but there is
-  no scheduler/worker yet.
+- **Shared rate limiting** — the limiter is still per-process/in-memory. Use an
+  edge limiter or Redis for a multi-instance deployment; do not treat this as a
+  distributed quota.
+- **Dependency and image scanning** — scheduled for the CI phase; not yet wired
+  into an enforced workflow.
+- **SSRF completion** — configuration URLs are validated and metadata endpoints
+  are rejected, but there is no DNS-resolution pinning or network egress policy.
+  Run the API with an egress allow-list/firewall for defence in depth.
+- **Key management** — job payloads use application encryption with a static
+  Fernet key from the environment. There is no KMS/HSM integration, automatic
+  rotation, or envelope re-encryption job yet.
+- **Encryption at rest** — database/volume encryption remains the deployment
+  platform's responsibility; application encryption covers queued job payloads
+  only.
+- **Background worker scale-out** — jobs are safe for one worker. Multiple
+  workers can race on PostgreSQL unless selected with row locks; deploy one
+  worker or add `SKIP LOCKED` leasing before scaling out.
+- **Retention completeness** — the worker can enqueue per-workspace audit
+  retention when enabled. Investigation/evidence soft-delete and a full data
+  retention matrix are still to be completed.
+- **Prompt isolation** — the model is instructed to treat evidence as untrusted
+  and has no tools, but model output is still untrusted text and must be
+  validated before display. No agentic execution path exists.
 - **Browser E2E** — the release gate uses backend tests, frontend lint/build, and
   dependency-free HTTP route smoke. Public auth/recovery/OAuth pages have no
   browser automation yet; a browser runner needs an explicit dependency decision.

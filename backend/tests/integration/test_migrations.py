@@ -30,6 +30,8 @@ EXPECTED_TABLES = {
     "subscriptions",
     "usage_events",
     "billing_webhook_events",
+    "background_jobs",
+    "idempotency_records",
 }
 
 
@@ -65,6 +67,12 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
         audit_columns = {
             row[1] for row in con.execute("PRAGMA table_info(audit_events)")
         }
+        job_columns = {
+            row[1] for row in con.execute("PRAGMA table_info(background_jobs)")
+        }
+        idempotency_columns = {
+            row[1] for row in con.execute("PRAGMA table_info(idempotency_records)")
+        }
     finally:
         con.close()
 
@@ -72,6 +80,8 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
     assert {"role", "tenant_id"} <= user_columns
     assert "tenant_id" in investigation_columns
     assert "tenant_id" in audit_columns
+    assert {"encrypted_payload", "status", "available_at"} <= job_columns
+    assert {"scope_hash", "idempotency_key", "response_body"} <= idempotency_columns
 
 
 def test_upgrade_keeps_existing_accounts_as_members(tmp_path):

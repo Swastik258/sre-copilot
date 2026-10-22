@@ -83,9 +83,14 @@ def _presented_token(request: Request) -> str | None:
 
 def _send_verification(settings, db, user, background: BackgroundTasks) -> None:
     token = auth_service.issue_email_token(db, user, auth_service.PURPOSE_VERIFY_EMAIL)
-    background.add_task(
-        send_verification_email, settings, to=user.email or "", token=token
-    )
+    if settings.effective_background_jobs:
+        from app.services.job_handlers import enqueue_verification_email
+
+        enqueue_verification_email(db, to=user.email or "", token=token)
+    else:
+        background.add_task(
+            send_verification_email, settings, to=user.email or "", token=token
+        )
 
 
 @router.post("/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
@@ -337,9 +342,14 @@ def forgot_password(
         token = auth_service.issue_email_token(
             db, user, auth_service.PURPOSE_RESET_PASSWORD
         )
-        background.add_task(
-            send_password_reset_email, settings, to=user.email, token=token
-        )
+        if settings.effective_background_jobs:
+            from app.services.job_handlers import enqueue_password_reset_email
+
+            enqueue_password_reset_email(db, to=user.email, token=token)
+        else:
+            background.add_task(
+                send_password_reset_email, settings, to=user.email, token=token
+            )
         record_event(
             db,
             action="auth.password.reset.request",

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from cryptography.fernet import Fernet
 
 from app.core.config import Settings
 from app.security.password_policy import validate_password_strength
@@ -43,6 +44,8 @@ def test_safe_production_configuration_has_no_errors() -> None:
         smtp_host="smtp.example.com",
         smtp_username="mailer",
         smtp_password="secret",
+        background_jobs_enabled=True,
+        credential_encryption_key=Fernet.generate_key().decode(),
     )
     assert settings.runtime_config_errors() == []
 

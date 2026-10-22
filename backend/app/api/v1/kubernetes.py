@@ -30,6 +30,10 @@ def _client(cluster: str | None = None):
     return build_kubernetes_client(get_settings(), cluster)
 
 
+def _page(items: list, limit: int, offset: int) -> list:
+    return items[offset : offset + limit]
+
+
 @router.get("/clusters", response_model=ClustersResponse)
 def list_clusters() -> ClustersResponse:
     settings = get_settings()
@@ -40,27 +44,51 @@ def list_clusters() -> ClustersResponse:
 @router.get("/namespaces", response_model=NamespacesResponse)
 def list_namespaces(
     cluster: str | None = Query(default=None, max_length=120),
+    limit: int = Query(default=500, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0, le=1_000_000),
 ) -> NamespacesResponse:
     client = _client(cluster)
-    return NamespacesResponse(namespaces=client.list_namespaces())
+    items = client.list_namespaces()
+    return NamespacesResponse(
+        namespaces=_page(items, limit, offset),
+        total=len(items),
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/workloads", response_model=WorkloadsResponse)
 def list_workloads(
     namespace: str | None = Query(default=None, max_length=253),
     cluster: str | None = Query(default=None, max_length=120),
+    limit: int = Query(default=500, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0, le=1_000_000),
 ) -> WorkloadsResponse:
     client = _client(cluster)
-    return WorkloadsResponse(workloads=client.list_workloads(namespace))
+    items = client.list_workloads(namespace)
+    return WorkloadsResponse(
+        workloads=_page(items, limit, offset),
+        total=len(items),
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/pods", response_model=PodsResponse)
 def list_pods(
     namespace: str | None = Query(default=None, max_length=253),
     cluster: str | None = Query(default=None, max_length=120),
+    limit: int = Query(default=500, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0, le=1_000_000),
 ) -> PodsResponse:
     client = _client(cluster)
-    return PodsResponse(pods=client.list_pods(namespace))
+    items = client.list_pods(namespace)
+    return PodsResponse(
+        pods=_page(items, limit, offset),
+        total=len(items),
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/pods/{namespace}/{name}", response_model=PodDetailResponse)

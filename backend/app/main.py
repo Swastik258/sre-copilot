@@ -17,6 +17,7 @@ from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.csrf import CSRFMiddleware
 from app.core.errors import register_exception_handlers
+from app.core.idempotency import IdempotencyMiddleware
 from app.core.logging import configure_logging
 from app.core.ratelimit import MaxBodySizeMiddleware, RateLimitMiddleware
 from app.core.request_context import RequestContextMiddleware
@@ -58,7 +59,31 @@ def _ensure_local_schema() -> None:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     _ensure_local_schema()
-    yield
+    worker = None
+    if settings.effective_background_jobs:
+        from app.db.session import SessionLocal
+        from app.services.job_handlers import schedule_maintenance_jobs
+        from app.services.jobs import BackgroundWorker
+
+        db = SessionLocal()
+        try:
+            schedule_maintenance_jobs(db)
+        except Exception:  # noqa: BLE001 - startup continues with a clear log
+            log.exception("Could not schedule maintenance jobs")
+            db.rollback()
+        finally:
+            db.close()
+        worker = BackgroundWorker()
+        worker.start()
+    try:
+        yield
+    finally:
+        if worker is not None:
+            worker.stop()
+        from app.db.session import engine
+
+        engine.dispose()
+        log.info("Database connections released")
 
 
 app = FastAPI(
@@ -74,18 +99,37 @@ app = FastAPI(
     ),
 )
 
-# Order matters: the last middleware added is the outermost.
+# Order matters: the last middleware added is the outermost. Idempotency sits
+# inside the body limit and rate limiter, and outside the application so it can
+# capture/replay the final JSON response.
+app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(MaxBodySizeMiddleware, max_bytes=settings.max_request_bytes)
 app.add_middleware(
-    RateLimitMiddleware, limit_per_minute=settings.effective_rate_limit
+    RateLimitMiddleware,
+    limit_per_minute=settings.effective_rate_limit,
+    auth_limit_per_minute=settings.effective_auth_rate_limit,
+    trusted_proxies=settings.trusted_proxy_list,
 )
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
     allow_credentials=settings.allow_credentials,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token"],
-    expose_headers=["X-Request-ID"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Idempotency-Key",
+        "X-Request-ID",
+        "X-CSRF-Token",
+    ],
+    expose_headers=[
+        "X-Request-ID",
+        "Idempotency-Replayed",
+        "RateLimit-Limit",
+        "RateLimit-Remaining",
+        "RateLimit-Reset",
+        "Retry-After",
+    ],
     max_age=600,
 )
 if settings.effective_csrf_protection:
