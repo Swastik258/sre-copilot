@@ -60,6 +60,7 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
         user_columns = {row[1] for row in con.execute("PRAGMA table_info(users)")}
         investigation_columns = {row[1] for row in con.execute("PRAGMA table_info(investigations)")}
         audit_columns = {row[1] for row in con.execute("PRAGMA table_info(audit_events)")}
+        session_columns = {row[1]: row for row in con.execute("PRAGMA table_info(sessions)")}
         job_columns = {row[1] for row in con.execute("PRAGMA table_info(background_jobs)")}
         idempotency_columns = {
             row[1] for row in con.execute("PRAGMA table_info(idempotency_records)")
@@ -71,6 +72,7 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
     assert {"role", "tenant_id"} <= user_columns
     assert "tenant_id" in investigation_columns
     assert "tenant_id" in audit_columns
+    assert session_columns["last_used_at"][3] == 1
     assert {"encrypted_payload", "status", "available_at"} <= job_columns
     assert {"scope_hash", "idempotency_key", "response_body"} <= idempotency_columns
 

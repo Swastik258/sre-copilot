@@ -463,7 +463,7 @@ class AuditEvent(Base):
     decision: Mapped[str] = mapped_column(String(8), nullable=False)
     reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
     outcome: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    request_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    request_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_now, nullable=False
     )
