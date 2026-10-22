@@ -3,8 +3,9 @@
 > **Honest status.** Authentication, organizations, role-based authorization,
 > tenant-scoped audit records, CSRF, streaming request caps, proxy-aware rate
 > limits, API idempotency, outbound URL policy, prompt-injection boundaries,
-> encrypted durable job payloads, and retrying background jobs are implemented
-> and covered by backend tests. Shared multi-instance rate limiting, dependency
+> encrypted durable job payloads, retrying background jobs, PII-minimised
+> structured logs, Prometheus metrics, readiness checks, and optional
+> OpenTelemetry/Sentry export are implemented and covered by backend tests. Shared multi-instance rate limiting, dependency
 > and image scanning, DNS pinning/egress controls, external key management, and
 > browser E2E remain open. Do not expose the API to untrusted networks until the
 > release checklist and the "Remaining controls" below are complete.
@@ -73,6 +74,11 @@ protection.
 | AI evidence minimisation | `app/services/ai.py` | Sends redacted evidence summaries and the question only; privacy mode blocks external providers. |
 | Prompt-injection boundary | `app/services/ai.py`, `tests/unit/test_prompt_boundaries.py` | Evidence is delimited as untrusted data and the system prompt forbids following embedded instructions or requesting writes. |
 | Database hardening | `app/db/session.py` | PostgreSQL pool sizing/overflow/timeout/recycle and pre-ping; SQLite foreign keys and busy timeout enabled. |
+| Structured access logs | `app/core/observability.py`, `app/core/logging.py` | Route templates, status, duration, request/trace ids; no query strings, bodies, cookies, addresses, or users. |
+| Metrics | `app/core/prom_metrics.py`, `/metrics` | Prometheus text format with bounded labels; optional bearer token and production fail-fast. |
+| Health/readiness | `app/api/v1/health.py` | Liveness is dependency-free; readiness checks DB and production migration revision and returns 503. |
+| Optional tracing/error tracking | `app/core/telemetry.py` | OTel API spans and Sentry export are opt-in; PII disabled and event data scrubbed. |
+| Backup/restore | `deploy/backup.sh`, `deploy/restore.sh` | Verified local backups with checksums; restore requires explicit confirmation and a production guard. |
 | Proposal-only infra code | `app/services/infra_code.py` | Deterministic files and policy findings; no write/apply path. |
 
 ## Production deployment policy

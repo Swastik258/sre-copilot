@@ -7,21 +7,26 @@ consistent error handling and the versioned API router.
 from __future__ import annotations
 
 import logging
+import secrets
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.csrf import CSRFMiddleware
-from app.core.errors import register_exception_handlers
+from app.core.errors import NotFoundError, UnauthorizedError, register_exception_handlers
 from app.core.idempotency import IdempotencyMiddleware
 from app.core.logging import configure_logging
+from app.core.observability import ObservabilityMiddleware
+from app.core.prom_metrics import CONTENT_TYPE as PROMETHEUS_CONTENT_TYPE
+from app.core.prom_metrics import render as render_prometheus_metrics
 from app.core.ratelimit import MaxBodySizeMiddleware, RateLimitMiddleware
 from app.core.request_context import RequestContextMiddleware
 from app.core.security import SecurityHeadersMiddleware
+from app.core.telemetry import configure_telemetry, shutdown_telemetry
 
 configure_logging()
 
@@ -33,6 +38,8 @@ if _runtime_errors:
     raise RuntimeError(
         "Unsafe runtime configuration: " + " ".join(_runtime_errors)
     )
+
+configure_telemetry(settings)
 
 
 def _ensure_local_schema() -> None:
@@ -83,6 +90,7 @@ async def lifespan(_: FastAPI):
         from app.db.session import engine
 
         engine.dispose()
+        shutdown_telemetry()
         log.info("Database connections released")
 
 
@@ -139,7 +147,27 @@ if settings.security_headers_enabled:
         SecurityHeadersMiddleware,
         production=settings.environment == "production",
     )
+app.add_middleware(
+    ObservabilityMiddleware, access_log_enabled=settings.access_log_enabled
+)
 app.add_middleware(RequestContextMiddleware)
+
+
+@app.get("/metrics", include_in_schema=False)
+def prometheus_metrics(authorization: str | None = Header(default=None)) -> Response:
+    current = get_settings()
+    if not current.metrics_enabled:
+        raise NotFoundError("Metrics are disabled.")
+    if current.metrics_bearer_token:
+        expected = f"Bearer {current.metrics_bearer_token}"
+        if not authorization or not secrets.compare_digest(authorization, expected):
+            raise UnauthorizedError("A metrics bearer token is required.")
+    return Response(
+        content=render_prometheus_metrics(),
+        media_type=PROMETHEUS_CONTENT_TYPE,
+        headers={"Cache-Control": "no-store"},
+    )
+
 
 if settings.environment == "production" and not settings.auth_required:
     log.warning(

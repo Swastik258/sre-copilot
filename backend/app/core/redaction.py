@@ -11,10 +11,13 @@ it as the only control for storing sensitive data.
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Any
 
 REDACTED = "[REDACTED]"
+REDACTED_EMAIL = "[EMAIL]"
+_EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b")
 
 # Order matters: more specific patterns first.
 _PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -106,8 +109,13 @@ class RedactingFilter:
             # Format once, then clear args so the record is a safe plain string
             # for every handler (and so ``%``-formatting cannot fail later).
             message = record.getMessage()
-            record.msg = redact_text(message, enabled=self.enabled)
+            record.msg = _EMAIL_RE.sub(REDACTED_EMAIL, redact_text(message, enabled=self.enabled))
             record.args = ()
+            if record.exc_info:
+                traceback = logging.Formatter().formatException(record.exc_info)
+                record.exc_text = _EMAIL_RE.sub(
+                    REDACTED_EMAIL, redact_text(traceback, enabled=self.enabled)
+                )
         except Exception:  # never let redaction break logging
             pass
         record.redacted = True

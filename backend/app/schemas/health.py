@@ -6,7 +6,7 @@ compatibility with earlier clients; the remaining fields are additive.
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class HealthResponse(BaseModel):
@@ -17,6 +17,7 @@ class HealthResponse(BaseModel):
     ai_provider: str | None = None
     demo_mode: bool | None = None
     integrations_enabled: list[str] | None = None
+    checks: dict[str, str] = Field(default_factory=dict)
 
 
 class DependencyHealth(BaseModel):

@@ -21,6 +21,7 @@ from app.core.request_context import get_request_id
 _EXEMPT_PREFIXES = (
     "/api/v1/health",
     "/health",
+    "/metrics",
     "/api/docs",
     "/api/redoc",
     "/api/openapi.json",

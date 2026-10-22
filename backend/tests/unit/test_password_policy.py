@@ -46,6 +46,7 @@ def test_safe_production_configuration_has_no_errors() -> None:
         smtp_password="secret",
         background_jobs_enabled=True,
         credential_encryption_key=Fernet.generate_key().decode(),
+        metrics_bearer_token="metrics-token-012345",
     )
     assert settings.runtime_config_errors() == []
 

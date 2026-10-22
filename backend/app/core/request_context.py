@@ -8,6 +8,7 @@ and echoed back in the ``X-Request-ID`` response header.
 
 from __future__ import annotations
 
+import re
 import uuid
 from contextvars import ContextVar
 
@@ -17,6 +18,7 @@ from starlette.responses import Response
 from starlette.types import ASGIApp
 
 REQUEST_ID_HEADER = "X-Request-ID"
+_REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 
 _request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
 
@@ -40,8 +42,10 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
 
     async def dispatch(self, request: Request, call_next):  # type: ignore[override]
-        incoming = request.headers.get(REQUEST_ID_HEADER)
-        request_id = incoming.strip() if incoming and incoming.strip() else new_request_id()
+        incoming = (request.headers.get(REQUEST_ID_HEADER) or "").strip()
+        request_id = (
+            incoming if _REQUEST_ID_RE.fullmatch(incoming) else new_request_id()
+        )
 
         token = _request_id_ctx.set(request_id)
         try:

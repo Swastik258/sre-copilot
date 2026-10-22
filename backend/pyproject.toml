@@ -28,6 +28,13 @@ dev = [
 kubernetes = [
     "kubernetes>=29,<34",
 ]
+# Optional production telemetry. The app emits OpenTelemetry spans through the
+# API even without the SDK; exporters and error tracking need these packages.
+observability = [
+    "opentelemetry-sdk>=1.25,<2",
+    "opentelemetry-exporter-otlp-proto-http>=1.25,<2",
+    "sentry-sdk[fastapi]>=2,<3",
+]
 
 [tool.setuptools.packages.find]
 include = ["app*"]

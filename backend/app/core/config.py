@@ -17,7 +17,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.core.urls import https_required, validate_base_url
@@ -118,6 +118,21 @@ class Settings(BaseSettings):
     background_job_max_attempts: int = 5
     credential_encryption_key: str | None = None
     idempotency_ttl_hours: int = 24
+
+    # ---- Observability ----
+    metrics_enabled: bool = True
+    # If set, /metrics requires `Authorization: Bearer <token>`.
+    metrics_bearer_token: str | None = None
+    # Production fails fast unless a metrics token is set or this is explicitly
+    # enabled for a network-isolated scrape path.
+    metrics_allow_unauthenticated: bool = False
+    access_log_enabled: bool = True
+    otel_enabled: bool = False
+    otel_service_name: str = "sre-copilot-api"
+    otel_exporter_otlp_endpoint: str | None = None
+    otel_traces_sample_ratio: float = Field(default=0.1, ge=0.0, le=1.0)
+    sentry_dsn: str | None = None
+    sentry_traces_sample_rate: float = Field(default=0.0, ge=0.0, le=1.0)
 
     # ---- Billing (Stripe-ready, disabled by default) ----
     # No payment flow is exposed until billing_enabled is explicitly turned on
@@ -224,6 +239,7 @@ class Settings(BaseSettings):
         "openrouter_base_url",
         "anthropic_base_url",
         "openrouter_http_referer",
+        "otel_exporter_otlp_endpoint",
     )
     @classmethod
     def _validate_urls(cls, value: str | None, info: Any) -> str | None:
@@ -330,6 +346,23 @@ class Settings(BaseSettings):
             errors.append("IDEMPOTENCY_TTL_HOURS must be at least 1.")
         if self.kubernetes_enabled:
             errors.extend(self._kubernetes_config_errors())
+        if self.metrics_bearer_token and len(self.metrics_bearer_token) < 16:
+            errors.append("METRICS_BEARER_TOKEN must be at least 16 characters.")
+        if self.otel_enabled and self.otel_exporter_otlp_endpoint:
+            from importlib.util import find_spec
+
+            if find_spec("opentelemetry.sdk") is None:
+                errors.append(
+                    "OTEL_ENABLED with an OTLP endpoint requires the observability extra "
+                    "(opentelemetry-sdk and exporter packages)."
+                )
+        if self.sentry_dsn:
+            from importlib.util import find_spec
+
+            if find_spec("sentry_sdk") is None:
+                errors.append(
+                    "SENTRY_DSN requires the observability extra (sentry-sdk)."
+                )
 
         if self.environment != "production":
             return errors
@@ -357,6 +390,15 @@ class Settings(BaseSettings):
         if self.email_delivery != "disabled" and not self.background_jobs_enabled:
             errors.append(
                 "BACKGROUND_JOBS_ENABLED=true is required in production for durable email delivery."
+            )
+        if (
+            self.metrics_enabled
+            and not self.metrics_bearer_token
+            and not self.metrics_allow_unauthenticated
+        ):
+            errors.append(
+                "METRICS_BEARER_TOKEN is required in production unless "
+                "METRICS_ALLOW_UNAUTHENTICATED=true is set for a private scrape path."
             )
         for name, value in (
             ("GITHUB_API_URL", self.github_api_url),

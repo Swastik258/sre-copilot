@@ -19,6 +19,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.prom_metrics import JOBS_PROCESSED
 from app.core.redaction import redact_text
 from app.db.models import BackgroundJob
 from app.db.session import SessionLocal
@@ -146,6 +147,7 @@ def process_due_jobs(limit: int = 10) -> int:
                 job.completed_at = _now()
                 job.encrypted_payload = ""
                 db.commit()
+                JOBS_PROCESSED.labels(status="succeeded").inc()
     finally:
         db.close()
     return processed
@@ -171,6 +173,7 @@ def _fail(db: Session, job: BackgroundJob, message: str) -> None:
             delay,
         )
     db.commit()
+    JOBS_PROCESSED.labels(status=job.status).inc()
 
 
 class BackgroundWorker:
