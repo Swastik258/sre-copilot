@@ -29,8 +29,8 @@ export const PLANS: Record<PlanId, { name: string }> = {
 export const FEATURES: readonly FeatureAccess[] = [
   { id: "overview", label: "Overview", href: "/dashboard", routePaths: ["/dashboard"], includedIn: ["free", "pro", "team"], status: "live" },
   { id: "kubernetes", label: "Kubernetes diagnostics", href: "/kubernetes", routePaths: ["/kubernetes"], includedIn: ["free", "pro", "team"], status: "live" },
-  { id: "logs", label: "Log analysis", href: "/dashboard/coming-soon?feature=logs", routePaths: ["/logs"], includedIn: ["free", "pro", "team"], status: "planned" },
-  { id: "terraform", label: "Terraform plan explainer", href: "/dashboard/coming-soon?feature=terraform", routePaths: ["/terraform"], includedIn: ["free", "pro", "team"], status: "planned" },
+  { id: "logs", label: "Log analysis", href: "/logs", routePaths: ["/logs"], includedIn: ["free", "pro", "team"], status: "live" },
+  { id: "terraform", label: "Terraform plan explainer", href: "/terraform", routePaths: ["/terraform"], includedIn: ["free", "pro", "team"], status: "live" },
   { id: "cicd", label: "CI/CD", href: "/cicd", routePaths: ["/cicd"], includedIn: ["free", "pro", "team"], status: "live" },
   { id: "history", label: "Investigation history", href: "/history", routePaths: ["/history"], includedIn: ["free", "pro", "team"], status: "live" },
   { id: "settings", label: "Settings", href: "/settings", routePaths: ["/settings"], includedIn: ["free", "pro", "team"], status: "live" },

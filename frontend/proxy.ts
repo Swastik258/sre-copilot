@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Route prefixes that require a session. Must match the backend cookie name. */
-const PROTECTED_PREFIXES = ["/dashboard"];
+const PROTECTED_PREFIXES = ["/dashboard", "/history", "/settings"];
 const SESSION_COOKIE = "sre_session";
 
 /**

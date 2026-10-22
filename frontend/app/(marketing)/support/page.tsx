@@ -2,10 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/support" },
   title: "Support — SRE Copilot",
   description:
     "Documentation, contact, and security disclosure information for SRE Copilot.",
 };
+
+const configuredSupportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim();
+const supportEmail =
+  configuredSupportEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(configuredSupportEmail)
+    ? configuredSupportEmail
+    : null;
 
 export default function Page() {
   return (
@@ -15,8 +22,9 @@ export default function Page() {
         Ask a specific question. Get a specific answer.
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        This is a reference implementation, so support is best-effort. Include
-        the surface, the failing state, and the evidence you expected to see.
+        Support is operated per deployment. Include the surface, the failing
+        state, and the evidence you expected to see. Never include credentials
+        or production payloads.
       </p>
 
       <div className="mt-12 grid gap-4 md:grid-cols-2">
@@ -39,14 +47,25 @@ export default function Page() {
           <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
             Email support
           </h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            Bug reports, design-partner requests, and security disclosures can
-            go to the same address. Do not include secrets or production
-            payloads.
-          </p>
-          <a href="mailto:hello@srecopilot.dev" className="btn-accent mt-6">
-            hello@srecopilot.dev
-          </a>
+          {supportEmail ? (
+            <>
+              <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
+                Bug reports, design-partner requests, and security disclosures
+                can go to the address configured by this deployment. Do not
+                include secrets or production payloads.
+              </p>
+              <a href={`mailto:${supportEmail}`} className="btn-accent mt-6">
+                {supportEmail}
+              </a>
+            </>
+          ) : (
+            <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
+              No public support address is configured for this deployment. Set
+              <code className="mx-1 font-mono">NEXT_PUBLIC_SUPPORT_EMAIL</code>
+              before publishing, or contact the operator through your internal
+              support channel.
+            </p>
+          )}
         </div>
       </div>
 

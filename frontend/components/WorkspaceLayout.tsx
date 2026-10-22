@@ -33,7 +33,6 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
-  const [plannedFeature, setPlannedFeature] = useState<string | null>(null);
   const routeFeature = featureForPath(pathname);
   const routeAllowed = !routeFeature || hasFeatureAccess(DEFAULT_PLAN, routeFeature.id);
 
@@ -56,10 +55,6 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  useEffect(() => {
-    setPlannedFeature(new URLSearchParams(window.location.search).get("feature"));
-  }, [pathname]);
-
   async function signOut() {
     await logout();
     router.replace("/");
@@ -67,7 +62,7 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
 
   if (loading || !user) {
     return (
-      <main className="workspace-shell grid min-h-screen place-items-center">
+      <main id="main-content" className="workspace-shell grid min-h-screen place-items-center">
         <p className="font-mono text-xs uppercase tracking-[.16em] text-[var(--text-muted)]">
           {loading ? "Loading workspace…" : "Redirecting to sign in…"}
         </p>
@@ -88,14 +83,11 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
         <p className={`workspace-nav-label ${collapsed ? "lg:hidden" : ""}`}>Operations</p>
         {FEATURES.map((feature) => {
           const allowed = hasFeatureAccess(DEFAULT_PLAN, feature.id);
-          const plannedActive = feature.status === "planned"
-            && pathname === "/dashboard/coming-soon"
-            && plannedFeature === feature.id;
-          const active = plannedActive || (feature.id === "overview"
+          const active = feature.id === "overview"
             ? pathname === "/dashboard"
             : feature.id === "settings"
               ? pathname === "/settings"
-              : pathname === feature.href);
+              : pathname === feature.href;
           const href = allowed ? feature.href : `/dashboard/upgrade?feature=${feature.id}`;
           return (
             <Link
@@ -210,7 +202,7 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
             <button type="button" onClick={() => void signOut()} className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">Sign out</button>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
+        <main id="main-content" className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
           {routeAllowed ? children : (
             <section className="mx-auto max-w-xl rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-8">
               <p className="font-mono text-[11px] uppercase tracking-[.16em] text-[var(--accent)]">Plan access</p>

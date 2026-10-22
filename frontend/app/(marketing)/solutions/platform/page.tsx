@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/solutions/platform" },
   title: "Platform teams — SRE Copilot",
   description:
     "Standardize evidence-backed diagnosis across the platform with a read-only contract.",
@@ -28,8 +29,9 @@ export default function Page() {
             The same evidence shape everywhere
           </h2>
           <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            Kubernetes is live today. Logs, CI/CD, and Terraform are designed to
-            emit the same structured, citable evidence when they ship.
+            Kubernetes, logs, CI/CD, Terraform, and Prometheus all emit the same
+            structured, citable evidence. Generated infrastructure changes stay
+            proposal-only.
           </p>
         </div>
         <div className="card p-6">

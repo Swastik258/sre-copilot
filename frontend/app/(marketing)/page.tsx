@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import Link from "next/link";
 import { HomepageSections } from "@/components/HomepageSections";
 import { IncidentReplay } from "@/components/IncidentReplay";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/" },
   title: "SRE Copilot — Evidence-backed infrastructure diagnosis",
   description:
     "Read-only investigation for Kubernetes, logs, CI/CD, and Terraform. Structured diagnoses separate observed facts from ranked hypotheses.",
@@ -22,15 +25,15 @@ const SURFACES = [
     index: "02",
     title: "Log analysis",
     body: "Group noisy streams, surface the first occurrence, and keep secrets out of the evidence trail.",
-    status: "Planned",
-    live: false,
+    status: "Live",
+    live: true,
   },
   {
     index: "03",
     title: "Terraform plan explainer",
     body: "Translate a plan into creates, replacements, and deletions, with destructive changes called out before apply.",
-    status: "Planned",
-    live: false,
+    status: "Live",
+    live: true,
   },
 ];
 
@@ -47,8 +50,8 @@ const STEPS = [
   },
   {
     number: "03",
-    title: "Act on the diagnosis",
-    body: "Review cited next steps, ranked hypotheses, and any approval-gated remediation with a rollback path.",
+    title: "Review the diagnosis",
+    body: "Review cited next steps and ranked hypotheses. Generated infrastructure changes are proposals only and are never applied.",
   },
 ];
 
@@ -58,6 +61,10 @@ const INCIDENT_EVENTS = [
   { time: "09:41:16", label: "Missing configuration key observed", source: "evidence: pod/logs#3" },
   { time: "09:41:21", label: "Diagnosis ready for operator review", source: "sample hypothesis" },
 ];
+
+const showWalkthrough = existsSync(
+  path.join(process.cwd(), "public", "media", "sre-copilot-walkthrough.mp4"),
+);
 
 export default function Page() {
   return (
@@ -170,7 +177,7 @@ export default function Page() {
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <div className="text-sm leading-6 text-white/80">
-                      Required configuration may be unavailable. Evidence first; next steps stay read-only.
+                      Required configuration may be unavailable. Evidence first; next steps stay review-only.
                     </div>
                     <span className="home-status-ring shrink-0" aria-label="Illustrative status: verified">OK</span>
                   </div>
@@ -324,8 +331,9 @@ export default function Page() {
                 Bring a failing pod. Leave with evidence.
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--text-muted)]">
-                Kubernetes diagnostics, CI/CD investigation, and the assistant are available now.
-                Log analysis and Terraform plan explanation remain clearly labelled Planned.
+                Kubernetes diagnostics, log analysis, CI/CD investigation, Terraform
+                explanations, Prometheus metrics, runbooks, the assistant, audit, and
+                proposal-only infrastructure code are available now.
               </p>
             </div>
             <div className="flex flex-wrap gap-3 lg:justify-end">
@@ -354,7 +362,7 @@ export default function Page() {
         </section>
       </Reveal>
 
-      <HomepageSections />
+      <HomepageSections showWalkthrough={showWalkthrough} />
     </div>
   );
 }

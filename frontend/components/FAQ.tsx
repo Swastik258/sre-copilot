@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 const QUESTIONS = [
   {
     q: "Does the model have shell access?",
     a:
-      "No. The language model can only request a fixed set of read-only operations through validated schemas — kubectl get, GitHub workflow reads, plan parsing, log grouping. A separate policy engine checks each request before anything runs. There is no code path from a model response to an unrestricted command.",
+      "No. The model has no tools, shell, or network access. The backend collects allowlisted read-only evidence first, then asks the model to explain that evidence. There is no code path from model output to a command or infrastructure change.",
   },
   {
     q: "How does redaction work before AI calls?",
@@ -16,17 +17,17 @@ const QUESTIONS = [
   {
     q: "What does 'read-only by default' actually mean?",
     a:
-      "The application ships in read-only mode. Kubernetes connectors can list pods, events, and logs — but cannot exec, delete, patch, or apply. Terraform analysis parses plans but never runs apply. GitHub connectors read workflow runs but cannot trigger or cancel. Write mode exists in the design and is disabled unless explicitly enabled by configuration plus per-request authorization.",
+      "Infrastructure adapters are structurally read-only. Kubernetes connectors can list pods, events, and logs but cannot exec, delete, patch, or apply. Terraform analysis parses supplied plans but never runs plan or apply. GitHub connectors read workflow runs but cannot trigger, re-run, or cancel. Infrastructure-code output is a proposal that the product never writes or applies.",
   },
   {
-    q: "What happens to files I upload?",
+    q: "What happens to logs or files I analyze?",
     a:
-      "Uploads are size- and type-validated on the backend, then redacted before storage or model use. They are scoped to your session and never used for training. You can delete an upload at any time, which removes it from storage and from any saved investigation that referenced it.",
+      "Log analysis is size-validated, redacted, and processed without persisting the raw paste. Saved investigations, audit events, and account data follow the deployment's retention policy and can be removed through the documented operator process. The application does not use customer data to train models. External AI providers are contacted only when configured; review their data policy, and use privacy mode to block that transmission.",
   },
   {
     q: "Can I use it without any API keys?",
     a:
-      "Yes. Demo mode ships with deterministic fixtures for every integration: Kubernetes pod states, log files, Terraform plans, GitHub workflow logs. The AI provider defaults to a mock that returns canned structured responses. The entire test suite runs offline, without any cloud credentials.",
+      "Yes. Kubernetes, GitHub, and Prometheus provide labelled fixtures; Terraform and logs accept supplied sample input. The AI provider defaults to a deterministic mock. The backend test suite runs offline without cloud credentials.",
   },
   {
     q: "Which AI provider does it use?",
@@ -64,6 +65,9 @@ export function FAQ() {
             return (
               <div key={i} className="border-b border-hairline">
                 <button
+                  type="button"
+                  id={`faq-question-${i}`}
+                  aria-controls={`faq-answer-${i}`}
                   onClick={() => setOpen(isOpen ? null : i)}
                   className="flex w-full items-baseline gap-6 px-1 py-6 text-left transition hover:bg-[var(--bg-subtle)]"
                   aria-expanded={isOpen}
@@ -85,7 +89,12 @@ export function FAQ() {
                 </button>
 
                 {isOpen && (
-                  <div className="grid grid-cols-1 gap-6 pl-[2.75rem] pr-10 pb-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+                  <div
+                    id={`faq-answer-${i}`}
+                    role="region"
+                    aria-labelledby={`faq-question-${i}`}
+                    className="grid grid-cols-1 gap-6 pl-[2.75rem] pr-10 pb-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]"
+                  >
                     <div />
                     <p className="max-w-prose text-dense text-secondary">
                       {item.a}
@@ -102,9 +111,9 @@ export function FAQ() {
           <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-tertiary">
             Something not answered here?
           </span>
-          <a href="/support" className="link-editorial text-dense">
-            Write to us
-          </a>
+          <Link href="/support" className="link-editorial text-dense">
+            Contact support
+          </Link>
         </div>
       </div>
     </section>

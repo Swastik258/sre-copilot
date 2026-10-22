@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PLAN_CATALOG } from "@/lib/plans";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/pricing" },
   title: "Pricing — SRE Copilot",
   description:
     "Every live SRE Copilot capability is free during launch. Paid tiers are planned, not sold.",
@@ -17,6 +18,7 @@ const TIERS = PLAN_CATALOG.map((plan) => ({
   features: plan.features,
   cta: plan.cta.label,
   href: plan.cta.href,
+  status: plan.status,
   highlight: plan.accent,
 }));
 
@@ -43,8 +45,10 @@ export default function Page() {
               <h2 className="text-base font-semibold text-[var(--text)]">
                 {tier.name}
               </h2>
-              {tier.highlight && (
+              {tier.status === "available" ? (
                 <span className="badge badge-neutral">Free today</span>
+              ) : (
+                <span className="badge badge-neutral">Planned · not for sale</span>
               )}
             </div>
             <div className="mt-6 flex items-baseline gap-2">

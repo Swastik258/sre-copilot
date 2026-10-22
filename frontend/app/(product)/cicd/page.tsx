@@ -528,7 +528,7 @@ function DiagnosisView({ result }: { result: GitHubDiagnosisResponse }) {
       )}
 
       {diagnosis.remediation.length > 0 && (
-        <Section title="Remediation (requires explicit approval)">
+        <Section title="Suggested remediation · review only, never executed">
           <div className="space-y-3">
             {diagnosis.remediation.map((item, index) => (
               <div
@@ -539,7 +539,7 @@ function DiagnosisView({ result }: { result: GitHubDiagnosisResponse }) {
                   <p className="text-[13px] font-medium text-primary">
                     {item.title}
                   </p>
-                  <Badge tone="warn">changes state · {item.risk}</Badge>
+                  <Badge tone="warn">manual action · {item.risk}</Badge>
                 </div>
                 <p className="mt-2 text-[12px] text-secondary">
                   {item.description}

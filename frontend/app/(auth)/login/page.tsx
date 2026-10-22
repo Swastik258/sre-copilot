@@ -3,7 +3,8 @@ import { AuthForm } from "@/components/AuthForm";
 
 export const metadata: Metadata = {
   title: "Sign in · SRE Copilot",
-  description: "Sign in to your SRE Copilot dashboard.",
+  robots: { index: false, follow: false },
+  description: "Sign in to your SRE Copilot workspace.",
 };
 
 export default function Page() {

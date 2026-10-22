@@ -10,14 +10,14 @@ const STEPS = [
     n: "02",
     title: "Ask, or let it notice",
     body:
-      "Ask a question in plain language, or let the status ring pull your attention when a surface changes. Either way, the AI is only allowed to call a fixed set of read operations with validated arguments.",
-    meta: "k8s.pods.get · k8s.events.list · gh.workflow.runs · tf.plan.parse",
+      "Ask a question in plain language. The backend gathers allowlisted read-only evidence first; the model has no tools, shell, or network access.",
+    meta: "observed evidence → redaction → optional model explanation",
   },
   {
     n: "03",
-    title: "Read the evidence, approve a change",
+    title: "Read the evidence, keep control",
     body:
-      "Every answer is split into observed facts, hypotheses, and next steps. Proposed changes arrive as a diff. Nothing is applied automatically — you approve each one, and the decision is written to the audit log.",
+      "Every answer is split into observed facts, hypotheses, and next steps. Generated infrastructure changes are proposals only; the product never writes or applies them.",
     meta: "observed · hypothesis · confidence · next steps · audit event",
   },
 ];
@@ -33,13 +33,13 @@ export function HowItWorks() {
             <h2 className="mt-4 font-serif text-display tracking-tight text-primary">
               Read-only by default.
               <br />
-              Nothing runs until you approve it.
+              Proposals never run.
             </h2>
           </div>
           <p className="max-w-prose self-end text-dense-lg text-secondary">
-            The model never has shell access. It can only request specific,
-            allowlisted operations through validated schemas. A separate policy
-            layer checks each request before any tool runs.
+            The model never has shell access or tool-calling authority. The
+            backend collects allowlisted read-only evidence before any model
+            request, and output is displayed as untrusted text.
           </p>
         </div>
 
@@ -71,9 +71,9 @@ export function HowItWorks() {
         <div className="mt-10 flex items-start gap-4 border-t border-hairline pt-6">
           <span className="dot dot-good mt-1.5 shrink-0" />
           <p className="max-w-prose text-dense text-tertiary">
-            Logs, files, and tool output are treated as untrusted input. Prompt
-            injection attempts, oversized payloads, and disallowed commands are
-            rejected by the policy layer before the model ever sees them.
+            Logs, files, and integration output are treated as untrusted input.
+            Prompt evidence is escaped and delimited before transmission, and
+            there is no path from model output to command execution.
           </p>
         </div>
       </div>

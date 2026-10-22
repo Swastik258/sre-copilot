@@ -8,7 +8,6 @@ import {
   type AdminUserUpdate,
   type AuthUser,
   type SettingsResponse,
-  type TenantSummary,
 } from "@/lib/api";
 
 type Phase = "loading" | "signed_out" | "ready" | "error";
@@ -32,7 +31,6 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<AuthUser[]>([]);
-  const [tenants, setTenants] = useState<TenantSummary[]>([]);
   const [adminBusy, setAdminBusy] = useState<string | null>(null);
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
 
@@ -56,13 +54,9 @@ export default function SettingsPage() {
         setPrivacyMode(response.ai_privacy_mode);
         setEnvironment(response.default_environment ?? "");
         if (current.role === "owner" || current.role === "admin") {
-          const [userList, tenantList] = await Promise.all([
-            api.admin.users(),
-            api.admin.tenants(),
-          ]);
+          const userList = await api.admin.users();
           if (cancelled) return;
           setUsers(userList.users);
-          setTenants(tenantList.tenants);
         }
         setPhase("ready");
       } catch (err) {
@@ -123,12 +117,8 @@ export default function SettingsPage() {
           return;
         }
       }
-      const [userList, tenantList] = await Promise.all([
-        api.admin.users(),
-        api.admin.tenants(),
-      ]);
+      const userList = await api.admin.users();
       setUsers(userList.users);
-      setTenants(tenantList.tenants);
       setAdminMessage("Member updated.");
     } catch (err) {
       setError(
@@ -209,9 +199,8 @@ export default function SettingsPage() {
               {!isAdmin && (
                 <div className="rounded-[4px] border border-warn bg-accent-soft p-4">
                   <p className="text-[12px] text-secondary">
-                    You are signed in as a member. Workspace settings are
-                    read-only; ask an administrator to change policy or move
-                    accounts between tenants.
+                    You are signed in with a read-only workspace role. Ask an
+                    owner or administrator to change workspace policy.
                   </p>
                 </div>
               )}
@@ -319,13 +308,11 @@ export default function SettingsPage() {
                     <div>
                       <div className="label-caps">Access &amp; workspace</div>
                       <p className="mt-1 text-[11.5px] text-tertiary">
-                        Roles and tenant membership are admin-only. Moving a
-                        member migrates their investigations to the new tenant.
+                        Only workspace owners and admins can change roles.
+                        Cross-workspace membership changes use the organizations
+                        API; this page manages the active workspace only.
                       </p>
                     </div>
-                    <span className="font-mono text-[10px] text-tertiary">
-                      {tenants.length} tenant(s)
-                    </span>
                   </div>
                   <div className="mt-3 divide-y divide-hairline">
                     {users.map((member) => (
@@ -412,12 +399,6 @@ function AdminUserRow({
   busy: boolean;
   onSave: (userId: string, patch: AdminUserUpdate) => Promise<void>;
 }) {
-  const [tenant, setTenant] = useState(member.tenant_id);
-
-  useEffect(() => {
-    setTenant(member.tenant_id);
-  }, [member.tenant_id]);
-
   return (
     <div className="flex flex-wrap items-center gap-3 py-3">
       <div className="min-w-0 flex-1">
@@ -443,23 +424,6 @@ function AdminUserRow({
         <option value="admin">admin</option>
         <option value="owner">owner</option>
       </select>
-      <div className="flex items-center gap-1">
-        <input
-          value={tenant}
-          disabled={busy}
-          onChange={(event) => setTenant(event.target.value)}
-          aria-label={`Tenant for ${member.email ?? member.id}`}
-          className="w-28 rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-2 py-1.5 font-mono text-[10.5px] text-primary disabled:opacity-50"
-        />
-        <button
-          type="button"
-          className="btn-ghost px-2 py-1.5 text-[10.5px] disabled:opacity-50"
-          disabled={busy || tenant.trim() === member.tenant_id}
-          onClick={() => void onSave(member.id, { tenant_id: tenant.trim() })}
-        >
-          move
-        </button>
-      </div>
       <button
         type="button"
         className={`rounded-[4px] border px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors disabled:opacity-50 ${

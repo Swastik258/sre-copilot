@@ -13,7 +13,11 @@ COPY . .
 # NEXT_PUBLIC_* variables are inlined at build time, so they must be provided
 # as build args, not just runtime environment.
 ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
+ARG NEXT_PUBLIC_SUPPORT_EMAIL=
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    NEXT_PUBLIC_SUPPORT_EMAIL=$NEXT_PUBLIC_SUPPORT_EMAIL \
     NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build

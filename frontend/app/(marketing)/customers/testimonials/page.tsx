@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/customers/testimonials" },
   title: "Testimonials — SRE Copilot",
   description:
     "No invented testimonials. Named feedback will appear only with permission.",

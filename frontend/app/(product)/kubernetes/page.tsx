@@ -407,13 +407,13 @@ function DiagnosisView({ result }: { result: PodDiagnosisResponse }) {
       )}
 
       {diagnosis.remediation.length > 0 && (
-        <Section title="Remediation (requires explicit approval)">
+        <Section title="Suggested remediation · review only, never executed">
           <div className="space-y-3">
             {diagnosis.remediation.map((r, i) => (
               <div key={i} className="rounded-[4px] border border-warn bg-accent-soft p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-[13px] font-medium text-primary">{r.title}</p>
-                  <Badge tone="warn">changes state · {r.risk}</Badge>
+                  <Badge tone="warn">manual action · {r.risk}</Badge>
                 </div>
                 <p className="mt-2 text-[12px] text-secondary">{r.description}</p>
                 {r.rollback && (
@@ -623,8 +623,8 @@ function AIExplanation({
                     </div>
                     <p className="mt-1 text-[11px] text-tertiary">
                       {action.requires_approval
-                        ? "Requires explicit human approval; never executed automatically."
-                        : "Review before acting."}
+                        ? "Manual review required; this product has no execution path."
+                        : "Review before deciding."}
                     </p>
                   </div>
                 ))}

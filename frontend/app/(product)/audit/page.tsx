@@ -36,7 +36,7 @@ export default function AuditPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "owner" || user?.role === "admin";
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -126,8 +126,9 @@ export default function AuditPage() {
             Sign in to review the trail
           </h1>
           <p className="mt-3 text-sm text-tertiary">
-            Members see their tenant's audit trail; administrators can review
-            across tenants. Retention actions are recorded too.
+            Members and viewers see events they created; workspace owners and
+            admins see the active workspace. Nothing crosses workspace
+            boundaries.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link href="/login" className="btn-accent">
@@ -311,7 +312,8 @@ export default function AuditPage() {
               </button>
               {!isAdmin && (
                 <p className="mt-2 font-mono text-[10px] text-tertiary">
-                  Admin role required. You can still export your trail.
+                  Owner or admin role required. You can still export your
+                  workspace trail if you have access.
                 </p>
               )}
               {message && (
@@ -324,7 +326,7 @@ export default function AuditPage() {
               <ul className="mt-2 space-y-2 text-[11.5px] text-tertiary">
                 <li>· Investigation create, message, and close</li>
                 <li>· Settings changes and audit cleanup</li>
-                <li>· Auth sessions and approvals</li>
+                <li>· Auth sessions, API keys, and retention</li>
               </ul>
               <p className="mt-3 font-mono text-[10px] text-tertiary">
                 Resource and outcome payloads pass through redaction before

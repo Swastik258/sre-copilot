@@ -63,7 +63,7 @@ export function MarketingFooter() {
             </p>
             <div className="mt-6 flex items-center gap-2 label-caps">
               <span className="dot dot-good" />
-              All systems operational
+              Read-only by default
             </div>
           </div>
 
@@ -89,8 +89,8 @@ export function MarketingFooter() {
         </div>
 
         <div className="mt-14 flex flex-col justify-between gap-4 border-t border-[var(--border)] pt-6 sm:flex-row sm:items-center">
-          <div className="label-caps">SRE Copilot · v0.2</div>
-          <div className="label-caps">Read-only by default</div>
+          <div className="label-caps">SRE Copilot · v0.2.0</div>
+          <div className="label-caps">Self-hosted by design</div>
         </div>
       </div>
     </footer>

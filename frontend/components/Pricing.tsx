@@ -34,11 +34,9 @@ export function Pricing({ showHeader = true }: { showHeader?: boolean } = {}) {
                 t.accent ? "bg-[var(--bg-subtle)]" : "bg-[var(--bg-elevated)]"
               }`}
             >
-              {t.accent && (
-                <span className="absolute right-4 top-4 font-mono text-[10px] uppercase tracking-[0.14em] text-accent">
-                  free today
-                </span>
-              )}
+              <span className="absolute right-4 top-4 font-mono text-[10px] uppercase tracking-[0.14em] text-accent">
+                {t.status === "available" ? "free today" : "planned · not for sale"}
+              </span>
 
               <header>
                 <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-secondary">

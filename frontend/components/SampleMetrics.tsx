@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 
 const METRICS = [
-  { value: 1240, label: "Signals reviewed", suffix: "+" },
-  { value: 98, label: "Evidence linked", suffix: "%" },
-  { value: 3.2, label: "Minutes to triage", suffix: "m", decimals: 1 },
-  { value: 4, label: "Connected surfaces", suffix: "" },
+  { value: 0, label: "Infrastructure writes", suffix: "" },
+  { value: 9, label: "Live consoles", suffix: "" },
+  { value: 1, label: "Shared evidence model", suffix: "" },
+  { value: 100, label: "Read-only diagnosis paths", suffix: "%" },
 ];
 
 export function SampleMetrics() {
@@ -62,18 +62,16 @@ export function SampleMetrics() {
       <div className="shell py-16 sm:py-20">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <span className="label-caps">Sample workflow metrics</span>
+            <span className="label-caps">Repository facts</span>
             <h2 className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
               A clearer signal in the noise.
             </h2>
           </div>
-          <span className="sample-data-label">Illustrative values · not customer results</span>
+          <span className="sample-data-label">Product facts · not customer results</span>
         </div>
         <div className="sample-metrics-grid">
           {METRICS.map((metric, index) => {
-            const formatted = metric.decimals
-              ? values[index].toFixed(metric.decimals)
-              : Math.round(values[index]).toLocaleString();
+            const formatted = Math.round(values[index]).toLocaleString();
             return (
               <div key={metric.label} className="sample-metric">
                 <div className="sample-metric-value">

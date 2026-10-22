@@ -32,7 +32,7 @@ export const PLAN_CATALOG: readonly PublicPlan[] = [
       "Deterministic diagnosis with optional AI",
       "Investigations, audit log, and CSV export",
       "Organizations, roles, and API keys",
-      "Self-hosted deployment and source access",
+      "Operator-controlled self-hosted deployment",
     ],
     cta: { label: "Start free", href: "/sign-up" },
     accent: false,
