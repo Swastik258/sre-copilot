@@ -22,20 +22,14 @@ export function TrustedTeams() {
   return (
     <section className="trusted-teams" aria-label="Placeholder engineering teams">
       <div className="shell py-9 sm:py-11">
-        <p className="label-caps text-center">Trusted by engineering teams</p>
-        <div className="trusted-marquee mt-7">
-          <div className="trusted-track">
-            {[...CLIENTS, ...CLIENTS].map((client, index) => (
-              <div
-                key={`${client.name}-${index}`}
-                className="trusted-logo"
-                aria-hidden={index >= CLIENTS.length}
-              >
-                <span className="trusted-logo-mark">{client.mark}</span>
-                <span>{client.name}</span>
-              </div>
-            ))}
-          </div>
+        <p className="label-caps text-center">Placeholder engineering teams</p>
+        <div className="placeholder-client-grid mt-7">
+          {CLIENTS.map((client) => (
+            <div key={client.name} className="trusted-logo">
+              <span className="trusted-logo-mark">{client.mark}</span>
+              <span>{client.name}</span>
+            </div>
+          ))}
         </div>
         <p className="mt-4 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--text-subtle)]">
           Fictional placeholder names
@@ -137,32 +131,40 @@ export function HomepageSections() {
                 Helpful by design. In control by default.
               </h2>
             </div>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="security-checklist divide-y divide-[var(--border)] p-3 sm:p-5">
               <Reveal delay={0} className="h-full">
-                <article className="trust-card h-full">
-                  <span className="trust-icon" aria-hidden="true">01</span>
-                  <h3>Read-only by default</h3>
-                  <p>Investigations gather evidence without writing back to connected infrastructure.</p>
+                <article className="trust-card flex h-full items-start gap-4 border-0 bg-transparent p-4 shadow-none">
+                  <span className="trust-icon" aria-hidden="true">✓</span>
+                  <div>
+                    <h3>Read-only by default</h3>
+                    <p>Investigations gather evidence without writing back to connected infrastructure.</p>
+                  </div>
                 </article>
               </Reveal>
               <Reveal delay={0.08} className="h-full">
-                <article className="trust-card h-full">
-                  <span className="trust-icon" aria-hidden="true">02</span>
-                  <h3>Approval-gated remediation</h3>
-                  <p>Review proposed changes first, with an explicit approval step and rollback path.</p>
+                <article className="trust-card flex h-full items-start gap-4 border-0 bg-transparent p-4 shadow-none">
+                  <span className="trust-icon" aria-hidden="true">✓</span>
+                  <div>
+                    <h3>Approval-gated remediation</h3>
+                    <p>Review proposed changes first, with an explicit approval step and rollback path.</p>
+                  </div>
                 </article>
               </Reveal>
               <Reveal delay={0.16} className="h-full">
-                <article className="trust-card h-full">
-                  <span className="trust-icon" aria-hidden="true">03</span>
-                  <h3>Auditable decisions</h3>
-                  <p>Keep a record of investigation decisions and the evidence behind them.</p>
+                <article className="trust-card flex h-full items-start gap-4 border-0 bg-transparent p-4 shadow-none">
+                  <span className="trust-icon" aria-hidden="true">✓</span>
+                  <div>
+                    <h3>Auditable decisions</h3>
+                    <p>Keep a record of investigation decisions and the evidence behind them.</p>
+                  </div>
                 </article>
               </Reveal>
             </div>
           </div>
         </section>
       </Reveal>
+
+      <TrustedTeams />
 
       <Reveal>
         <section className="home-integrations-section">

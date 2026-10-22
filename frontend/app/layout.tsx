@@ -1,24 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-client";
 
-const geistSans = Geist({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-geist-sans",
+  variable: "--font-space-grotesk",
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-geist-mono",
+  variable: "--font-inter",
   display: "swap",
 });
 
-const instrumentSerif = Instrument_Serif({
+const jetBrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: "400",
-  variable: "--font-instrument-serif",
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
@@ -34,10 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}
-    >
+    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable} ${jetBrainsMono.variable}`}>
       <body>
         <AuthProvider>{children}</AuthProvider>
       </body>

@@ -20,29 +20,47 @@ services:
       context: ../backend
     environment:
       ENVIRONMENT: ${ENVIRONMENT:-local}
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://sre_copilot:change-me@db:5432/sre_copilot}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://${POSTGRES_USER:-sre_copilot}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-sre_copilot}}
       # Local Postgres is migrated by the container CMD; disable SQLite auto-create.
       AUTO_CREATE_SCHEMA: "false"
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       AUTH_REQUIRED: ${AUTH_REQUIRED:-false}
       DEFAULT_TENANT_ID: ${DEFAULT_TENANT_ID:-default}
+      SECURITY_HEADERS_ENABLED: ${SECURITY_HEADERS_ENABLED:-true}
+      MAX_REQUEST_BYTES: ${MAX_REQUEST_BYTES:-2000000}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-0}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
       AI_PROVIDER: ${AI_PROVIDER:-mock}
       AI_MODEL: ${AI_MODEL:-gpt-4o-mini}
+      AI_TIMEOUT_SECONDS: ${AI_TIMEOUT_SECONDS:-30}
+      AI_MAX_OUTPUT_TOKENS: ${AI_MAX_OUTPUT_TOKENS:-1500}
       AI_PRIVACY_MODE: ${AI_PRIVACY_MODE:-false}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_BASE_URL: ${GROQ_BASE_URL:-https://api.groq.com/openai/v1}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_HTTP_REFERER: ${OPENROUTER_HTTP_REFERER:-http://localhost:3000}
+      OPENROUTER_APP_TITLE: ${OPENROUTER_APP_TITLE:-SRE Copilot}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-https://api.anthropic.com}
       GITHUB_ENABLED: ${GITHUB_ENABLED:-false}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_API_URL: ${GITHUB_API_URL:-https://api.github.com}
+      GITHUB_REQUEST_TIMEOUT_SECONDS: ${GITHUB_REQUEST_TIMEOUT_SECONDS:-15}
       KUBERNETES_ENABLED: ${KUBERNETES_ENABLED:-false}
       KUBERNETES_DEMO_MODE: ${KUBERNETES_DEMO_MODE:-true}
       KUBERNETES_CLUSTERS: ${KUBERNETES_CLUSTERS:-}
+      KUBERNETES_KUBECONFIG: ${KUBERNETES_KUBECONFIG:-}
+      KUBERNETES_CONTEXT: ${KUBERNETES_CONTEXT:-}
+      KUBERNETES_IN_CLUSTER: ${KUBERNETES_IN_CLUSTER:-false}
+      KUBERNETES_REQUEST_TIMEOUT_SECONDS: ${KUBERNETES_REQUEST_TIMEOUT_SECONDS:-15}
       PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-false}
       PROMETHEUS_DEMO_MODE: ${PROMETHEUS_DEMO_MODE:-true}
       PROMETHEUS_URL: ${PROMETHEUS_URL:-}
+      PROMETHEUS_REQUEST_TIMEOUT_SECONDS: ${PROMETHEUS_REQUEST_TIMEOUT_SECONDS:-15}
+      REDACTION_ENABLED: ${REDACTION_ENABLED:-true}
       LOG_JSON: ${LOG_JSON:-false}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
@@ -59,7 +77,8 @@ services:
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   postgres_data:

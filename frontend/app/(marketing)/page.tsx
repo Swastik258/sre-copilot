@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { HomepageSections, TrustedTeams } from "@/components/HomepageSections";
+import { HomepageSections } from "@/components/HomepageSections";
+import { IncidentReplay } from "@/components/IncidentReplay";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -51,28 +52,35 @@ const STEPS = [
   },
 ];
 
+const INCIDENT_EVENTS = [
+  { time: "09:41:08", label: "Pod restart count increased", source: "evidence: pod/status#1" },
+  { time: "09:41:12", label: "Previous container log collected", source: "evidence: pod/logs#2" },
+  { time: "09:41:16", label: "Missing configuration key observed", source: "evidence: pod/logs#3" },
+  { time: "09:41:21", label: "Diagnosis ready for operator review", source: "sample hypothesis" },
+];
+
 export default function Page() {
   return (
     <div className="shell py-10 sm:py-14">
       <section className="home-hero relative isolate overflow-hidden rounded-[1.75rem] border border-[var(--border)] px-6 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-20">
         <div aria-hidden className="home-hero-grid" />
         <div aria-hidden className="home-hero-glow" />
-        <div className="relative flex flex-col items-center gap-12">
-          <div className="home-hero-copy flex w-full flex-col items-center text-center">
+        <div className="relative grid items-center gap-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+          <div className="home-hero-copy flex w-full flex-col items-start text-left">
             <span className="eyebrow">
               <span className="status-beacon" />
-              Read-only by default
+              Mission control for incidents
             </span>
             <h1 className="heading-display mt-7 max-w-4xl text-[var(--text)] text-5xl sm:text-6xl lg:text-7xl">
               Investigate with evidence.{" "}
-              <span className="text-[var(--accent)]">Not guesses.</span>
+              <span>Not guesses.</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-[var(--text-muted)] sm:text-lg sm:leading-8">
+            <p className="mt-6 max-w-xl text-base leading-7 text-[var(--text-muted)] sm:text-lg sm:leading-8">
               Turn a failing state into a structured diagnosis. Keep observed
               facts separate from ranked hypotheses, with every claim tied to
               its evidence.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/assistant" className="btn-accent">
                 Start an investigation
                 <svg viewBox="0 0 20 20" className="size-4" fill="none" aria-hidden="true">
@@ -83,7 +91,7 @@ export default function Page() {
                 Explore the docs
               </Link>
             </div>
-            <div className="mt-9 flex flex-wrap justify-center gap-x-6 gap-y-3 text-xs font-medium text-[var(--text-muted)]">
+            <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-xs font-medium text-[var(--text-muted)]">
               <span className="flex items-center gap-2">
                 <span className="dot dot-good" />
                 Read-only by construction
@@ -138,6 +146,7 @@ export default function Page() {
                     <div className="mt-1 truncate font-mono text-[11px] text-white/65">
                       container status · restart count
                     </div>
+                    <span className="home-evidence-chip mt-2">evidence: pod/status#1</span>
                   </div>
                   <span className="home-evidence-check">✓</span>
                 </div>
@@ -148,6 +157,7 @@ export default function Page() {
                     <div className="mt-1 truncate font-mono text-[11px] text-white/65">
                       pod events · previous logs
                     </div>
+                    <span className="home-evidence-chip mt-2">evidence: pod/logs#2</span>
                   </div>
                   <span className="home-evidence-check">✓</span>
                 </div>
@@ -155,11 +165,14 @@ export default function Page() {
                   <div className="flex items-center gap-2 text-[var(--accent-soft-text)]">
                     <span className="home-diagnosis-pulse" />
                     <span className="font-mono text-[10px] uppercase tracking-[0.14em]">
-                      Structured diagnosis
+                      H1 / leading hypothesis · sample
                     </span>
                   </div>
-                  <div className="mt-3 text-sm leading-6 text-white/80">
-                    Evidence first. Hypotheses clearly ranked. Next steps stay read-only.
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="text-sm leading-6 text-white/80">
+                      Required configuration may be unavailable. Evidence first; next steps stay read-only.
+                    </div>
+                    <span className="home-status-ring shrink-0" aria-label="Illustrative status: verified">OK</span>
                   </div>
                 </div>
               </div>
@@ -181,7 +194,34 @@ export default function Page() {
         <div className="home-hero-index" aria-hidden="true">SC / 01</div>
       </section>
 
-      <TrustedTeams />
+      <div className="signal-divider shell" aria-hidden="true">
+        <svg viewBox="0 0 1200 48" preserveAspectRatio="none">
+          <path d="M0 24h350l18-10 17 20 18-30 20 40 18-20h240l14-8 15 16 16-24 16 32 15-16h443" />
+        </svg>
+      </div>
+
+      <Reveal>
+        <section aria-labelledby="incident-timeline-title" className="py-8 sm:py-12">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <span className="label-caps">Signal trace / sample</span>
+              <h2 id="incident-timeline-title" className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
+                One incident. A traceable sequence.
+              </h2>
+            </div>
+            <span className="sample-data-label">Illustrative timeline · not live telemetry</span>
+          </div>
+          <div className="incident-timeline" tabIndex={0} aria-label="Sample incident timeline. Scroll horizontally to inspect events.">
+            {INCIDENT_EVENTS.map((event) => (
+              <article className="card p-5" key={event.time}>
+                <p className="font-mono text-[10px] text-[var(--accent)]">{event.time}</p>
+                <h3 className="mt-3 text-sm font-semibold text-[var(--text)]">{event.label}</h3>
+                <span className="home-evidence-chip mt-4">{event.source}</span>
+              </article>
+            ))}
+          </div>
+        </section>
+      </Reveal>
 
       <Reveal>
         <section className="mt-20 sm:mt-24">
@@ -205,7 +245,7 @@ export default function Page() {
                       {surface.index}
                     </span>
                     <span className={`badge ${surface.live ? "tag-live" : "tag-planned"}`}>
-                      {surface.live && <span className="dot dot-good" />}
+                      <span className={`dot ${surface.live ? "dot-good" : "dot-idle"}`} />
                       {surface.status}
                     </span>
                   </div>
@@ -225,6 +265,8 @@ export default function Page() {
           </div>
         </section>
       </Reveal>
+
+      <IncidentReplay />
 
       <Reveal>
         <section className="home-steps mt-24 border-t border-[var(--border)] pt-12 sm:mt-28 sm:pt-16">
@@ -282,8 +324,8 @@ export default function Page() {
                 Bring a failing pod. Leave with evidence.
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--text-muted)]">
-                Kubernetes diagnostics are live today. Logs, CI/CD, Terraform,
-                and the assistant are clearly labelled planned until they ship.
+                Kubernetes diagnostics, CI/CD investigation, and the assistant are available now.
+                Log analysis and Terraform plan explanation remain clearly labelled Planned.
               </p>
             </div>
             <div className="flex flex-wrap gap-3 lg:justify-end">
