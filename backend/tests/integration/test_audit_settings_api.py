@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 
+from app.core.config import get_settings
 from app.db.models import AuditEvent, User
 
 
@@ -53,6 +54,7 @@ def test_audit_retention_deletes_only_old_events(client, db_session) -> None:
     _promote(db_session, "audit-retention@example.com")
     old = AuditEvent(
         user_id=user["id"],
+        tenant_id=user["tenant_id"],
         action="test.old",
         actor="test",
         decision="allow",
@@ -68,6 +70,56 @@ def test_audit_retention_deletes_only_old_events(client, db_session) -> None:
     remaining = client.get("/api/v1/audit-events?action=test.old")
     assert remaining.status_code == 200
     assert remaining.json()["total"] == 0
+
+
+def test_audit_read_export_and_retention_are_workspace_scoped(client, db_session) -> None:
+    settings = get_settings()
+    previous_tenant = settings.default_tenant_id
+    settings.default_tenant_id = "default"
+    try:
+        user = _signup(client, "audit-scope-owner@example.com")
+        other_tenant = "audit-scope-other-workspace"
+        old = datetime.now(UTC) - timedelta(days=10)
+        own_event = AuditEvent(
+            user_id=None,
+            tenant_id=user["tenant_id"],
+            action="test.workspace",
+            actor="system",
+            decision="allow",
+            created_at=old,
+        )
+        other_event = AuditEvent(
+            user_id=None,
+            tenant_id=other_tenant,
+            action="test.other-workspace",
+            actor="system",
+            decision="allow",
+            created_at=old,
+        )
+        db_session.add_all([own_event, other_event])
+        db_session.commit()
+        own_event_id = own_event.id
+        other_event_id = other_event.id
+
+        listing = client.get("/api/v1/audit-events?action=test.")
+        assert listing.status_code == 200, listing.text
+        actions = {event["action"] for event in listing.json()["events"]}
+        assert "test.workspace" in actions
+        assert "test.other-workspace" not in actions
+
+        exported = client.get("/api/v1/audit-events/export.csv")
+        assert exported.status_code == 200
+        assert "test.workspace" in exported.text
+        assert "test.other-workspace" not in exported.text
+
+        response = client.delete("/api/v1/audit-events?older_than_days=5")
+        assert response.status_code == 200, response.text
+        assert response.json()["deleted"] >= 1
+        db_session.expire_all()
+        assert db_session.get(AuditEvent, own_event_id) is None
+        assert db_session.get(AuditEvent, other_event_id) is not None
+    finally:
+        settings.default_tenant_id = previous_tenant
 
 
 def test_settings_are_readable_and_editable(client, db_session) -> None:
