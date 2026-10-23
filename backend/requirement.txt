@@ -9,3 +9,4 @@ pydantic-settings>=2.2,<3
 psycopg[binary]>=3.1,<4
 sqlalchemy>=2.0,<3
 uvicorn[standard]>=0.29,<1
+gunicorn
