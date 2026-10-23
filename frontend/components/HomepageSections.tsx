@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { DESIGN_PARTNER_QUESTIONS, INTEGRATION_SURFACES } from "@/data/homepage";
-import { DemoVideo } from "@/components/DemoVideo";
 import { FAQ } from "@/components/FAQ";
 import { Reveal } from "@/components/Reveal";
-import { SampleMetrics } from "@/components/SampleMetrics";
-import { TerminalDiagnosis } from "@/components/TerminalDiagnosis";
 
 export function IntegrationSurfaces() {
   return (
@@ -27,11 +24,7 @@ export function IntegrationSurfaces() {
   );
 }
 
-export function HomepageSections({
-  showWalkthrough,
-}: {
-  showWalkthrough: boolean;
-}) {
+export function HomepageSections() {
   return (
     <>
       <Reveal>
@@ -50,7 +43,6 @@ export function HomepageSections({
               {DESIGN_PARTNER_QUESTIONS.map((question, index) => (
                 <Reveal key={question.title} delay={index * 0.09} className="h-full">
                   <article className="testimonial-card card h-full">
-                    <span className="testimonial-quote-mark" aria-hidden="true">?</span>
                     <p className="relative text-sm font-semibold leading-7 text-[var(--text)]">
                       {question.title}
                     </p>
@@ -77,44 +69,6 @@ export function HomepageSections({
           </div>
         </section>
       </Reveal>
-
-      {showWalkthrough && (
-        <Reveal>
-          <section className="home-video-section">
-            <div className="shell py-20 sm:py-24">
-              <div className="mx-auto mb-9 max-w-2xl text-center">
-                <span className="label-caps">Product walkthrough</span>
-                <h2 className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
-                  See the investigation come together.
-                </h2>
-                <p className="mt-4 text-sm leading-6 text-[var(--text-muted)]">
-                  A short walkthrough of evidence collection, diagnosis, and next steps.
-                </p>
-              </div>
-              <DemoVideo />
-            </div>
-          </section>
-        </Reveal>
-      )}
-
-      <Reveal>
-        <section className="home-terminal-section home-section-glow">
-          <div className="shell grid gap-10 py-20 sm:py-24 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center">
-            <div>
-              <span className="label-caps">Sample incident terminal</span>
-              <h2 className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
-                From crash loop to cited cause.
-              </h2>
-              <p className="mt-4 max-w-lg text-sm leading-6 text-[var(--text-muted)]">
-                A sample diagnosis shows how raw signals become evidence-backed next steps.
-              </p>
-            </div>
-            <TerminalDiagnosis />
-          </div>
-        </section>
-      </Reveal>
-
-      <SampleMetrics />
 
       <Reveal>
         <section className="home-trust-section">

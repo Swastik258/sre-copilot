@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { existsSync } from "node:fs";
-import path from "node:path";
 import Link from "next/link";
 import { HomepageSections } from "@/components/HomepageSections";
 import { IncidentReplay } from "@/components/IncidentReplay";
@@ -61,10 +59,6 @@ const INCIDENT_EVENTS = [
   { time: "09:41:16", label: "Missing configuration key observed", source: "evidence: pod/logs#3" },
   { time: "09:41:21", label: "Diagnosis ready for operator review", source: "sample hypothesis" },
 ];
-
-const showWalkthrough = existsSync(
-  path.join(process.cwd(), "public", "media", "sre-copilot-walkthrough.mp4"),
-);
 
 export default function Page() {
   return (
@@ -362,7 +356,7 @@ export default function Page() {
         </section>
       </Reveal>
 
-      <HomepageSections showWalkthrough={showWalkthrough} />
+      <HomepageSections />
     </div>
   );
 }
