@@ -3,9 +3,9 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/security" },
-  title: "Security — SRE Copilot",
+  title: "Security — Tarn",
   description:
-    "The security controls that exist in SRE Copilot, and the gaps that do not.",
+    "The security controls that exist in Tarn, and the gaps that do not.",
 };
 
 const CONTROLS = [
@@ -35,7 +35,7 @@ export default function Page() {
         What is protected, and what is not.
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        SRE Copilot is a self-hosted product, not a certified platform. The
+        Tarn is a self-hosted product, not a certified platform. The
         controls below are implemented and tested; the gaps below are real.
         Review them against your own risk model before exposing a deployment.
       </p>

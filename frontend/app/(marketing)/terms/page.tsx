@@ -3,9 +3,9 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
-  title: "Terms — SRE Copilot",
+  title: "Terms — Tarn",
   description:
-    "Terms for using this SRE Copilot deployment: no warranty, no paid plan, and operator responsibilities.",
+    "Terms for using this Tarn deployment: no warranty, no paid plan, and operator responsibilities.",
 };
 
 export default function Page() {

@@ -93,7 +93,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="SRE Copilot API",
+    title="Tarn API",
     version=settings.app_version,
     lifespan=lifespan,
     docs_url="/api/docs",

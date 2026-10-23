@@ -3,45 +3,72 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/product" },
-  title: "Product — SRE Copilot",
+  title: "Product — Tarn",
   description:
     "Kubernetes, logs, CI/CD, Terraform, the assistant, and audit: evidence-backed diagnosis for production operations.",
 };
 
 const SURFACES = [
   {
+    slug: "kubernetes",
     title: "Kubernetes",
     body: "Read-only diagnosis of unhealthy pods and workloads, with cited observations and review-only next steps.",
     status: "Live",
     live: true,
   },
   {
+    slug: "logs",
     title: "Logs",
     body: "Group and deduplicate log streams, surface the first occurrence, and redact secrets before evidence is returned.",
     status: "Live",
     live: true,
   },
   {
+    slug: "cicd",
     title: "CI/CD",
     body: "Explain a failed GitHub Actions run, pinpoint the failing step, and show the triggering branch and commit.",
     status: "Live",
     live: true,
   },
   {
+    slug: "terraform",
     title: "Terraform",
     body: "Turn a plan into plain language, flag destructive changes, and show the blast radius before apply.",
     status: "Live",
     live: true,
   },
   {
+    slug: "assistant",
     title: "AI Assistant",
     body: "Ask why in plain language. Responses use evidence already attached to the investigation and separate facts from hypotheses. The model has no tool access.",
     status: "Live",
     live: true,
   },
   {
+    slug: "audit",
     title: "Audit",
     body: "A durable trail of what was asked, the policy decision recorded, and the redacted outcome.",
+    status: "Live",
+    live: true,
+  },
+  {
+    slug: "metrics",
+    title: "Metrics",
+    body: "Review Prometheus signals alongside operational events without confusing correlation for causation.",
+    status: "Live",
+    live: true,
+  },
+  {
+    slug: "runbooks",
+    title: "Runbooks",
+    body: "Find read-only triage guidance organized around symptoms and operational areas.",
+    status: "Live",
+    live: true,
+  },
+  {
+    slug: "infra-code",
+    title: "Infrastructure Code",
+    body: "Generate reviewable infrastructure proposals with reliability and security defaults.",
     status: "Live",
     live: true,
   },
@@ -62,7 +89,11 @@ export default function Page() {
 
       <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {SURFACES.map((surface) => (
-          <article key={surface.title} className="card flex flex-col p-6">
+          <Link
+            key={surface.title}
+            href={`/product/${surface.slug}`}
+            className="card flex flex-col p-6 transition-colors hover:border-[var(--border-strong)]"
+          >
             <div className="flex items-start justify-between gap-3">
               <h2 className="font-serif text-2xl text-[var(--text)]">
                 {surface.title}
@@ -76,7 +107,7 @@ export default function Page() {
             <p className="mt-4 text-sm leading-6 text-[var(--text-muted)]">
               {surface.body}
             </p>
-          </article>
+          </Link>
         ))}
       </div>
 

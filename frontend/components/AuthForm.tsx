@@ -248,7 +248,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       )}
 
       <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
-        {isSignup ? "Already have an account? " : "New to SRE Copilot? "}
+        {isSignup ? "Already have an account? " : "New to Tarn? "}
         <Link
           href={isSignup ? "/login" : "/sign-up"}
           className="link-editorial font-medium"

@@ -55,7 +55,7 @@ export function SolutionPage({ config }: { config: SolutionConfig }) {
         </Section>
 
         <Section
-          eyebrow="How SRE Copilot helps"
+          eyebrow="How Tarn helps"
           title={config.helpsTitle}
           lead="Every capability keeps the same contract: read-only calls, cited evidence, and a clear separation between facts and hypotheses."
         >

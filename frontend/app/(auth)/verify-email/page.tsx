@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { VerifyEmailStatus } from "@/components/AccountRecovery";
 
 export const metadata: Metadata = {
-  title: "Verify email · SRE Copilot",
-  description: "Confirm your email address for SRE Copilot.",
+  title: "Verify email · Tarn",
+  description: "Confirm your email address for Tarn.",
   robots: { index: false, follow: false },
 };
 

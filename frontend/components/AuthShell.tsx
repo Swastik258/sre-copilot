@@ -36,9 +36,9 @@ export function AuthShell({ children }: { children: ReactNode }) {
               className="inline-flex items-center gap-3 text-base font-semibold text-primary"
             >
               <span className="grid size-8 place-items-center rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-accent">
-                SC
+                T
               </span>
-              <span className="tracking-[-0.02em]">SRE Copilot</span>
+              <span className="tracking-[-0.02em]">Tarn</span>
             </Link>
 
             <h2 className="mt-8 font-serif text-display tracking-tight text-primary">
@@ -47,7 +47,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
               not guesswork.
             </h2>
             <p className="mt-5 max-w-prose text-dense-lg text-secondary">
-              An AI SRE copilot for Kubernetes, logs, CI/CD, and Terraform. It reads,
+              Tarn investigates Kubernetes, logs, CI/CD, and Terraform. It reads,
               correlates, and explains — and it tells you exactly which evidence each
               conclusion rests on.
             </p>

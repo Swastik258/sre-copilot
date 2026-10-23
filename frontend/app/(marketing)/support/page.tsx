@@ -3,9 +3,9 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/support" },
-  title: "Support — SRE Copilot",
+  title: "Support — Tarn",
   description:
-    "Documentation, contact, and security disclosure information for SRE Copilot.",
+    "Documentation, contact, and security disclosure information for Tarn.",
 };
 
 const configuredSupportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim();

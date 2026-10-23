@@ -3769,3 +3769,166 @@ select:focus {
     transition-duration: 0.001ms !important;
   }
 }
+
+.assistant-entry {
+  display: grid;
+  min-height: calc(100vh - 4rem);
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.assistant-entry-shell {
+  width: 100%;
+  padding-block: clamp(3rem, 8vw, 6rem);
+}
+
+.assistant-entry-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+  align-items: center;
+  gap: clamp(2.5rem, 8vw, 7rem);
+}
+
+.assistant-entry-intro {
+  max-width: 42rem;
+}
+
+.assistant-entry-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.assistant-entry-eyebrow .dot {
+  width: 7px;
+  height: 7px;
+}
+
+.assistant-entry-title {
+  margin-top: 1.25rem;
+  max-width: 11ch;
+  font-size: clamp(2.75rem, 5vw, 4rem);
+  line-height: 1.08;
+}
+
+.assistant-entry-description {
+  margin-top: 1.25rem;
+  max-width: 35rem;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.assistant-entry-capabilities {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+.assistant-entry-capability {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+}
+
+.assistant-entry-capability-icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  color: var(--accent);
+}
+
+.assistant-entry-capability h2 {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.assistant-entry-capability p {
+  margin-top: 0.2rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.assistant-entry-card {
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  padding: clamp(1.5rem, 3vw, 2rem);
+}
+
+.assistant-entry-card-label {
+  color: var(--text-subtle);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.assistant-entry-card h2 {
+  margin-top: 1.1rem;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+
+.assistant-entry-card > p {
+  margin-top: 0.7rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+.assistant-entry-actions {
+  display: grid;
+  gap: 0.625rem;
+  margin-top: 1.5rem;
+}
+
+.assistant-entry-actions .btn-accent {
+  justify-content: space-between;
+}
+
+.assistant-entry-security {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  color: var(--text-subtle);
+  font-size: 0.75rem;
+}
+
+.assistant-entry-security svg {
+  flex: none;
+  color: var(--signal-good);
+}
+
+@media (max-width: 767px) {
+  .assistant-entry {
+    min-height: calc(100vh - 4rem);
+    align-items: start;
+  }
+
+  .assistant-entry-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .assistant-entry-title {
+    max-width: 13ch;
+    font-size: clamp(2.5rem, 10vw, 3.5rem);
+  }
+
+  .assistant-entry-capabilities {
+    gap: 1rem;
+    margin-top: 1.75rem;
+  }
+}

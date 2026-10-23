@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/customers" },
-  title: "Customers — SRE Copilot",
+  title: "Customers — Tarn",
   description:
     "An honest look at early adoption: no invented logos, no fabricated testimonials.",
 };
@@ -16,7 +16,7 @@ export default function Page() {
         No logos yet. No invented quotes either.
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        SRE Copilot is early. We would rather show an honest empty state than
+        Tarn is early. We would rather show an honest empty state than
         borrow credibility from companies that have not used it.
       </p>
 

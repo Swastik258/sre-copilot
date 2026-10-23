@@ -117,7 +117,7 @@ bounded, and what remains. The milestone view lives in
 ## Operational notes
 
 - Infrastructure paths are read-only; generated infrastructure code is
-  proposal-only and is never applied by SRE Copilot.
+  proposal-only and is never applied by Tarn.
 - `AUTH_REQUIRED` may be off for the local demo, but production always requires
   authentication.
 - External AI keys stay server-side. Only redacted evidence summaries and the

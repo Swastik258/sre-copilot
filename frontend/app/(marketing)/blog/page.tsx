@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/blog" },
-  title: "Blog — SRE Copilot",
+  title: "Blog — Tarn",
   description:
     "Engineering notes on evidence-backed infrastructure diagnosis. No posts yet.",
 };

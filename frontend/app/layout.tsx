@@ -24,10 +24,10 @@ const jetBrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "SRE Copilot",
+  title: "Tarn",
   description:
     "Read-only investigation for Kubernetes, logs, CI/CD, and Terraform. Evidence-backed diagnoses you can act on.",
-  applicationName: "SRE Copilot",
+  applicationName: "Tarn",
   category: "technology",
   robots: {
     index: true,
@@ -37,14 +37,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    siteName: "SRE Copilot",
-    title: "SRE Copilot — Evidence-backed infrastructure diagnosis",
+    siteName: "Tarn",
+    title: "Tarn — Evidence-backed infrastructure diagnosis",
     description:
       "Read-only investigation for Kubernetes, logs, CI/CD, and Terraform. Structured diagnoses separate observed facts from ranked hypotheses.",
   },
   twitter: {
     card: "summary",
-    title: "SRE Copilot — Evidence-backed infrastructure diagnosis",
+    title: "Tarn — Evidence-backed infrastructure diagnosis",
     description:
       "Read-only investigation for Kubernetes, logs, CI/CD, and Terraform. Structured diagnoses separate observed facts from ranked hypotheses.",
   },

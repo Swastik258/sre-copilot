@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icon } from "@/components/ui";
 import {
   api,
   ApiRequestError,
@@ -134,26 +135,78 @@ export default function AssistantPage() {
 
   if (phase === "signed_out") {
     return (
-      <Centered>
-        <div className="max-w-md">
-          <span className="label-caps">Assistant</span>
-          <h1 className="mt-3 font-serif text-display-sm text-primary">
-            Sign in to start an investigation
-          </h1>
-          <p className="mt-3 text-sm text-tertiary">
-            Investigations and message history are stored against your local
-            account. No third-party identity provider is involved.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/login" className="btn-accent">
-              Sign in
-            </Link>
-            <Link href="/sign-up" className="btn-ghost">
-              Create account
-            </Link>
+      <section className="assistant-entry">
+        <div className="shell assistant-entry-shell">
+          <div className="assistant-entry-grid">
+            <div className="assistant-entry-intro">
+              <span className="assistant-entry-eyebrow">
+                <span className="dot dot-good" />
+                Tarn <span aria-hidden="true">/</span> Assistant
+              </span>
+              <h1 className="assistant-entry-title">
+                Investigate incidents with evidence, not guesswork.
+              </h1>
+              <p className="assistant-entry-description">
+                A focused workspace for infrastructure investigations. Keep the
+                evidence, diagnosis, and conversation together in one place.
+              </p>
+
+              <div className="assistant-entry-capabilities">
+                <div className="assistant-entry-capability">
+                  <span className="assistant-entry-capability-icon">
+                    <Icon name="lock" className="size-4" />
+                  </span>
+                  <div>
+                    <h2>Read-only by construction</h2>
+                    <p>Investigations do not change your connected infrastructure.</p>
+                  </div>
+                </div>
+                <div className="assistant-entry-capability">
+                  <span className="assistant-entry-capability-icon">
+                    <Icon name="graph" className="size-4" />
+                  </span>
+                  <div>
+                    <h2>Evidence-backed answers</h2>
+                    <p>Review the signals behind each diagnosis.</p>
+                  </div>
+                </div>
+                <div className="assistant-entry-capability">
+                  <span className="assistant-entry-capability-icon">
+                    <Icon name="layers" className="size-4" />
+                  </span>
+                  <div>
+                    <h2>History in your account</h2>
+                    <p>Return to saved investigations and message history.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <aside className="assistant-entry-card">
+              <span className="assistant-entry-card-label">Your workspace</span>
+              <h2>Start an investigation</h2>
+              <p>
+                Sign in or create a local account to use the assistant. Your
+                investigations and message history are stored against your
+                account. No third-party identity provider is involved.
+              </p>
+              <div className="assistant-entry-actions">
+                <Link href="/sign-up" className="btn-accent">
+                  Create account
+                  <Icon name="arrow" className="size-4" />
+                </Link>
+                <Link href="/login" className="btn-ghost">
+                  Sign in
+                </Link>
+              </div>
+              <div className="assistant-entry-security">
+                <Icon name="shield" className="size-4" />
+                Local account · Read-only investigations
+              </div>
+            </aside>
           </div>
         </div>
-      </Centered>
+      </section>
     );
   }
 

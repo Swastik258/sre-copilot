@@ -5,7 +5,7 @@ ARG INSTALL_EXTRAS=""
 ARG APP_VERSION="0.2.0"
 ARG VCS_REF="unknown"
 
-LABEL org.opencontainers.image.title="SRE Copilot API" \
+LABEL org.opencontainers.image.title="Tarn API" \
       org.opencontainers.image.description="Read-only SRE diagnosis API" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.revision="${VCS_REF}" \

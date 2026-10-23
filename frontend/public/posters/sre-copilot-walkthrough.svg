@@ -24,7 +24,7 @@
   <circle cx="238" cy="166" r="8" fill="#F08B78"/>
   <circle cx="268" cy="166" r="8" fill="#E7BF73"/>
   <circle cx="298" cy="166" r="8" fill="#78C99B"/>
-  <text x="348" y="174" fill="#9AA4B2" font-family="monospace" font-size="18" letter-spacing="3">SRE COPILOT / INVESTIGATION</text>
+  <text x="348" y="174" fill="#9AA4B2" font-family="monospace" font-size="18" letter-spacing="3">Tarn / INVESTIGATION</text>
   <text x="260" y="285" fill="#E9F0FB" font-family="Arial, sans-serif" font-size="34" font-weight="700">Pod status review</text>
   <rect x="260" y="322" width="1080" height="1" fill="#9AA4B2" fill-opacity=".18"/>
   <rect x="260" y="362" width="1080" height="86" rx="12" fill="#0F1620" stroke="#9AA4B2" stroke-opacity=".12"/>

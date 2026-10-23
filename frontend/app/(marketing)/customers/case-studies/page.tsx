@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/customers/case-studies" },
-  title: "Case studies — SRE Copilot",
+  title: "Case studies — Tarn",
   description:
     "Case studies will be published only when a real team has a measured result.",
 };

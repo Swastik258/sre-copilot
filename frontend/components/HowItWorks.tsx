@@ -3,7 +3,7 @@ const STEPS = [
     n: "01",
     title: "Connect a surface",
     body:
-      "Point SRE Copilot at a Kubernetes cluster, a GitHub repository, a Terraform plan, or a log file. Every connector is read-only by default. Nothing runs against your infrastructure until you turn it on.",
+      "Point Tarn at a Kubernetes cluster, a GitHub repository, a Terraform plan, or a log file. Every connector is read-only by default. Nothing runs against your infrastructure until you turn it on.",
     meta: "kubeconfig · GitHub token · plan.json · local file",
   },
   {

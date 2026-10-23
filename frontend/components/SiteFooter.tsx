@@ -51,9 +51,9 @@ export function SiteFooter() {
           <div>
             <Link href="/" className="flex items-center gap-3 text-base font-semibold text-primary">
               <span className="grid size-8 place-items-center rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-accent">
-                SC
+                T
               </span>
-              SRE Copilot
+              Tarn
             </Link>
             <p className="mt-4 max-w-sm text-dense text-tertiary">
               Read-only investigation for Kubernetes, logs, CI/CD, and Terraform.
@@ -88,7 +88,7 @@ export function SiteFooter() {
 
         <div className="mt-14 flex flex-col justify-between gap-4 border-t border-hairline pt-6 sm:flex-row sm:items-center">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-tertiary">
-            SRE Copilot · v0.2 · diagnose infrastructure with evidence, not guesses
+            Tarn · v0.2 · diagnose infrastructure with evidence, not guesses
           </div>
           <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-tertiary">
             No API key required to run locally

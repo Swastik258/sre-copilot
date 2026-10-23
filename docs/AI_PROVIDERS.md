@@ -61,7 +61,7 @@ AI_MODEL=openai/gpt-4o-mini
 OPENROUTER_API_KEY=sk-or-...
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 OPENROUTER_HTTP_REFERER=http://localhost:3000
-OPENROUTER_APP_TITLE=SRE Copilot
+OPENROUTER_APP_TITLE=Tarn
 ```
 
 ## Anthropic example

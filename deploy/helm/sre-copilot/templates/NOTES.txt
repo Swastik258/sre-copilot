@@ -1,4 +1,4 @@
-SRE Copilot has been installed.
+Tarn has been installed.
 
 1. Verify the required Secret exists in namespace {{ .Release.Namespace }}:
    {{ include "sre-copilot.secretName" . }}

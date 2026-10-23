@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/solutions" },
-  title: "Solutions — SRE Copilot",
+  title: "Solutions — Tarn",
   description:
     "Evidence-backed diagnosis for platform teams, SRE on-call, and DevOps review.",
 };
@@ -37,7 +37,7 @@ export default function Page() {
         One diagnosis layer, three ways to use it.
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        SRE Copilot is built for the people who have to explain a failure under
+        Tarn is built for the people who have to explain a failure under
         time pressure. The same evidence model serves platform standards,
         on-call triage, and pre-production review.
       </p>

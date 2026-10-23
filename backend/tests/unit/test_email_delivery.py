@@ -43,7 +43,7 @@ def _settings(**values) -> Settings:
         "smtp_username": "mailer",
         "smtp_password": "smtp-secret",
         "smtp_starttls": True,
-        "email_from": "SRE Copilot <noreply@example.com>",
+        "email_from": "Tarn <noreply@example.com>",
         "app_base_url": "https://app.example.com",
     }
     defaults.update(values)

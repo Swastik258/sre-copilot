@@ -1,1 +1,1 @@
-"""SRE Copilot backend application."""
+"""Tarn backend application."""

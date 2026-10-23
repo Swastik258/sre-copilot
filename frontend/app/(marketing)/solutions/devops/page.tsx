@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/solutions/devops" },
-  title: "DevOps — SRE Copilot",
+  title: "DevOps — Tarn",
   description:
     "Review failing pipelines and risky infrastructure plans before production.",
 };
@@ -17,7 +17,7 @@ export default function Page() {
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
         Pipelines and infrastructure code fail in ways that are hard to read
-        under time pressure. SRE Copilot explains a failing run or a risky plan
+        under time pressure. Tarn explains a failing run or a risky plan
         in plain language, so review happens before the incident, not after.
       </p>
 

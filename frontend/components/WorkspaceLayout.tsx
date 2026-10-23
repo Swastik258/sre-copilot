@@ -20,9 +20,9 @@ const COMMANDS = [
 ];
 
 function initials(name: string | null, email: string | null): string {
-  const source = name?.trim() || email || "SRE Copilot";
+  const source = name?.trim() || email || "Tarn";
   return source.split(/[\s.@_-]+/).filter(Boolean).slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "").join("") || "SC";
+    .map((part) => part[0]?.toUpperCase() ?? "").join("") || "T";
 }
 
 export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
@@ -73,7 +73,7 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const sidebar = (
     <aside className={`workspace-rail ${collapsed ? "is-collapsed" : ""} ${collapsed ? "lg:w-[76px]" : "lg:w-[264px]"}`}>
       <div className="flex h-16 items-center justify-between border-b border-[var(--border)] px-4">
-        <span className={collapsed ? "font-semibold tracking-tight text-[var(--text)] lg:hidden" : "font-semibold tracking-tight text-[var(--text)]"}>SRE <span className="text-[var(--accent)]">Copilot</span></span>
+        <span className={collapsed ? "font-semibold tracking-tight text-[var(--text)] lg:hidden" : "font-semibold tracking-tight text-[var(--text)]"}>Tarn</span>
         <button type="button" onClick={() => setCollapsed(!collapsed)} className="hidden rounded-md border border-[var(--border)] px-2 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)] lg:block" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
           {collapsed ? "»" : "«"}
         </button>

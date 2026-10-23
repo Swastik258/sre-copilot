@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ResetPasswordForm } from "@/components/AccountRecovery";
 
 export const metadata: Metadata = {
-  title: "Choose a new password · SRE Copilot",
+  title: "Choose a new password · Tarn",
   description: "Complete a single-use password reset.",
   robots: { index: false, follow: false },
 };

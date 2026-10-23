@@ -1,4 +1,4 @@
-# SRE Copilot
+# Tarn
 
 Read-only, evidence-backed diagnosis for Kubernetes, logs, CI/CD, Terraform, and
 Prometheus. Ask why a pod is failing or a pipeline broke and get back structured

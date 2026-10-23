@@ -16,42 +16,42 @@ const LINKS: NavItem[] = [
     children: [
       {
         label: "AI Assistant",
-        href: "/assistant",
+        href: "/product/assistant",
         description: "Investigate with evidence",
       },
       {
         label: "Kubernetes",
-        href: "/kubernetes",
+        href: "/product/kubernetes",
         description: "Read-only cluster diagnostics",
       },
       {
         label: "Logs",
-        href: "/logs",
+        href: "/product/logs",
         description: "Group, dedupe, first occurrence",
       },
       {
         label: "Metrics",
-        href: "/metrics",
+        href: "/product/metrics",
         description: "Prometheus queries and correlation",
       },
       {
         label: "Runbooks",
-        href: "/runbooks",
+        href: "/product/runbooks",
         description: "Safe operator triage sequences",
       },
       {
         label: "CI/CD",
-        href: "/cicd",
+        href: "/product/cicd",
         description: "GitHub Actions failure analysis",
       },
       {
         label: "Terraform",
-        href: "/terraform",
+        href: "/product/terraform",
         description: "Plan explainer and risk",
       },
       {
         label: "Infrastructure Code",
-        href: "/infra-code",
+        href: "/product/infra-code",
         description: "Generate and validate",
       },
     ],
@@ -91,13 +91,13 @@ const LINKS: NavItem[] = [
 ];
 
 function initials(name: string | null, email: string | null): string {
-  const source = name?.trim() || email || "SC";
+  const source = name?.trim() || email || "T";
   const parts = source.split(/[\s.@_-]+/).filter(Boolean);
   return (
     parts
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("") || "SC"
+      .join("") || "T"
   );
 }
 
@@ -159,9 +159,9 @@ export function TopNav() {
             className="site-brand flex shrink-0 items-center gap-3 text-sm font-semibold text-[var(--text)]"
           >
             <span className="site-brand-mark grid size-8 place-items-center border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-[var(--accent)]">
-              SC
+              T
             </span>
-            <span>SRE Copilot</span>
+            <span>Tarn</span>
           </Link>
 
           <div className="hidden items-center gap-1 lg:flex">

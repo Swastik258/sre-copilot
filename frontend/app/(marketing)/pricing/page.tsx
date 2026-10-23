@@ -5,9 +5,9 @@ import { PLAN_CATALOG } from "@/lib/plans";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
-  title: "Pricing — SRE Copilot",
+  title: "Pricing — Tarn",
   description:
-    "Every live SRE Copilot capability is free during launch. Paid tiers are planned, not sold.",
+    "Every live Tarn capability is free during launch. Paid tiers are planned, not sold.",
 };
 
 const TIERS = PLAN_CATALOG.map((plan) => ({

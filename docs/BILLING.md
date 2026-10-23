@@ -1,6 +1,6 @@
 # Plans, entitlements, and billing
 
-> **Status: no payments.** SRE Copilot does not collect payment details and does
+> **Status: no payments.** Tarn does not collect payment details and does
 > not sell Pro or Team. Every live capability is available on the Free plan.
 > Pro and Team are published as planned tiers only. The code contains the
 > metering, plan-state, and webhook seams needed for a later launch, but checkout

@@ -1,5 +1,5 @@
 /**
- * Typed API client for the SRE Copilot backend.
+ * Typed API client for the Tarn backend.
  *
  * - Single place that knows the API base URL.
  * - Unwraps the backend's standard error envelope.

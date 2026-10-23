@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/docs" },
-  title: "Documentation — SRE Copilot",
+  title: "Documentation — Tarn",
   description:
     "Local setup, API reference, architecture, security, Kubernetes, and the investigation engine.",
 };

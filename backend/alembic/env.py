@@ -1,4 +1,4 @@
-"""Alembic environment for SRE Copilot.
+"""Alembic environment for Tarn.
 
 Key points:
   - Loads the app's Settings to read DATABASE_URL from .env

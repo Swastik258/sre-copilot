@@ -5,7 +5,7 @@ import { MarketingFooter } from "@/components/MarketingFooter";
 import { TopNav } from "@/components/TopNav";
 
 export const metadata: Metadata = {
-  title: "Page not found — SRE Copilot",
+  title: "Page not found — Tarn",
   robots: { index: false, follow: false },
 };
 

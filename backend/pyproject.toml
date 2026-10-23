@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sre-copilot-backend"
 version = "0.2.0"
-description = "Backend API for SRE Copilot"
+description = "Backend API for Tarn"
 requires-python = ">=3.11"
 dependencies = [
     "alembic>=1.13,<2",

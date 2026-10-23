@@ -6,7 +6,7 @@ import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
-  title: "SRE Copilot — Evidence-backed infrastructure diagnosis",
+  title: "Tarn — Evidence-backed infrastructure diagnosis",
   description:
     "Read-only investigation for Kubernetes, logs, CI/CD, and Terraform. Structured diagnoses separate observed facts from ranked hypotheses.",
 };
@@ -192,7 +192,7 @@ export default function Page() {
             </div>
           </div>
         </div>
-        <div className="home-hero-index" aria-hidden="true">SC / 01</div>
+        <div className="home-hero-index" aria-hidden="true">T / 01</div>
       </section>
 
       <div className="signal-divider shell" aria-hidden="true">

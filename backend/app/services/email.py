@@ -73,9 +73,9 @@ def send_verification_email(settings: Settings, *, to: str, token: str) -> None:
         _message(
             settings,
             to=to,
-            subject="Verify your SRE Copilot email",
+            subject="Verify your Tarn email",
             text=(
-                "Confirm your email address to finish setting up SRE Copilot.\n\n"
+                "Confirm your email address to finish setting up Tarn.\n\n"
                 f"{link}\n\n"
                 f"This link expires in {settings.email_verification_ttl_hours} hours. "
                 "If you did not create an account, ignore this message."
@@ -90,7 +90,7 @@ def send_password_reset_email(settings: Settings, *, to: str, token: str) -> Non
         _message(
             settings,
             to=to,
-            subject="Reset your SRE Copilot password",
+            subject="Reset your Tarn password",
             text=(
                 "Use the link below to choose a new password.\n\n"
                 f"{link}\n\n"

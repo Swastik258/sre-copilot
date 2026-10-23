@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
-  title: "Privacy — SRE Copilot",
+  title: "Privacy — Tarn",
   description:
     "What this deployment stores, where investigation data goes, and how to exercise retention controls.",
 };

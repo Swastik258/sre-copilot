@@ -40,7 +40,7 @@ export function SignatureRing() {
             </h2>
             <p className="mt-5 max-w-prose text-dense-lg text-secondary">
               A single ring on the dashboard carries the state of everything
-              SRE Copilot is watching. It stays faint until there is something
+              Tarn is watching. It stays faint until there is something
               worth your attention — then color and motion do the telling.
             </p>
 

@@ -39,7 +39,7 @@ backend:
     OTEL_TRACES_SAMPLE_RATIO: "0.1"
     SENTRY_TRACES_SAMPLE_RATE: "0.0"
     EMAIL_DELIVERY: disabled
-    EMAIL_FROM: SRE Copilot <no-reply@example.com>
+    EMAIL_FROM: Tarn <no-reply@example.com>
     EMAIL_VERIFICATION_REQUIRED: "false"
     APP_BASE_URL: https://app.example.com
     BACKGROUND_JOBS_ENABLED: "false"

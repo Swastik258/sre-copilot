@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/solutions/platform" },
-  title: "Platform teams — SRE Copilot",
+  title: "Platform teams — Tarn",
   description:
     "Standardize evidence-backed diagnosis across the platform with a read-only contract.",
 };
@@ -17,7 +17,7 @@ export default function Page() {
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
         When every cluster, service, and pipeline speaks a different dialect,
-        diagnosis becomes tribal knowledge. SRE Copilot gives platform teams one
+        diagnosis becomes tribal knowledge. Tarn gives platform teams one
         read-only, evidence-backed way to explain a failure across everything
         they run.
       </p>

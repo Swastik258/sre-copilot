@@ -3,9 +3,9 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/resources" },
-  title: "Resources — SRE Copilot",
+  title: "Resources — Tarn",
   description:
-    "Documentation, engineering notes, changelog, and support for SRE Copilot.",
+    "Documentation, engineering notes, changelog, and support for Tarn.",
 };
 
 const RESOURCES = [

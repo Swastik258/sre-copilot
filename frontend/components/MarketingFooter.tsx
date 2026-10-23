@@ -52,9 +52,9 @@ export function MarketingFooter() {
               className="flex items-center gap-3 text-base font-semibold text-[var(--text)]"
             >
               <span className="grid size-8 place-items-center border border-[var(--border-strong)] bg-[var(--bg)] font-mono text-xs font-semibold text-[var(--accent)]">
-                SC
+                T
               </span>
-              SRE Copilot
+              Tarn
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-6 text-[var(--text-muted)]">
               Read-only investigation for Kubernetes, logs, CI/CD, and
@@ -89,7 +89,7 @@ export function MarketingFooter() {
         </div>
 
         <div className="mt-14 flex flex-col justify-between gap-4 border-t border-[var(--border)] pt-6 sm:flex-row sm:items-center">
-          <div className="label-caps">SRE Copilot · v0.2.0</div>
+          <div className="label-caps">Tarn · v0.2.0</div>
           <div className="label-caps">Self-hosted by design</div>
         </div>
       </div>

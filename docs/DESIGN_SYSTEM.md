@@ -1,6 +1,6 @@
 # Design system: dark operations UI
 
-SRE Copilot uses a unified near-black palette across route groups. Route groups
+Tarn uses a unified near-black palette across route groups. Route groups
 continue to set the semantic theme wrapper, while both wrappers resolve to the
 same dark surfaces and contrast tokens.
 

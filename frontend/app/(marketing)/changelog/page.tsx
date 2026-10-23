@@ -3,9 +3,9 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/changelog" },
-  title: "Changelog — SRE Copilot",
+  title: "Changelog — Tarn",
   description:
-    "What shipped in SRE Copilot, including the paper and ink design system migration.",
+    "What shipped in Tarn, including the paper and ink design system migration.",
 };
 
 export default function Page() {

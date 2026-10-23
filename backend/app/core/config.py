@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     )
 
     # ---- Application ----
-    app_name: str = "SRE Copilot"
+    app_name: str = "Tarn"
     app_version: str = "0.2.0"
     environment: str = "local"
     debug: bool = False
@@ -97,7 +97,7 @@ class Settings(BaseSettings):
     # console: write messages to the application log (local development only)
     # smtp: deliver through the configured SMTP relay
     email_delivery: Literal["disabled", "console", "smtp"] = "disabled"
-    email_from: str = "SRE Copilot <no-reply@localhost>"
+    email_from: str = "Tarn <no-reply@localhost>"
     email_verification_required: bool = False
     email_verification_ttl_hours: int = 24
     password_reset_ttl_minutes: int = 30
@@ -180,7 +180,7 @@ class Settings(BaseSettings):
     openrouter_api_key: str | None = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_http_referer: str = "http://localhost:3000"
-    openrouter_app_title: str = "SRE Copilot"
+    openrouter_app_title: str = "Tarn"
 
     anthropic_api_key: str | None = None
     anthropic_base_url: str = "https://api.anthropic.com"

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/customers/testimonials" },
-  title: "Testimonials — SRE Copilot",
+  title: "Testimonials — Tarn",
   description:
     "No invented testimonials. Named feedback will appear only with permission.",
 };

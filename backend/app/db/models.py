@@ -1,4 +1,4 @@
-"""SQLAlchemy models for SRE Copilot."""
+"""SQLAlchemy models for Tarn."""
 
 from __future__ import annotations
 

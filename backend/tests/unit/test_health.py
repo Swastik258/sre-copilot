@@ -2,7 +2,7 @@ def test_root(client):
     r = client.get("/")
     assert r.status_code == 200
     body = r.json()
-    assert body["service"] == "SRE Copilot"
+    assert body["service"] == "Tarn"
     assert body["docs"] == "/api/docs"
     assert body["openapi"] == "/api/openapi.json"
     assert body["api"] == "/api/v1"
