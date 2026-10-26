@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function AuthHeader() {
   return (
@@ -6,12 +7,10 @@ export function AuthHeader() {
       <div className="shell flex h-16 items-center justify-between">
         <Link
           href="/"
-          className="flex items-center gap-3 text-sm font-semibold text-[var(--text)]"
+          className="site-brand flex items-center text-sm font-semibold text-[var(--text)]"
         >
-          <span className="grid size-8 place-items-center border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-[var(--accent)]">
-            T
-          </span>
-          <span>Tarn</span>
+          <Image className="wordmark-paper" src="/tarn-wordmark.svg" alt="Tarn" width={118} height={36} />
+          <Image className="wordmark-ink" src="/tarn-wordmark-ink.svg" alt="" width={118} height={36} />
         </Link>
         <Link href="/" className="link-editorial text-sm">
           Back to home

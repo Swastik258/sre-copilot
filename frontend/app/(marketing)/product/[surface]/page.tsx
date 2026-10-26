@@ -211,7 +211,7 @@ export default async function ProductSurfacePage({
         <span className="text-[var(--text-muted)]">{content.name}</span>
       </div>
 
-      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)] lg:gap-16">
+      <div className="product-surface-hero grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)] lg:gap-16">
         <header className="max-w-3xl">
           <span className="label-caps">{content.eyebrow}</span>
           <h1 className="heading-display mt-5 text-4xl text-[var(--text)] sm:text-5xl lg:text-6xl">
@@ -230,7 +230,7 @@ export default async function ProductSurfacePage({
           </div>
         </header>
 
-        <aside className="card p-6 sm:p-7">
+        <aside className="surface-margin-note">
           <span className="label-caps">Why Tarn</span>
           <h2 className="mt-4 text-2xl text-[var(--text)]">
             {content.challenge}
@@ -241,26 +241,21 @@ export default async function ProductSurfacePage({
         </aside>
       </div>
 
-      <section className="mt-16 border-t border-[var(--border)] pt-10 sm:mt-20 sm:pt-12">
+      <section className="surface-detail mt-16 border-t border-[var(--border)] pt-10 sm:mt-20 sm:pt-12">
         <div className="mb-7 max-w-2xl">
-          <span className="label-caps">Designed for operational clarity</span>
           <h2 className="heading-display mt-3 text-2xl text-[var(--text)] sm:text-3xl">
-            Useful context, without taking control away from your team.
+            Evidence to inspect, decisions left to your team.
           </h2>
         </div>
-        <div className="grid gap-3 md:grid-cols-3">
+        <ul className="surface-points-list">
           {content.points.map((point) => (
-            <article key={point.title} className="card p-5 sm:p-6">
-              <span className="icon-tile">
-                <Icon name={point.icon} className="size-4" />
-              </span>
-              <h3 className="mt-4 text-base text-[var(--text)]">{point.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-                {point.body}
-              </p>
-            </article>
+            <li key={point.title}>
+              <span className="surface-point-icon"><Icon name={point.icon} className="size-4" /></span>
+              <h3>{point.title}</h3>
+              <p>{point.body}</p>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
     </div>
   );

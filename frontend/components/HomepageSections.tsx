@@ -16,7 +16,7 @@ export function IntegrationSurfaces() {
             </div>
           ))}
         </div>
-        <p className="mt-4 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--text-subtle)]">
+        <p className="mt-4 text-center text-xs text-[var(--text-subtle)]">
           Adapter availability depends on deployment configuration
         </p>
       </div>
@@ -30,41 +30,24 @@ export function HomepageSections() {
       <Reveal>
         <section id="customers" className="home-testimonials home-section-glow">
           <div className="shell py-20 sm:py-24">
-            <div className="mb-10 flex flex-wrap items-end justify-between gap-5">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
               <div>
-                <span className="label-caps">Design-partner program</span>
-                <h2 className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
-                  Built for calmer on-call.
+                <p className="label-caps">Customers</p>
+                <h2 className="heading-display mt-4 text-4xl text-[var(--text)] sm:text-5xl">
+                  No customer stories published yet.
                 </h2>
+                <p className="mt-5 max-w-md text-sm leading-6 text-[var(--text-muted)]">
+                  We will add case studies when teams agree to share their experience.
+                </p>
               </div>
-              <span className="sample-data-label">No published customer stories yet</span>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              {DESIGN_PARTNER_QUESTIONS.map((question, index) => (
-                <Reveal key={question.title} delay={index * 0.09} className="h-full">
-                  <article className="testimonial-card card h-full">
-                    <p className="relative text-sm font-semibold leading-7 text-[var(--text)]">
-                      {question.title}
-                    </p>
-                    <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">
-                      {question.body}
-                    </p>
-                    <div className="mt-7 flex items-center gap-3 border-t border-[var(--border)] pt-5">
-                      <span className="testimonial-avatar" aria-hidden="true">
-                        0{index + 1}
-                      </span>
-                      <div>
-                        <div className="text-sm font-semibold text-[var(--text)]">
-                          Evaluation question
-                        </div>
-                        <div className="mt-1 text-xs text-[var(--text-muted)]">
-                          Design partner · not a testimonial
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                </Reveal>
-              ))}
+              <ul className="divide-y divide-[var(--border)]">
+                {DESIGN_PARTNER_QUESTIONS.map((question) => (
+                  <li className="py-5 first:pt-0" key={question.title}>
+                    <h3 className="text-base font-semibold text-[var(--text)]">{question.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{question.body}</p>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>
@@ -124,7 +107,7 @@ export function HomepageSections() {
                   Meet your infrastructure where it is.
                 </h2>
               </div>
-              <span className="sample-data-label">Supported adapters · configured per deployment</span>
+              <span className="text-sm text-[var(--text-subtle)]">Supported adapters · configured per deployment</span>
             </div>
             <div className="integrations-grid">
               {INTEGRATION_SURFACES.map((integration, index) => (
@@ -175,10 +158,10 @@ export function HomepageSections() {
           <div className="shell py-16 sm:py-20">
             <div className="final-cta-card">
               <span className="label-caps">Your next investigation</span>
-              <h2 className="heading-display mt-4 max-w-3xl text-3xl text-white sm:text-5xl">
+              <h2 className="heading-display mt-4 max-w-3xl text-3xl text-[var(--text-ink)] sm:text-5xl">
                 Bring a failing state. Leave with evidence.
               </h2>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-white/65">
+              <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--text-muted-ink)]">
                 Start with read-only Kubernetes diagnostics or explore the product surfaces.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">

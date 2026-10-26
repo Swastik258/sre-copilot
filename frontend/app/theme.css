@@ -1,0 +1,86 @@
+@theme static {
+  --accent: #8fd3d9;
+  --accent-hover: #b2e5e8;
+  --accent-soft: rgba(143, 211, 217, 0.14);
+  --accent-soft-text: #8fd3d9;
+  --nav-backdrop: rgba(5, 13, 15, 0.48);
+
+  --signal-good: #8fd3d9;
+  --signal-warn: #e8a94b;
+  --signal-bad: #d9604c;
+  --signal-idle: #8d9a98;
+  --signal-info: #8fd3d9;
+
+  --bg-paper: #efebe2;
+  --bg-elevated-paper: #f6f3eb;
+  --bg-subtle-paper: #e5e0d5;
+  --text-paper: #10201f;
+  --text-muted-paper: #435452;
+  --text-subtle-paper: #697773;
+  --border-paper: rgba(16, 32, 31, 0.13);
+  --border-strong-paper: rgba(16, 32, 31, 0.22);
+
+  --bg-ink: #0b1416;
+  --bg-elevated-ink: #101c1f;
+  --bg-subtle-ink: #162629;
+  --text-ink: #efebe2;
+  --text-muted-ink: #b5c3c0;
+  --text-subtle-ink: #879895;
+  --border-ink: rgba(190, 225, 230, 0.12);
+  --border-strong-ink: rgba(190, 225, 230, 0.22);
+
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-inter: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-space-grotesk: var(--font-newsreader), Georgia, serif;
+
+  --container-wide: 80rem;
+  --container-content: 46rem;
+  --text-display-sm: 2rem;
+  --text-display: 2.75rem;
+  --text-display-lg: 3.25rem;
+  --text-display-xl: 4rem;
+  --text-dense: 0.875rem;
+  --text-dense-lg: 1rem;
+  --text-label: 0.6875rem;
+
+  --animate-fade-in: fade-in 0.75s ease-out both;
+  --animate-fade-up: fade-up 0.8s ease-out both;
+}
+
+:root {
+  color-scheme: light;
+  --bg: var(--bg-paper);
+  --bg-elevated: var(--bg-elevated-paper);
+  --bg-subtle: var(--bg-subtle-paper);
+  --text: var(--text-paper);
+  --text-muted: var(--text-muted-paper);
+  --text-subtle: var(--text-subtle-paper);
+  --border: var(--border-paper);
+  --border-strong: var(--border-strong-paper);
+}
+
+[data-theme="paper"] {
+  color-scheme: light;
+  --bg: var(--bg-paper);
+  --bg-elevated: var(--bg-elevated-paper);
+  --bg-subtle: var(--bg-subtle-paper);
+  --text: var(--text-paper);
+  --text-muted: var(--text-muted-paper);
+  --text-subtle: var(--text-subtle-paper);
+  --border: var(--border-paper);
+  --border-strong: var(--border-strong-paper);
+}
+
+[data-theme="ink"] {
+  color-scheme: dark;
+  --bg: var(--bg-ink);
+  --bg-elevated: var(--bg-elevated-ink);
+  --bg-subtle: var(--bg-subtle-ink);
+  --text: var(--text-ink);
+  --text-muted: var(--text-muted-ink);
+  --text-subtle: var(--text-subtle-ink);
+  --border: var(--border-ink);
+  --border-strong: var(--border-strong-ink);
+}

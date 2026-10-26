@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth-client";
@@ -10,6 +11,7 @@ type NavItem = { label: string; href: string; children?: NavChild[] };
 
 const LINKS: NavItem[] = [
   { label: "Home", href: "/" },
+  { label: "Demo", href: "/demo" },
   {
     label: "Product",
     href: "/product",
@@ -147,21 +149,43 @@ export function TopNav() {
   }, [pathname]);
 
   return (
-    <header
-      ref={navRef}
-      className="site-nav fixed inset-x-0 top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]"
-    >
+    <>
+      {openIndex !== null && (
+        <button
+          type="button"
+          className="nav-backdrop"
+          aria-label="Close navigation dropdown"
+          onClick={() => setOpenIndex(null)}
+        />
+      )}
+      <header
+        ref={navRef}
+        className="site-nav fixed inset-x-0 top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]"
+      >
       <nav className="shell flex h-16 items-center justify-between gap-6">
         <div className="flex min-w-0 items-center gap-8">
           <Link
             href="/"
             onClick={() => setMobileOpen(false)}
-            className="site-brand flex shrink-0 items-center gap-3 text-sm font-semibold text-[var(--text)]"
+            className="site-brand flex shrink-0 items-center text-sm font-semibold text-[var(--text)]"
           >
-            <span className="site-brand-mark grid size-8 place-items-center border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-[var(--accent)]">
-              T
-            </span>
-            <span>Tarn</span>
+            <Image
+              className="wordmark-paper"
+              src="/tarn-wordmark.svg"
+              alt="Tarn"
+              width={118}
+              height={36}
+              priority
+            />
+            <Image
+              className="wordmark-ink"
+              src="/tarn-wordmark-ink.svg"
+              alt=""
+              aria-hidden
+              width={118}
+              height={36}
+              priority
+            />
           </Link>
 
           <div className="hidden items-center gap-1 lg:flex">
@@ -222,7 +246,7 @@ export function TopNav() {
                   </Link>
 
                   {hasChildren && isOpen && (
-                    <div className="absolute left-0 top-full z-50 pt-3">
+                    <div className="absolute left-0 top-full z-[60] pt-3">
                       <div className="dropdown-panel min-w-[280px] border border-[var(--border-strong)] bg-[var(--bg-elevated)] p-2">
                         {item.children?.map((child) => (
                           <Link
@@ -416,6 +440,7 @@ export function TopNav() {
           </div>
         </div>
       )}
-    </header>
+      </header>
+    </>
   );
 }

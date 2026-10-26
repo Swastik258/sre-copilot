@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/changelog" },
   title: "Changelog — Tarn",
   description:
-    "What shipped in Tarn, including the paper and ink design system migration.",
+    "What changed in Tarn, including the clear-water design system and product demo.",
 };
 
 export default function Page() {
@@ -21,10 +21,24 @@ export default function Page() {
       </p>
 
       <div className="mt-12 space-y-4">
-        <article className="card p-8">
+        <article className="changelog-entry">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="label-caps">2026-10-22</span>
-            <span className="badge tag-live">Shipped</span>
+            <time className="font-mono text-xs text-[var(--text-subtle)]" dateTime="2026-10-26">2026-10-26</time>
+            <span className="text-sm text-[var(--signal-warn)]">Working copy · not deployed</span>
+          </div>
+          <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
+            Clear-water redesign
+          </h2>
+          <ul className="mt-4 space-y-2 text-sm leading-6 text-[var(--text-muted)]">
+            <li>Introduces the ink-water and bone-paper themes, contour wordmark, and editorial type pairing.</li>
+            <li>Adds a no-signup demo with diagnosis snapshots generated from the deterministic Kubernetes rules and public fixtures.</li>
+            <li>Removes illustrative incident claims and separates observed facts from hypotheses in the demo output.</li>
+          </ul>
+        </article>
+        <article className="changelog-entry">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <time className="font-mono text-xs text-[var(--text-subtle)]" dateTime="2026-10-22">2026-10-22</time>
+            <span className="text-sm text-[var(--text-subtle)]">Shipped</span>
           </div>
           <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
             Production-readiness release
@@ -38,10 +52,10 @@ export default function Page() {
           </ul>
         </article>
 
-        <article className="card p-8">
+        <article className="changelog-entry">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="label-caps">2026-10-21</span>
-            <span className="badge tag-live">Shipped</span>
+            <time className="font-mono text-xs text-[var(--text-subtle)]" dateTime="2026-10-21">2026-10-21</time>
+            <span className="text-sm text-[var(--text-subtle)]">Shipped</span>
           </div>
           <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
             Paper + ink design system

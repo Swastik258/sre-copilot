@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/ui";
 
@@ -24,27 +25,32 @@ const POINTS: { icon: IconName; title: string; body: string }[] = [
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <section className="relative overflow-hidden">
-      <div aria-hidden className="grid-overlay" />
-      <div aria-hidden className="glow glow-amber -left-24 -top-32 h-80 w-80" />
-
       <div className="shell relative py-16 sm:py-20">
         <div className="grid grid-cols-1 items-start gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16">
           {/* Brand panel */}
           <div className="order-2 lg:order-1">
             <Link
               href="/"
-              className="inline-flex items-center gap-3 text-base font-semibold text-primary"
+              className="site-brand inline-flex items-center text-base font-semibold text-primary"
             >
-              <span className="grid size-8 place-items-center rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg-subtle)] font-mono text-xs font-semibold text-accent">
-                T
-              </span>
-              <span className="tracking-[-0.02em]">Tarn</span>
+              <Image
+                className="wordmark-paper"
+                src="/tarn-wordmark.svg"
+                alt="Tarn"
+                width={118}
+                height={36}
+              />
+              <Image
+                className="wordmark-ink"
+                src="/tarn-wordmark-ink.svg"
+                alt=""
+                width={118}
+                height={36}
+              />
             </Link>
 
             <h2 className="mt-8 font-serif text-display tracking-tight text-primary">
-              Diagnose with evidence,
-              <br />
-              not guesswork.
+              Review the observation before the explanation.
             </h2>
             <p className="mt-5 max-w-prose text-dense-lg text-secondary">
               Tarn investigates Kubernetes, logs, CI/CD, and Terraform. It reads,

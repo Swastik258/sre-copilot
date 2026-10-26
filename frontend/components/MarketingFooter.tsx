@@ -1,10 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Product",
     links: [
       { label: "Overview", href: "/product" },
+      { label: "Try the demo", href: "/demo" },
       { label: "AI Assistant", href: "/assistant" },
       { label: "Kubernetes", href: "/kubernetes" },
       { label: "Logs", href: "/logs" },
@@ -49,17 +51,14 @@ export function MarketingFooter() {
           <div>
             <Link
               href="/"
-              className="flex items-center gap-3 text-base font-semibold text-[var(--text)]"
+              className="site-brand flex items-center text-base font-semibold text-[var(--text)]"
             >
-              <span className="grid size-8 place-items-center border border-[var(--border-strong)] bg-[var(--bg)] font-mono text-xs font-semibold text-[var(--accent)]">
-                T
-              </span>
-              Tarn
+              <Image className="wordmark-paper" src="/tarn-wordmark.svg" alt="Tarn" width={118} height={36} />
+              <Image className="wordmark-ink" src="/tarn-wordmark-ink.svg" alt="" width={118} height={36} />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-6 text-[var(--text-muted)]">
-              Read-only investigation for Kubernetes, logs, CI/CD, and
-              Terraform. Evidence-backed diagnoses you can act on — never
-              guesses.
+              Read-only diagnosis for infrastructure failures, with observations
+              kept separate from hypotheses and linked to their evidence.
             </p>
             <div className="mt-6 flex items-center gap-2 label-caps">
               <span className="dot dot-good" />

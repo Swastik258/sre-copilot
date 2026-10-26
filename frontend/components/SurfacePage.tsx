@@ -60,11 +60,8 @@ export function SurfacePage({ config }: { config: SurfaceConfig }) {
           <section className="border-b border-hairline">
             <div className="shell py-16">
               <div className="mb-5 flex items-center justify-between">
-                <span className="label-caps">
-                  {config.previewLabel ?? "Preview · labelled sample data"}
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-tertiary">
-                  illustrative
+                <span className="demo-data-note">
+                  {config.previewLabel ?? "Demo data"}
                 </span>
               </div>
               {config.preview}

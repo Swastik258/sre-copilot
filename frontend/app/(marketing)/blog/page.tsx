@@ -21,16 +21,18 @@ export default function Page() {
         here.
       </p>
 
-      <div className="card mt-12 p-8 md:p-10">
-        <span className="label-caps">Empty state</span>
-        <p className="mt-4 max-w-2xl font-serif text-2xl leading-snug text-[var(--text)]">
-          We are not padding the index with SEO filler.
-        </p>
-        <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
-          In the meantime, the docs describe the architecture and the changelog
-          records what actually shipped.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+      <section className="blog-empty-state mt-16" aria-label="Blog status">
+        <p className="label-caps">Editorial note</p>
+        <div>
+          <p className="font-serif text-3xl leading-snug text-[var(--text)]">
+            We are not padding the index with SEO filler.
+          </p>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
+            In the meantime, the docs describe the architecture and the changelog
+            records what actually shipped.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
           <Link href="/docs" className="btn-accent">
             Read the docs
           </Link>
@@ -38,7 +40,7 @@ export default function Page() {
             View the changelog
           </Link>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

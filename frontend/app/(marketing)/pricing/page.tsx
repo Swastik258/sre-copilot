@@ -35,53 +35,47 @@ export default function Page() {
         not presented as shipped.
       </p>
 
-      <div className="mt-12 grid gap-4 lg:grid-cols-3">
-        {TIERS.map((tier) => (
-          <article
-            key={tier.name}
-            className={`${tier.highlight ? "card-soft" : "card"} flex flex-col p-8`}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-semibold text-[var(--text)]">
-                {tier.name}
-              </h2>
-              {tier.status === "available" ? (
-                <span className="badge badge-neutral">Free today</span>
-              ) : (
-                <span className="badge badge-neutral">Planned · not for sale</span>
-              )}
-            </div>
-            <div className="mt-6 flex items-baseline gap-2">
-              <span className="font-serif text-4xl text-[var(--text)]">
-                {tier.price}
-              </span>
-              <span className="text-xs text-[var(--text-subtle)]">
-                {tier.cadence}
-              </span>
-            </div>
-            <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-              {tier.description}
-            </p>
-
-            <ul className="mt-8 space-y-3 text-sm text-[var(--text-muted)]">
-              {tier.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2">
-                  <span className="mt-0.5 text-[var(--signal-good)]">+</span>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-auto pt-8">
-              <Link
-                href={tier.href}
-                className={tier.highlight ? "btn-accent w-full" : "btn-ghost w-full"}
-              >
-                {tier.cta}
-              </Link>
-            </div>
-          </article>
-        ))}
+      <div className="pricing-table-wrap mt-12">
+        <table className="editorial-table pricing-table">
+          <thead>
+            <tr>
+              <th scope="col">Plan</th>
+              <th scope="col">Price and status</th>
+              <th scope="col">Included</th>
+              <th scope="col">Availability</th>
+            </tr>
+          </thead>
+          <tbody>
+            {TIERS.map((tier) => (
+              <tr key={tier.name}>
+                <th scope="row">
+                  <span className="font-serif text-2xl text-[var(--text)]">{tier.name}</span>
+                  <span className="mt-2 block font-normal text-[var(--text-muted)]">{tier.description}</span>
+                </th>
+                <td>
+                  <span className="font-serif text-2xl text-[var(--text)]">{tier.price}</span>
+                  <span className="ml-2 text-sm text-[var(--text-subtle)]">{tier.cadence}</span>
+                  <p className="mt-2 text-sm text-[var(--text-muted)]">
+                    {tier.status === "available" ? "Free today" : "Planned · not for sale"}
+                  </p>
+                </td>
+                <td>
+                  <ul className="space-y-2 text-sm leading-6 text-[var(--text-muted)]">
+                    {tier.features.map((feature) => <li key={feature}>{feature}</li>)}
+                  </ul>
+                </td>
+                <td>
+                  <Link
+                    href={tier.href}
+                    className={tier.highlight ? "btn-accent" : "link-editorial"}
+                  >
+                    {tier.cta}
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <p className="mt-8 text-xs leading-5 text-[var(--text-subtle)]">

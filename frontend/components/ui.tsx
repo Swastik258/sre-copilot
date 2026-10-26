@@ -208,28 +208,8 @@ export function FeatureGrid({
 }
 
 /* ------------------------------------------------------------------ *
- * Stats / checklist / steps
+ * Checklist / steps
  * ------------------------------------------------------------------ */
-
-export function StatBand({
-  items,
-}: {
-  items: { value: string; label: string; hint?: string }[];
-}) {
-  return (
-    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-[var(--border-strong)] bg-[var(--border-strong)] lg:grid-cols-4">
-      {items.map((s) => (
-        <div key={s.label} className="bg-[var(--bg-elevated)] px-6 py-7">
-          <div className="font-serif text-[2.25rem] leading-none text-primary">{s.value}</div>
-          <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-secondary">
-            {s.label}
-          </div>
-          {s.hint && <div className="mt-1.5 text-[12px] text-tertiary">{s.hint}</div>}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export function CheckList({ items }: { items: ReactNode[] }) {
   return (
@@ -289,24 +269,17 @@ export function CTASection({
   note?: string;
 }) {
   return (
-    <section className="border-t border-hairline bg-[var(--bg-subtle)]">
+    <section className="cta-section contour-field">
       <div className="shell py-20">
-        <div className="grad-card relative overflow-hidden rounded-[2rem] px-7 py-14 sm:px-14 sm:py-16">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-16 -top-20 h-80 w-80 rounded-full bg-[var(--accent-soft)] blur-3xl"
-          />
-          <div className="relative z-10 grid grid-cols-1 items-end gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+        <div className="cta-editorial grid grid-cols-1 items-end gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
             <div>
-              <span className="inline-flex items-center rounded-full bg-[var(--accent-soft)] px-3 py-1 text-[13px] font-medium text-white/90">
-                {eyebrow}
-              </span>
-              <h2 className="mt-5 text-[2rem] font-semibold leading-[1.1] tracking-[-0.03em] text-white sm:text-[2.5rem]">
+              <span className="label-caps">{eyebrow}</span>
+              <h2 className="mt-5 text-[2rem] font-medium leading-[1.1] tracking-[-0.03em] text-[var(--text)] sm:text-[2.5rem]">
                 {title}
               </h2>
             </div>
             <div className="flex flex-col gap-6">
-              <p className="max-w-prose text-[1.0625rem] leading-relaxed text-white/80">
+              <p className="max-w-prose text-[1.0625rem] leading-relaxed text-[var(--text-muted)]">
                 {body}
               </p>
               <div className="flex flex-wrap items-center gap-3">
@@ -319,12 +292,11 @@ export function CTASection({
                 </Link>
               </div>
               {note && (
-                <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/55">
+                <div className="text-xs text-[var(--text-subtle)]">
                   {note}
                 </div>
               )}
             </div>
-          </div>
         </div>
       </div>
     </section>

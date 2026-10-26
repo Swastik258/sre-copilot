@@ -7,7 +7,6 @@ import {
   FeatureGrid,
   Icon,
   Section,
-  StatBand,
   type Feature,
 } from "@/components/ui";
 
@@ -19,7 +18,6 @@ export type SolutionConfig = {
   problems: { title: string; body: string }[];
   helpsTitle: string;
   helps: Feature[];
-  outcomes: { value: string; label: string; hint?: string }[];
   ctaTitle: ReactNode;
   ctaBody: string;
 };
@@ -62,9 +60,6 @@ export function SolutionPage({ config }: { config: SolutionConfig }) {
           <FeatureGrid items={config.helps} columns={2} />
         </Section>
 
-        <Section eyebrow="Outcomes" title="What teams get" lead="Illustrative targets for how read-only, evidence-first diagnosis changes the shape of on-call work.">
-          <StatBand items={config.outcomes} />
-        </Section>
       </PageShell>
 
       <CTASection title={config.ctaTitle} body={config.ctaBody} />

@@ -9,7 +9,7 @@
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL ??
   process.env.NEXT_PUBLIC_API_BASE ??
-  "http://localhost:8000"
+  ""
 ).replace(/\/$/, "");
 
 export type ApiErrorBody = {
@@ -65,7 +65,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     throw new ApiRequestError(0, {
       code: "network_error",
-      message: `Cannot reach the API at ${API_BASE}. Is the backend running?`,
+      message: `Cannot reach the API${API_BASE ? ` at ${API_BASE}` : ""}. Is the backend running?`,
     });
   }
 

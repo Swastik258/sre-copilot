@@ -40,27 +40,21 @@ export default function Page() {
         Review them against your own risk model before exposing a deployment.
       </p>
 
-      <div className="mt-12 grid gap-4 lg:grid-cols-2">
-        <div className="card p-8">
+      <div className="security-ledger mt-16">
+        <section>
           <span className="label-caps">Controls in place</span>
           <ul className="mt-6 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
             {CONTROLS.map((control) => (
-              <li key={control} className="flex items-start gap-3">
-                <span className="mt-0.5 text-[var(--signal-good)]">+</span>
-                <span>{control}</span>
-              </li>
+              <li key={control}>{control}</li>
             ))}
           </ul>
-        </div>
+        </section>
 
-        <div className="card p-8">
+        <section>
           <span className="label-caps">Honest gaps</span>
           <ul className="mt-6 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
             {GAPS.map((gap) => (
-              <li key={gap} className="flex items-start gap-3">
-                <span className="mt-0.5 text-[var(--signal-warn)]">!</span>
-                <span>{gap}</span>
-              </li>
+              <li key={gap}>{gap}</li>
             ))}
           </ul>
           <p className="mt-6 text-sm leading-6 text-[var(--text-muted)]">
@@ -68,7 +62,7 @@ export default function Page() {
             its own monitoring, backup, key-management, and incident-response
             procedures.
           </p>
-        </div>
+        </section>
       </div>
 
       <div className="mt-12 flex flex-wrap gap-3">
