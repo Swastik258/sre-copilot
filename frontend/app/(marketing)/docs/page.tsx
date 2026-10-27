@@ -62,24 +62,23 @@ export default function Page() {
         </p>
       </div>
 
-      <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <nav className="docs-index mt-12" aria-label="Documentation contents">
         {SECTIONS.map((section) => (
           <Link
             key={section.id}
             href={`#${section.id}`}
-            className="card card-hover flex flex-col p-6"
+            className="docs-index-row"
           >
-            <span className="label-caps">Section</span>
-            <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
+            <h2 className="font-serif text-xl text-[var(--text)]">
               {section.title}
             </h2>
-            <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
+            <p className="text-sm leading-6 text-[var(--text-muted)]">
               {section.description}
             </p>
-            <span className="mt-6 text-xs text-[var(--accent)]">Jump to notes</span>
+            <span className="text-sm text-[var(--accent)]">Read</span>
           </Link>
         ))}
-      </div>
+      </nav>
 
       <div className="mt-24 space-y-12">
         <section id="local-setup" className="scroll-mt-24 border-t border-[var(--border)] pt-8">
@@ -89,8 +88,8 @@ export default function Page() {
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
             Start the backend with its local SQLite database, then run the
-            frontend against the versioned API. Demo fixtures make the
-            Kubernetes surface usable without a cluster.
+            frontend against the versioned API. Local fixtures support
+            development without connecting a cluster.
           </p>
         </section>
 
@@ -132,12 +131,12 @@ export default function Page() {
         <section id="kubernetes" className="scroll-mt-24 border-t border-[var(--border)] pt-8">
           <span className="label-caps">Kubernetes</span>
           <h2 className="mt-3 font-serif text-3xl text-[var(--text)]">
-            Fixtures first, cluster second.
+            Test locally before connecting a cluster.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
-            Start with the bundled demo fixtures, then connect a real cluster
-            with a read-only kubeconfig. The console reports connected, demo, and
-            off states honestly.
+            Use local fixtures for development, then connect a real cluster
+            with a read-only kubeconfig. The console reports connected,
+            fixture-backed, and off states distinctly.
           </p>
         </section>
 

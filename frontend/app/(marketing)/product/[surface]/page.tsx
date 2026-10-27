@@ -7,7 +7,6 @@ const SURFACES = {
   assistant: {
     name: "AI Assistant",
     href: "/assistant",
-    eyebrow: "Product / AI Assistant",
     title: "A clearer answer to “what changed?”",
     summary:
       "Tarn keeps an incident conversation tied to its evidence, so teams can ask why something failed without losing the trail behind the answer.",
@@ -24,7 +23,6 @@ const SURFACES = {
   kubernetes: {
     name: "Kubernetes",
     href: "/kubernetes",
-    eyebrow: "Product / Kubernetes",
     title: "Understand the pod before changing it.",
     summary:
       "Tarn brings pod status, events, and container logs into one evidence-backed diagnosis, helping operators move from symptoms to a clear next check.",
@@ -41,7 +39,6 @@ const SURFACES = {
   logs: {
     name: "Logs",
     href: "/logs",
-    eyebrow: "Product / Logs",
     title: "Find the first useful signal in noisy logs.",
     summary:
       "Tarn groups repeated log messages into readable signatures and helps teams focus on when a failure first appeared and what evidence supports it.",
@@ -58,7 +55,6 @@ const SURFACES = {
   metrics: {
     name: "Metrics",
     href: "/metrics",
-    eyebrow: "Product / Metrics",
     title: "Put a metric change in incident context.",
     summary:
       "Tarn helps teams inspect bounded Prometheus signals alongside operational events, making it easier to see what changed without mistaking timing for causation.",
@@ -75,7 +71,6 @@ const SURFACES = {
   runbooks: {
     name: "Runbooks",
     href: "/runbooks",
-    eyebrow: "Product / Runbooks",
     title: "Make the next safe check easier to find.",
     summary:
       "Tarn makes read-only triage guidance easier to search and follow, helping operators move through a consistent investigation without hiding the decision points.",
@@ -92,7 +87,6 @@ const SURFACES = {
   cicd: {
     name: "CI/CD",
     href: "/cicd",
-    eyebrow: "Product / CI/CD",
     title: "See where a pipeline failed and why.",
     summary:
       "Tarn helps operators review GitHub Actions failures by connecting the run, failed job, step, and relevant log evidence in one place.",
@@ -109,7 +103,6 @@ const SURFACES = {
   terraform: {
     name: "Terraform",
     href: "/terraform",
-    eyebrow: "Product / Terraform",
     title: "Understand a plan before anyone applies it.",
     summary:
       "Tarn translates Terraform plan changes into a clearer review of replacements, deletions, and potential blast radius.",
@@ -126,7 +119,6 @@ const SURFACES = {
   "infra-code": {
     name: "Infrastructure Code",
     href: "/infra-code",
-    eyebrow: "Product / Infrastructure Code",
     title: "Start with safer infrastructure proposals.",
     summary:
       "Tarn can generate a reviewable baseline for common infrastructure resources, with policy notes that make important defaults visible.",
@@ -143,7 +135,6 @@ const SURFACES = {
   audit: {
     name: "Audit",
     href: "/audit",
-    eyebrow: "Product / Audit",
     title: "Keep a clearer record of investigation decisions.",
     summary:
       "Tarn helps teams understand what was asked, which policy decisions were recorded, and what redacted outcome followed.",
@@ -162,7 +153,6 @@ const SURFACES = {
   {
     name: string;
     href: string;
-    eyebrow: string;
     title: string;
     summary: string;
     challenge: string;
@@ -211,10 +201,9 @@ export default async function ProductSurfacePage({
         <span className="text-[var(--text-muted)]">{content.name}</span>
       </div>
 
-      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)] lg:gap-16">
+      <div className="product-surface-hero grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)] lg:gap-16">
         <header className="max-w-3xl">
-          <span className="label-caps">{content.eyebrow}</span>
-          <h1 className="heading-display mt-5 text-4xl text-[var(--text)] sm:text-5xl lg:text-6xl">
+          <h1 className="heading-display text-4xl text-[var(--text)] sm:text-5xl lg:text-6xl">
             {content.title}
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--text-muted)] sm:text-lg sm:leading-8">
@@ -230,7 +219,7 @@ export default async function ProductSurfacePage({
           </div>
         </header>
 
-        <aside className="card p-6 sm:p-7">
+        <aside className="surface-margin-note">
           <span className="label-caps">Why Tarn</span>
           <h2 className="mt-4 text-2xl text-[var(--text)]">
             {content.challenge}
@@ -241,26 +230,21 @@ export default async function ProductSurfacePage({
         </aside>
       </div>
 
-      <section className="mt-16 border-t border-[var(--border)] pt-10 sm:mt-20 sm:pt-12">
+      <section className="surface-detail mt-16 border-t border-[var(--border)] pt-10 sm:mt-20 sm:pt-12">
         <div className="mb-7 max-w-2xl">
-          <span className="label-caps">Designed for operational clarity</span>
           <h2 className="heading-display mt-3 text-2xl text-[var(--text)] sm:text-3xl">
-            Useful context, without taking control away from your team.
+            Evidence to inspect, decisions left to your team.
           </h2>
         </div>
-        <div className="grid gap-3 md:grid-cols-3">
+        <ul className="surface-points-list">
           {content.points.map((point) => (
-            <article key={point.title} className="card p-5 sm:p-6">
-              <span className="icon-tile">
-                <Icon name={point.icon} className="size-4" />
-              </span>
-              <h3 className="mt-4 text-base text-[var(--text)]">{point.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-                {point.body}
-              </p>
-            </article>
+            <li key={point.title}>
+              <span className="surface-point-icon"><Icon name={point.icon} className="size-4" /></span>
+              <h3>{point.title}</h3>
+              <p>{point.body}</p>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
     </div>
   );

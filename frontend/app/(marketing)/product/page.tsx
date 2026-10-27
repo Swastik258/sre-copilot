@@ -76,7 +76,7 @@ const SURFACES = [
 
 export default function Page() {
   return (
-    <div className="shell py-24">
+    <div className="shell product-index-page py-24">
       <span className="label-caps">Product</span>
       <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
         One evidence model across the surfaces you debug.
@@ -87,48 +87,38 @@ export default function Page() {
         infrastructure changes remain proposals and are never applied.
       </p>
 
-      <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <ul className="surface-directory mt-12">
         {SURFACES.map((surface) => (
-          <Link
-            key={surface.title}
-            href={`/product/${surface.slug}`}
-            className="card flex flex-col p-6 transition-colors hover:border-[var(--border-strong)]"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <h2 className="font-serif text-2xl text-[var(--text)]">
-                {surface.title}
-              </h2>
-              <span
-                className={`badge ${surface.live ? "tag-live" : "tag-planned"}`}
-              >
-                {surface.status}
-              </span>
-            </div>
-            <p className="mt-4 text-sm leading-6 text-[var(--text-muted)]">
-              {surface.body}
-            </p>
-          </Link>
+          <li key={surface.title}>
+            <Link href={`/product/${surface.slug}`} className="surface-directory-link">
+              <div>
+                <span className="surface-directory-status">{surface.status}</span>
+                <h2>{surface.title}</h2>
+                <p>{surface.body}</p>
+              </div>
+              <span className="surface-directory-arrow" aria-hidden="true">↗</span>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
 
       <div className="mt-12 flex flex-wrap gap-3">
-        <Link href="/kubernetes" className="btn-accent">
-          Open Kubernetes diagnosis
+        <Link href="/sign-up" className="btn-accent">
+          Get started
         </Link>
         <Link href="/docs" className="btn-ghost">
           Read the docs
         </Link>
       </div>
 
-      <div className="card mt-24 p-8">
-        <span className="label-caps">Honest status</span>
+      <aside className="product-status-note mt-20">
+        <span className="label-caps">Product status</span>
         <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
           The surfaces above are implemented. Live infrastructure data requires
-          operator-configured read-only credentials; deterministic fixtures are
-          always labelled as demo data. AI explanations are optional, and
-          deterministic diagnosis remains authoritative.
+          operator-configured read-only credentials. AI explanations are
+          optional, and deterministic diagnosis remains authoritative.
         </p>
-      </div>
+      </aside>
     </div>
   );
 }

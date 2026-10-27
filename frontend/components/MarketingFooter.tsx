@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
@@ -43,28 +44,20 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
 export function MarketingFooter() {
   return (
-    <footer className="border-t border-[var(--border)] bg-[var(--bg-subtle)]">
+    <footer className="marketing-footer border-t border-[var(--border)] bg-[var(--bg)]">
       <div className="shell py-16">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)]">
           <div>
             <Link
               href="/"
-              className="flex items-center gap-3 text-base font-semibold text-[var(--text)]"
+              className="site-brand flex items-center text-base font-semibold text-[var(--text)]"
             >
-              <span className="grid size-8 place-items-center border border-[var(--border-strong)] bg-[var(--bg)] font-mono text-xs font-semibold text-[var(--accent)]">
-                T
-              </span>
-              Tarn
+              <Image className="wordmark-paper" src="/tarn-wordmark.svg" alt="Tarn" width={118} height={36} />
+              <Image className="wordmark-ink" src="/tarn-wordmark-ink.svg" alt="" width={118} height={36} />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-6 text-[var(--text-muted)]">
-              Read-only investigation for Kubernetes, logs, CI/CD, and
-              Terraform. Evidence-backed diagnoses you can act on — never
-              guesses.
+              Evidence-backed diagnosis for infrastructure failures.
             </p>
-            <div className="mt-6 flex items-center gap-2 label-caps">
-              <span className="dot dot-good" />
-              Read-only by default
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
@@ -89,9 +82,10 @@ export function MarketingFooter() {
         </div>
 
         <div className="mt-14 flex flex-col justify-between gap-4 border-t border-[var(--border)] pt-6 sm:flex-row sm:items-center">
-          <div className="label-caps">Tarn · v0.2.0</div>
-          <div className="label-caps">Self-hosted by design</div>
+          <div className="label-caps">Tarn</div>
+          <div className="label-caps">Built for infrastructure teams</div>
         </div>
+        <div className="footer-wordmark" aria-hidden="true">Tarn</div>
       </div>
     </footer>
   );

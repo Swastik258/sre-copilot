@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FEATURES, DEFAULT_PLAN, PLANS, featureForPath, hasFeatureAccess } from "@/lib/feature-access";
@@ -73,7 +74,22 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const sidebar = (
     <aside className={`workspace-rail ${collapsed ? "is-collapsed" : ""} ${collapsed ? "lg:w-[76px]" : "lg:w-[264px]"}`}>
       <div className="flex h-16 items-center justify-between border-b border-[var(--border)] px-4">
-        <span className={collapsed ? "font-semibold tracking-tight text-[var(--text)] lg:hidden" : "font-semibold tracking-tight text-[var(--text)]"}>Tarn</span>
+        <Link href="/" className="workspace-brand" aria-label="Tarn home">
+          <Image
+            className="wordmark-paper"
+            src="/tarn-wordmark.svg"
+            alt=""
+            width={118}
+            height={36}
+          />
+          <Image
+            className="wordmark-ink"
+            src="/tarn-wordmark-ink.svg"
+            alt=""
+            width={118}
+            height={36}
+          />
+        </Link>
         <button type="button" onClick={() => setCollapsed(!collapsed)} className="hidden rounded-md border border-[var(--border)] px-2 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)] lg:block" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
           {collapsed ? "»" : "«"}
         </button>
@@ -135,7 +151,7 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="workspace-shell">
+    <div className={`workspace-shell ${pathname === "/dashboard" ? "dashboard-workspace" : ""}`}>
       <div className="fixed inset-y-0 left-0 z-30 hidden lg:block">{sidebar}</div>
       {drawerOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">

@@ -44,7 +44,7 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const displayName = user?.display_name?.trim() || user?.email?.split("@")[0] || "there";
+  const displayName = user?.display_name?.trim() || user?.email?.split("@")[0];
   const kubernetes = integrations?.integrations.find((item) => item.kind === "kubernetes");
   const kubernetesValue = integrationError
     ? "Unavailable"
@@ -58,7 +58,7 @@ export default function DashboardPage() {
             ? "Disabled"
             : "Not configured";
   const kubernetesDetail = integrationError
-    ? "Status endpoint unreachable"
+    ? "Integration status unavailable"
     : kubernetes?.state === "demo"
       ? "Labelled fixtures · read-only"
       : kubernetes?.state === "connected" || kubernetes?.state === "enabled"
@@ -73,69 +73,111 @@ export default function DashboardPage() {
       ? "Checking"
       : `${connected ?? 0}/${integrations.integrations.length}`;
   const integrationDetail = integrationError
-    ? "Status endpoint unreachable"
+    ? "Integration status unavailable"
     : !integrations
-      ? "Loading backend status"
-      : `${connected ?? 0} read-only · operator-configured`;
+      ? "Checking integration status"
+      : `${connected ?? 0} connected · operator-configured`;
+
+  const statuses = [
+    { title: "Kubernetes", value: kubernetesValue, detail: kubernetesDetail },
+    { title: "Connected sources", value: integrationValue, detail: integrationDetail },
+    { title: "Infrastructure writes", value: "Never", detail: "Changes remain under operator control" },
+  ];
 
   return (
-    <div className="dashboard-content space-y-8">
-      <section className="dashboard-hero console-panel relative overflow-hidden p-6 sm:p-8">
-        <div aria-hidden className="pointer-events-none absolute -right-20 -top-28 size-72 rounded-full bg-[var(--accent)]/10 blur-3xl" />
-        <div className="relative">
-          <p className="font-mono text-[11px] uppercase tracking-[.16em] text-[var(--accent)]">Workspace overview</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Welcome back, {displayName}</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">Start an evidence-backed investigation or pick up where you left off. Diagnostics are read-only by default.</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/kubernetes" className="btn-accent">Diagnose Kubernetes</Link>
-            <Link href="/cicd" className="btn-ghost">Inspect a pipeline</Link>
+    <div className="dashboard-content dashboard-overview">
+      <section className="dashboard-hero dashboard-overview-hero">
+        <div className="dashboard-welcome">
+          <p className="dashboard-eyebrow">Workspace / Overview</p>
+          <h1>
+            {displayName ? `Your workspace, ${displayName}.` : "Workspace overview"}
+          </h1>
+          <p>
+            Investigate a failure, then verify every finding against its source.
+          </p>
+          <div className="dashboard-actions">
+            <Link href="/kubernetes" className="dashboard-action-primary">
+              <span>Start a Kubernetes diagnosis</span>
+              <span aria-hidden="true">↗</span>
+            </Link>
+            <Link href="/cicd" className="dashboard-action-secondary">
+              Inspect a workflow
+            </Link>
           </div>
+        </div>
+        <div className="dashboard-hero-aside" aria-label="Investigation approach">
+          <span className="dashboard-live-mark" aria-hidden="true" />
+          <p className="dashboard-eyebrow">Every finding has a source</p>
+          <p>Observed facts</p>
+          <span>→</span>
+          <p>Evidence references</p>
+          <span>→</span>
+          <p>Ranked hypotheses</p>
         </div>
       </section>
 
-      <section aria-label="Workspace status" aria-live="polite" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          { title: "Plan", value: "Free access", detail: "All live features enabled" },
-          { title: "Kubernetes", value: kubernetesValue, detail: kubernetesDetail },
-          { title: "Integrations", value: integrationValue, detail: integrationDetail },
-          { title: "Write actions", value: "0", detail: "No infrastructure changes made" },
-        ].map((item) => (
-          <article key={item.title} className="dashboard-stat card p-5 transition hover:-translate-y-0.5">
-            <p className="font-mono text-[10px] uppercase tracking-wide text-[var(--text-muted)]">{item.title}</p>
-            <p className="mt-3 text-xl font-semibold">{item.value}</p>
-            <p className="mt-1 text-xs text-[var(--text-subtle)]">{item.detail}</p>
+      <section
+        aria-label="Workspace status"
+        aria-live="polite"
+        className="dashboard-status dashboard-status-grid"
+      >
+        {statuses.map((item) => (
+          <article key={item.title} className="dashboard-status-card">
+            <div className="dashboard-status-card-heading">
+              <h2>{item.title}</h2>
+            </div>
+            <p>{item.value}</p>
+            <span>{item.detail}</span>
           </article>
         ))}
       </section>
 
-      <section className="dashboard-history console-panel">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-4 sm:px-6">
+      <section className="dashboard-history dashboard-history-panel">
+        <div className="dashboard-history-heading">
           <div>
-            <h2 className="font-semibold">Recent investigations</h2>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">Your saved investigation history</p>
+            <p className="dashboard-eyebrow">Workspace activity</p>
+            <h2>Recent investigations</h2>
+            <p className="dashboard-history-description">
+              Your latest saved diagnosis runs.
+            </p>
           </div>
-          <Link href="/history" className="text-sm text-[var(--accent)] hover:text-[var(--text)]">View history →</Link>
+          <Link href="/history" className="dashboard-history-link">
+            All investigations <span aria-hidden="true">↗</span>
+          </Link>
         </div>
         {loading ? (
-          <p className="px-6 py-8 text-sm text-[var(--text-muted)]">Loading investigations…</p>
+          <p className="dashboard-history-state">Loading your investigations…</p>
         ) : historyError ? (
-          <p role="status" className="px-6 py-8 text-sm text-[var(--signal-bad)]">{historyError}</p>
+          <p role="status" className="dashboard-history-state is-error">{historyError}</p>
         ) : recent.length === 0 ? (
-          <div className="px-6 py-10 text-center">
-            <p className="text-sm font-medium">No investigations yet</p>
-            <p className="mt-2 text-sm text-[var(--text-muted)]">Your saved runs will appear here after your first investigation.</p>
-            <Link href="/kubernetes" className="mt-4 inline-flex text-sm text-[var(--accent)] hover:text-[var(--text)]">Start with Kubernetes →</Link>
+          <div className="dashboard-empty-state">
+            <div>
+              <h3>No saved investigations yet</h3>
+              <p>Your completed runs will appear here.</p>
+            </div>
+            <Link href="/kubernetes" className="dashboard-history-link">
+              Start a diagnosis <span aria-hidden="true">↗</span>
+            </Link>
           </div>
         ) : (
-          <ul className="divide-y divide-[var(--border)]">
+          <ul className="dashboard-history-list">
             {recent.map((item) => (
-              <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{item.title}</p>
-                  <p className="mt-1 font-mono text-[10px] text-[var(--text-muted)]">{item.kind} · {new Date(item.updated_at).toLocaleString()}</p>
-                  <span className="workspace-trace-chip mt-2">trace: {item.id.slice(0, 12)}</span>
+              <li key={item.id}>
+                <div className="dashboard-investigation-type" aria-hidden="true">
+                  {item.kind.slice(0, 1).toUpperCase()}
                 </div>
-                <span className="border border-[var(--border)] px-2 py-1 font-mono text-[9px] uppercase tracking-wide text-[var(--text-muted)]">{item.status.replace("_", " ")}</span>
+                <div className="dashboard-investigation-main">
+                  <p className="dashboard-investigation-title">{item.title}</p>
+                  <p className="dashboard-investigation-meta">
+                    {item.kind} · {new Date(item.updated_at).toLocaleString()}
+                  </p>
+                </div>
+                <span className="dashboard-investigation-id">
+                  {item.id.slice(0, 12)}
+                </span>
+                <span className="dashboard-investigation-status">
+                  {item.status.replaceAll("_", " ")}
+                </span>
               </li>
             ))}
           </ul>

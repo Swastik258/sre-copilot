@@ -1,119 +1,72 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 const QUESTIONS = [
   {
-    q: "Does the model have shell access?",
+    q: "How are observations different from hypotheses?",
     a:
-      "No. The model has no tools, shell, or network access. The backend collects allowlisted read-only evidence first, then asks the model to explain that evidence. There is no code path from model output to a command or infrastructure change.",
+      "Observations are returned by the source. Hypotheses are possible explanations ranked separately, with evidence references you can inspect.",
   },
   {
-    q: "How does redaction work before AI calls?",
+    q: "What does an evidence reference point to?",
     a:
-      "Every payload is passed through a redactor that strips credentials, bearer tokens, passwords, private keys, and common cloud secret formats before it is sent to the model. The redactor runs server-side and its output — not the original — is what the model sees. Raw secrets never reach the audit log either.",
+      "Each reference identifies the source record used by a diagnosis, such as pod status, an event, or a log entry.",
   },
   {
-    q: "What does 'read-only by default' actually mean?",
+    q: "Which integrations are available?",
     a:
-      "Infrastructure adapters are structurally read-only. Kubernetes connectors can list pods, events, and logs but cannot exec, delete, patch, or apply. Terraform analysis parses supplied plans but never runs plan or apply. GitHub connectors read workflow runs but cannot trigger, re-run, or cancel. Infrastructure-code output is a proposal that the product never writes or applies.",
+      "The current built-in adapters are Kubernetes, GitHub Actions, and Prometheus. Availability depends on deployment configuration.",
   },
   {
-    q: "What happens to logs or files I analyze?",
+    q: "Can I inspect a finding's source?",
     a:
-      "Log analysis is size-validated, redacted, and processed without persisting the raw paste. Saved investigations, audit events, and account data follow the deployment's retention policy and can be removed through the documented operator process. The application does not use customer data to train models. External AI providers are contacted only when configured; review their data policy, and use privacy mode to block that transmission.",
-  },
-  {
-    q: "Can I use it without any API keys?",
-    a:
-      "Yes. Kubernetes, GitHub, and Prometheus provide labelled fixtures; Terraform and logs accept supplied sample input. The AI provider defaults to a deterministic mock. The backend test suite runs offline without cloud credentials.",
-  },
-  {
-    q: "Which AI provider does it use?",
-    a:
-      "The provider is configurable via a single environment variable. It supports a mock provider for local development and tests, and one or more hosted providers when a key is supplied. Keys are read on the backend only and are never exposed to the browser or embedded in the frontend bundle.",
+      "Yes. Evidence references identify the records used by a diagnosis so you can review the underlying context.",
   },
 ];
 
 export function FAQ() {
-  const [open, setOpen] = useState<number | null>(0);
+  const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="bg-[var(--bg-elevated)]">
-      <div className="shell py-24">
-        {/* Header */}
-        <div className="mb-14 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-          <div>
-            <span className="label-caps">FAQ</span>
-            <h2 className="mt-4 font-serif text-display tracking-tight text-primary">
-              Questions,
-              <br />
-              answered.
-            </h2>
-          </div>
-          <p className="max-w-prose self-end text-dense-lg text-secondary">
-            The short answers below are the same ones the code enforces. If
-            something here contradicts what you find in the repo, the repo wins.
-          </p>
+    <section className="home-section home-faq" id="faq" aria-labelledby="home-faq-title">
+      <div className="home-container home-grid">
+        <div className="home-section-heading">
+          <p className="home-eyebrow">FAQ</p>
+          <h2 id="home-faq-title">A few useful details.</h2>
         </div>
+        <div className="home-faq-list">
+          {QUESTIONS.map((item, index) => {
+            const isOpen = open === index;
+            const questionId = `home-faq-question-${index}`;
+            const answerId = `home-faq-answer-${index}`;
 
-        {/* Accordion */}
-        <div className="border-t border-hairline">
-          {QUESTIONS.map((item, i) => {
-            const isOpen = open === i;
             return (
-              <div key={i} className="border-b border-hairline">
+              <div key={item.q}>
                 <button
                   type="button"
-                  id={`faq-question-${i}`}
-                  aria-controls={`faq-answer-${i}`}
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full items-baseline gap-6 px-1 py-6 text-left transition hover:bg-[var(--bg-subtle)]"
+                  id={questionId}
+                  aria-controls={answerId}
                   aria-expanded={isOpen}
+                  onClick={() => setOpen(isOpen ? null : index)}
                 >
-                  <span className="font-mono text-[11px] tracking-[0.14em] text-tertiary">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="flex-1 text-dense-lg font-medium text-primary">
-                    {item.q}
-                  </span>
-                  <span
-                    className={`font-mono text-[13px] text-tertiary transition-transform ${
-                      isOpen ? "rotate-45" : ""
-                    }`}
-                    aria-hidden
+                  <span>{item.q}</span>
+                  <svg
+                    className={`home-faq-chevron${isOpen ? " is-open" : ""}`}
+                    viewBox="0 0 16 16"
+                    aria-hidden="true"
                   >
-                    +
-                  </span>
+                    <path d="m4 6 4 4 4-4" />
+                  </svg>
                 </button>
-
                 {isOpen && (
-                  <div
-                    id={`faq-answer-${i}`}
-                    role="region"
-                    aria-labelledby={`faq-question-${i}`}
-                    className="grid grid-cols-1 gap-6 pl-[2.75rem] pr-10 pb-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]"
-                  >
-                    <div />
-                    <p className="max-w-prose text-dense text-secondary">
-                      {item.a}
-                    </p>
-                  </div>
+                  <p id={answerId} role="region" aria-labelledby={questionId}>
+                    {item.a}
+                  </p>
                 )}
               </div>
             );
           })}
-        </div>
-
-        {/* Footer note */}
-        <div className="mt-10 flex flex-wrap items-baseline justify-between gap-3 border-t border-hairline pt-6">
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-tertiary">
-            Something not answered here?
-          </span>
-          <Link href="/support" className="link-editorial text-dense">
-            Contact support
-          </Link>
         </div>
       </div>
     </section>

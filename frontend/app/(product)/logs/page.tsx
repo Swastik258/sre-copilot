@@ -99,7 +99,7 @@ export default function LogsPage() {
                 className="btn-ghost text-[12px]"
                 onClick={() => setText(SAMPLE)}
               >
-                Load sample
+                Load demo logs
               </button>
             </div>
 

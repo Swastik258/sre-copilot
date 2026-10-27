@@ -169,7 +169,7 @@ export default function TerraformPage() {
 
   function loadSample() {
     setPlanText(JSON.stringify(SAMPLE_PLAN, null, 2));
-    setFileName("sample-plan.json");
+    setFileName("demo-plan.json");
     setIsSample(true);
     setResult(null);
     setExplanation(null);
@@ -229,7 +229,7 @@ export default function TerraformPage() {
                   onClick={loadSample}
                   className="btn-ghost text-[12px]"
                 >
-                  Load sample
+                  Load demo plan
                 </button>
               </div>
             </div>
@@ -251,9 +251,9 @@ export default function TerraformPage() {
             />
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2 font-mono text-[10.5px] text-tertiary">
-                {fileName && <span>{fileName}</span>}
-                {isSample && <Badge tone="warn">sample · illustrative</Badge>}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-subtle)]">
+                {fileName && <span className="font-mono">{fileName}</span>}
+                {isSample && <span className="demo-data-note">Demo data</span>}
                 {!fileName && <span>No file selected</span>}
               </div>
               <div className="flex items-center gap-2">

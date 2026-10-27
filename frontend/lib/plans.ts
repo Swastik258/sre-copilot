@@ -34,7 +34,7 @@ export const PLAN_CATALOG: readonly PublicPlan[] = [
       "Organizations, roles, and API keys",
       "Operator-controlled self-hosted deployment",
     ],
-    cta: { label: "Start free", href: "/sign-up" },
+    cta: { label: "Get started", href: "/sign-up" },
     accent: false,
   },
   {

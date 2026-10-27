@@ -188,7 +188,7 @@ export default function AssistantPage() {
               <p>
                 Sign in or create a local account to use the assistant. Your
                 investigations and message history are stored against your
-                account. No third-party identity provider is involved.
+                account.
               </p>
               <div className="assistant-entry-actions">
                 <Link href="/sign-up" className="btn-accent">
@@ -198,10 +198,6 @@ export default function AssistantPage() {
                 <Link href="/login" className="btn-ghost">
                   Sign in
                 </Link>
-              </div>
-              <div className="assistant-entry-security">
-                <Icon name="shield" className="size-4" />
-                Local account · Read-only investigations
               </div>
             </aside>
           </div>
@@ -226,7 +222,6 @@ export default function AssistantPage() {
 
   return (
     <div className="relative min-h-screen">
-      <div aria-hidden className="grid-overlay" />
       <div className="shell relative py-12">
         <div className="flex flex-wrap items-end justify-between gap-4 animate-fade-up">
           <div>
@@ -354,7 +349,7 @@ export default function AssistantPage() {
                       }
                     }}
                     rows={2}
-                    placeholder="Why did checkout start failing after the last deploy?"
+                    placeholder="Ask about this investigation…"
                     className="w-full resize-none rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg)] px-3 py-2 text-[12.5px] text-primary placeholder:text-tertiary"
                   />
                   <div className="mt-2 flex items-center justify-between gap-3">
@@ -457,7 +452,6 @@ function DiagnosisBlocks({ diagnosis }: { diagnosis: Diagnosis }) {
 function Centered({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen">
-      <div aria-hidden className="grid-overlay" />
       <div className="shell relative grid min-h-[60vh] place-items-center py-12">
         <div className="w-full text-center">{children}</div>
       </div>

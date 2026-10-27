@@ -8,7 +8,7 @@ export default function MarketingLayout({
 }) {
   return (
     <div
-      data-theme="paper"
+      data-theme="ink"
       className="min-h-screen bg-[var(--bg)] text-[var(--text)]"
     >
       <TopNav />

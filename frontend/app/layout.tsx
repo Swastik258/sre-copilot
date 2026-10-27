@@ -1,18 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-client";
 import { SITE_URL } from "@/lib/seo";
 
-const spaceGrotesk = Space_Grotesk({
+const interTight = Inter_Tight({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  display: "swap",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-inter-tight",
   display: "swap",
 });
 
@@ -56,7 +50,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable} ${jetBrainsMono.variable}`}>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      className={`${interTight.variable} ${jetBrainsMono.variable}`}
+    >
       <body>
         <a href="#main-content" className="skip-link">
           Skip to main content

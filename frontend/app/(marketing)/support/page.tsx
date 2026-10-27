@@ -27,8 +27,8 @@ export default function Page() {
         or production payloads.
       </p>
 
-      <div className="mt-12 grid gap-4 md:grid-cols-2">
-        <div className="card p-8">
+      <div className="support-ledger mt-16">
+        <section>
           <span className="label-caps">Documentation</span>
           <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
             Start with the docs
@@ -40,9 +40,9 @@ export default function Page() {
           <Link href="/docs" className="btn-ghost mt-6">
             Read the docs
           </Link>
-        </div>
+        </section>
 
-        <div className="card p-8">
+        <section>
           <span className="label-caps">Contact</span>
           <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
             Email support
@@ -66,19 +66,19 @@ export default function Page() {
               support channel.
             </p>
           )}
-        </div>
-      </div>
+        </section>
 
-      <div className="card mt-4 p-8">
-        <span className="label-caps">Security</span>
-        <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
-          For a vulnerability, include the affected endpoint or component, a
-          minimal reproduction, and the impact you believe is possible. Do not
-          test against systems you do not own.
-        </p>
-        <Link href="/security" className="link-editorial mt-4 inline-block text-sm">
-          Read the security page
-        </Link>
+        <section className="support-disclosure">
+          <span className="label-caps">Security disclosure</span>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
+            For a vulnerability, include the affected endpoint or component, a
+            minimal reproduction, and the impact you believe is possible. Do not
+            test against systems you do not own.
+          </p>
+          <Link href="/security" className="link-editorial mt-4 inline-block text-sm">
+            Read the security page
+          </Link>
+        </section>
       </div>
     </div>
   );
