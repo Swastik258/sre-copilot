@@ -1,174 +1,122 @@
+import Image from "next/image";
 import Link from "next/link";
-import { DESIGN_PARTNER_QUESTIONS, INTEGRATION_SURFACES } from "@/data/homepage";
 import { FAQ } from "@/components/FAQ";
 import { Reveal } from "@/components/Reveal";
 
-export function IntegrationSurfaces() {
-  return (
-    <section className="trusted-teams" aria-label="Integration surfaces">
-      <div className="shell py-9 sm:py-11">
-        <p className="label-caps text-center">Integration surfaces</p>
-        <div className="placeholder-client-grid mt-7">
-          {INTEGRATION_SURFACES.map((surface) => (
-            <div key={surface.name} className="trusted-logo">
-              <span className="trusted-logo-mark">{surface.mark}</span>
-              <span>{surface.name}</span>
-            </div>
-          ))}
-        </div>
-        <p className="mt-4 text-center text-xs text-[var(--text-subtle)]">
-          Adapter availability depends on deployment configuration
-        </p>
-      </div>
-    </section>
-  );
-}
+const STEPS = [
+  {
+    title: "Collect",
+    body: "Connect a supported source and choose the system you need to inspect.",
+  },
+  {
+    title: "Inspect",
+    body: "Review observations, events, logs, and their evidence references.",
+  },
+  {
+    title: "Assess",
+    body: "Compare ranked hypotheses with the facts before choosing what to do.",
+  },
+];
+
+const INTEGRATIONS = ["Kubernetes", "GitHub Actions", "Prometheus"];
 
 export function HomepageSections() {
   return (
     <>
-      <Reveal>
-        <section id="customers" className="home-testimonials home-section-glow">
-          <div className="shell py-20 sm:py-24">
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-              <div>
-                <p className="label-caps">Customers</p>
-                <h2 className="heading-display mt-4 text-4xl text-[var(--text)] sm:text-5xl">
-                  No customer stories published yet.
-                </h2>
-                <p className="mt-5 max-w-md text-sm leading-6 text-[var(--text-muted)]">
-                  We will add case studies when teams agree to share their experience.
-                </p>
-              </div>
-              <ul className="divide-y divide-[var(--border)]">
-                {DESIGN_PARTNER_QUESTIONS.map((question) => (
-                  <li className="py-5 first:pt-0" key={question.title}>
-                    <h3 className="text-base font-semibold text-[var(--text)]">{question.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{question.body}</p>
-                  </li>
-                ))}
-              </ul>
+      <Reveal duration={0.25}>
+        <section className="home-section" aria-labelledby="home-how-title">
+          <div className="home-container home-grid">
+            <div className="home-section-heading">
+              <p className="home-eyebrow">How diagnosis works</p>
+              <h2 id="home-how-title">A short path from signal to source.</h2>
             </div>
-          </div>
-        </section>
-      </Reveal>
-
-      <Reveal>
-        <section className="home-trust-section">
-          <div className="shell py-20 sm:py-24">
-            <div className="mb-10 max-w-2xl">
-              <span className="label-caps">Security &amp; trust</span>
-              <h2 className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
-                Helpful by design. In control by default.
-              </h2>
-            </div>
-            <div className="security-checklist divide-y divide-[var(--border)] p-3 sm:p-5">
-              <Reveal delay={0} className="h-full">
-                <article className="trust-card flex h-full items-start gap-4 border-0 bg-transparent p-4 shadow-none">
-                  <span className="trust-icon" aria-hidden="true">✓</span>
+            <ol className="home-step-list">
+              {STEPS.map((step, index) => (
+                <li key={step.title}>
+                  <span className="home-step-index">{`0${index + 1}`}</span>
                   <div>
-                    <h3>Read-only by default</h3>
-                    <p>Investigations gather evidence without writing back to connected infrastructure.</p>
+                    <h3>{step.title}</h3>
+                    <p>{step.body}</p>
                   </div>
-                </article>
-              </Reveal>
-              <Reveal delay={0.08} className="h-full">
-                <article className="trust-card flex h-full items-start gap-4 border-0 bg-transparent p-4 shadow-none">
-                  <span className="trust-icon" aria-hidden="true">✓</span>
-                  <div>
-                    <h3>Proposal-only changes</h3>
-                    <p>Generated infrastructure changes are never written or applied by the product.</p>
-                  </div>
-                </article>
-              </Reveal>
-              <Reveal delay={0.16} className="h-full">
-                <article className="trust-card flex h-full items-start gap-4 border-0 bg-transparent p-4 shadow-none">
-                  <span className="trust-icon" aria-hidden="true">✓</span>
-                  <div>
-                    <h3>Auditable decisions</h3>
-                    <p>Keep a record of investigation decisions and the evidence behind them.</p>
-                  </div>
-                </article>
-              </Reveal>
-            </div>
-          </div>
-        </section>
-      </Reveal>
-
-      <IntegrationSurfaces />
-
-      <Reveal>
-        <section className="home-integrations-section">
-          <div className="shell py-20 sm:py-24">
-            <div className="mb-9 flex flex-wrap items-end justify-between gap-5">
-              <div>
-                <span className="label-caps">Integrations</span>
-                <h2 className="heading-display mt-3 text-3xl text-[var(--text)] sm:text-4xl">
-                  Meet your infrastructure where it is.
-                </h2>
-              </div>
-              <span className="text-sm text-[var(--text-subtle)]">Supported adapters · configured per deployment</span>
-            </div>
-            <div className="integrations-grid">
-              {INTEGRATION_SURFACES.map((integration, index) => (
-                <Reveal key={integration.name} delay={index * 0.045}>
-                  <div className="integration-tile">
-                    <span className="integration-mark" aria-hidden="true">
-                      {integration.mark}
-                    </span>
-                    <span>{integration.name}</span>
-                  </div>
-                </Reveal>
+                </li>
               ))}
+            </ol>
+          </div>
+        </section>
+      </Reveal>
+
+      <Reveal duration={0.25}>
+        <section className="home-burst" aria-labelledby="home-burst-title">
+          <div className="home-container home-burst-layout">
+            <div className="home-section-heading">
+              <p className="home-eyebrow">A clear path through an incident</p>
+              <h2 id="home-burst-title">Start with evidence. Keep the context.</h2>
+              <p>
+                Move from source records to a diagnosis without losing the
+                details that support it.
+              </p>
+            </div>
+            <div className="home-burst-shot">
+              <Image
+                src="/images/tarn-workspace-empty.png"
+                alt="Tarn dashboard showing the empty recent investigations panel"
+                width={1068}
+                height={336}
+                loading="lazy"
+              />
             </div>
           </div>
         </section>
       </Reveal>
 
-      <Reveal>
-        <section className="home-pricing-teaser">
-          <div className="shell py-16 sm:py-20">
-            <div className="pricing-teaser-card">
-              <div>
-                <span className="label-caps">Simple to get started</span>
-                <h2 className="heading-display mt-3 text-3xl text-[var(--text)]">
-                  Start with a labelled demo. Deploy when you’re ready.
-                </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
-                  Explore local demo mode first, then choose the deployment setup that fits your team.
-                </p>
-              </div>
-              <Link href="/pricing" className="btn-ghost">
-                Explore pricing
-                <svg viewBox="0 0 20 20" className="size-4" fill="none" aria-hidden="true">
-                  <path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </Link>
+      <Reveal duration={0.25}>
+        <section className="home-section" aria-labelledby="home-trust-title">
+          <div className="home-container home-grid home-trust">
+            <p className="home-eyebrow">Trust</p>
+            <div>
+              <h2 id="home-trust-title">Read-only by default.</h2>
+              <p>
+                Tarn gathers evidence from configured sources and leaves every
+                infrastructure change to the operator.
+              </p>
             </div>
           </div>
         </section>
       </Reveal>
 
-      <Reveal>
+      <Reveal duration={0.25}>
+        <section className="home-section" aria-labelledby="home-integrations-title">
+          <div className="home-container home-grid">
+            <div className="home-section-heading">
+              <p className="home-eyebrow">Integrations</p>
+              <h2 id="home-integrations-title">Built-in adapters.</h2>
+              <p>Connect Tarn to the systems it currently supports.</p>
+            </div>
+            <ul className="home-integration-list">
+              {INTEGRATIONS.map((integration) => (
+                <li key={integration}>{integration}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      </Reveal>
+
+      <Reveal duration={0.25}>
         <FAQ />
       </Reveal>
 
-      <Reveal>
-        <section className="home-final-cta">
-          <div className="shell py-16 sm:py-20">
-            <div className="final-cta-card">
-              <span className="label-caps">Your next investigation</span>
-              <h2 className="heading-display mt-4 max-w-3xl text-3xl text-[var(--text-ink)] sm:text-5xl">
-                Bring a failing state. Leave with evidence.
+      <Reveal duration={0.25}>
+        <section className="home-cta-band" aria-labelledby="home-cta-title">
+          <div className="home-container home-cta-content">
+            <div>
+              <p className="home-eyebrow">Tarn</p>
+              <h2 id="home-cta-title">
+                Make the next investigation easier to verify.
               </h2>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--text-muted-ink)]">
-                Start with read-only Kubernetes diagnostics or explore the product surfaces.
-              </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link href="/kubernetes" className="btn-accent">Diagnose a pod</Link>
-                <Link href="/product" className="btn-glass">Explore the product</Link>
-              </div>
             </div>
+            <Link href="/sign-up" className="home-button home-button-primary">
+              Get started
+            </Link>
           </div>
         </section>
       </Reveal>

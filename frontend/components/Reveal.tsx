@@ -14,10 +14,12 @@ import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 export function Reveal({
   children,
   delay = 0,
+  duration = 0.25,
   className,
 }: {
   children: ReactNode;
   delay?: number;
+  duration?: number;
   className?: string;
 }) {
   const reduce = usePrefersReducedMotion();
@@ -34,10 +36,10 @@ export function Reveal({
     <motion.div
       data-reveal
       className={className}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-90px" }}
-      transition={{ duration: 0.85, delay, ease: [0.2, 0.7, 0.2, 1] }}
+      transition={{ duration, delay, ease: [0.2, 0.7, 0.2, 1] }}
     >
       {children}
     </motion.div>

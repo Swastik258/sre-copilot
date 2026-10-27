@@ -58,6 +58,7 @@ export function TopNav() {
             alt="Tarn"
             width={118}
             height={36}
+            style={{ width: "118px", height: "auto" }}
             priority
           />
         </Link>
