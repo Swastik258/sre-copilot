@@ -10,7 +10,6 @@ const LINKS = [
   { label: "Product", href: "/product" },
   { label: "Docs", href: "/docs" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Changelog", href: "/changelog" },
 ] as const;
 
 export function TopNav() {
