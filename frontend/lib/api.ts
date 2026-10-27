@@ -9,7 +9,7 @@
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL ??
   process.env.NEXT_PUBLIC_API_BASE ??
-  ""
+  "http://localhost:8000"
 ).replace(/\/$/, "");
 
 export type ApiErrorBody = {
@@ -70,7 +70,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   const text = await res.text();
-  const json = text ? (JSON.parse(text) as unknown) : null;
+  let json: unknown = null;
+  if (text) {
+    try {
+      json = JSON.parse(text) as unknown;
+    } catch {
+      throw new ApiRequestError(res.status, {
+        code: "invalid_api_response",
+        message: `The API returned a non-JSON response (HTTP ${res.status}). Check NEXT_PUBLIC_API_URL and ensure the backend is reachable.`,
+      });
+    }
+  }
 
   if (!res.ok) {
     const body = (json as { error?: ApiErrorBody } | null)?.error ?? {
