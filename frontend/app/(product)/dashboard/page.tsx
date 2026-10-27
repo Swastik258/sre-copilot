@@ -44,7 +44,7 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const displayName = user?.display_name?.trim() || user?.email?.split("@")[0] || "there";
+  const displayName = user?.display_name?.trim() || user?.email?.split("@")[0];
   const kubernetes = integrations?.integrations.find((item) => item.kind === "kubernetes");
   const kubernetesValue = integrationError
     ? "Unavailable"
@@ -58,7 +58,7 @@ export default function DashboardPage() {
             ? "Disabled"
             : "Not configured";
   const kubernetesDetail = integrationError
-    ? "Status endpoint unreachable"
+    ? "Integration status unavailable"
     : kubernetes?.state === "demo"
       ? "Labelled fixtures · read-only"
       : kubernetes?.state === "connected" || kubernetes?.state === "enabled"
@@ -73,73 +73,111 @@ export default function DashboardPage() {
       ? "Checking"
       : `${connected ?? 0}/${integrations.integrations.length}`;
   const integrationDetail = integrationError
-    ? "Status endpoint unreachable"
+    ? "Integration status unavailable"
     : !integrations
-      ? "Loading backend status"
-      : `${connected ?? 0} read-only · operator-configured`;
+      ? "Checking integration status"
+      : `${connected ?? 0} connected · operator-configured`;
+
+  const statuses = [
+    { title: "Kubernetes", value: kubernetesValue, detail: kubernetesDetail },
+    { title: "Connected sources", value: integrationValue, detail: integrationDetail },
+    { title: "Infrastructure writes", value: "Never", detail: "Changes remain under operator control" },
+  ];
 
   return (
-    <div className="dashboard-content space-y-8">
-      <section className="dashboard-hero contour-field">
-        <div>
-          <p className="label-caps">Workspace overview</p>
-          <h1 className="heading-display mt-4 text-4xl sm:text-5xl">
-            Welcome back, {displayName}
+    <div className="dashboard-content dashboard-overview">
+      <section className="dashboard-hero dashboard-overview-hero">
+        <div className="dashboard-welcome">
+          <p className="dashboard-eyebrow">Workspace / Overview</p>
+          <h1>
+            {displayName ? `Your workspace, ${displayName}.` : "Workspace overview"}
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
-            Start an evidence-backed investigation or pick up where you left off.
-            Diagnostics are read-only by default.
+          <p>
+            Investigate a failure, then verify every finding against its source.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/kubernetes" className="btn-accent">Diagnose Kubernetes</Link>
-            <Link href="/cicd" className="btn-ghost">Inspect a pipeline</Link>
+          <div className="dashboard-actions">
+            <Link href="/kubernetes" className="dashboard-action-primary">
+              <span>Start a Kubernetes diagnosis</span>
+              <span aria-hidden="true">↗</span>
+            </Link>
+            <Link href="/cicd" className="dashboard-action-secondary">
+              Inspect a workflow
+            </Link>
           </div>
+        </div>
+        <div className="dashboard-hero-aside" aria-label="Investigation approach">
+          <span className="dashboard-live-mark" aria-hidden="true" />
+          <p className="dashboard-eyebrow">Every finding has a source</p>
+          <p>Observed facts</p>
+          <span>→</span>
+          <p>Evidence references</p>
+          <span>→</span>
+          <p>Ranked hypotheses</p>
         </div>
       </section>
 
-      <section aria-label="Workspace status" aria-live="polite" className="dashboard-status">
-        {[
-          { title: "Plan", value: "Free access", detail: "All live capabilities" },
-          { title: "Kubernetes", value: kubernetesValue, detail: kubernetesDetail },
-          { title: "Integrations", value: integrationValue, detail: integrationDetail },
-          { title: "Execution", value: "Disabled", detail: "Tarn does not apply infrastructure changes" },
-        ].map((item) => (
-          <div key={item.title} className="dashboard-status-row">
-            <h2>{item.title}</h2>
+      <section
+        aria-label="Workspace status"
+        aria-live="polite"
+        className="dashboard-status dashboard-status-grid"
+      >
+        {statuses.map((item) => (
+          <article key={item.title} className="dashboard-status-card">
+            <div className="dashboard-status-card-heading">
+              <h2>{item.title}</h2>
+            </div>
             <p>{item.value}</p>
             <span>{item.detail}</span>
-          </div>
+          </article>
         ))}
       </section>
 
-      <section className="dashboard-history">
+      <section className="dashboard-history dashboard-history-panel">
         <div className="dashboard-history-heading">
           <div>
-            <h2 className="font-semibold">Recent investigations</h2>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">Your saved investigation history</p>
+            <p className="dashboard-eyebrow">Workspace activity</p>
+            <h2>Recent investigations</h2>
+            <p className="dashboard-history-description">
+              Your latest saved diagnosis runs.
+            </p>
           </div>
-          <Link href="/history" className="text-sm text-[var(--accent)] hover:text-[var(--text)]">View history →</Link>
+          <Link href="/history" className="dashboard-history-link">
+            All investigations <span aria-hidden="true">↗</span>
+          </Link>
         </div>
         {loading ? (
-          <p className="py-8 text-sm text-[var(--text-muted)]">Loading investigations…</p>
+          <p className="dashboard-history-state">Loading your investigations…</p>
         ) : historyError ? (
-          <p role="status" className="py-8 text-sm text-[var(--signal-bad)]">{historyError}</p>
+          <p role="status" className="dashboard-history-state is-error">{historyError}</p>
         ) : recent.length === 0 ? (
-          <div className="py-10">
-            <p className="text-sm font-medium">No investigations yet</p>
-            <p className="mt-2 text-sm text-[var(--text-muted)]">Your saved runs will appear here after your first investigation.</p>
-            <Link href="/kubernetes" className="mt-4 inline-flex text-sm text-[var(--accent)] hover:text-[var(--text)]">Start with Kubernetes →</Link>
+          <div className="dashboard-empty-state">
+            <div>
+              <h3>No saved investigations yet</h3>
+              <p>Your completed runs will appear here.</p>
+            </div>
+            <Link href="/kubernetes" className="dashboard-history-link">
+              Start a diagnosis <span aria-hidden="true">↗</span>
+            </Link>
           </div>
         ) : (
           <ul className="dashboard-history-list">
             {recent.map((item) => (
               <li key={item.id}>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{item.title}</p>
-                  <p className="mt-1 font-mono text-[10px] text-[var(--text-muted)]">{item.kind} · {new Date(item.updated_at).toLocaleString()}</p>
-                  <p className="mt-2 font-mono text-[10px] text-[var(--text-subtle)]">trace: {item.id.slice(0, 12)}</p>
+                <div className="dashboard-investigation-type" aria-hidden="true">
+                  {item.kind.slice(0, 1).toUpperCase()}
                 </div>
-                <span className="text-sm text-[var(--text-muted)]">{item.status.replace("_", " ")}</span>
+                <div className="dashboard-investigation-main">
+                  <p className="dashboard-investigation-title">{item.title}</p>
+                  <p className="dashboard-investigation-meta">
+                    {item.kind} · {new Date(item.updated_at).toLocaleString()}
+                  </p>
+                </div>
+                <span className="dashboard-investigation-id">
+                  {item.id.slice(0, 12)}
+                </span>
+                <span className="dashboard-investigation-status">
+                  {item.status.replaceAll("_", " ")}
+                </span>
               </li>
             ))}
           </ul>

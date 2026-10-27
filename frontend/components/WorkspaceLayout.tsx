@@ -151,7 +151,7 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="workspace-shell">
+    <div className={`workspace-shell ${pathname === "/dashboard" ? "dashboard-workspace" : ""}`}>
       <div className="fixed inset-y-0 left-0 z-30 hidden lg:block">{sidebar}</div>
       {drawerOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
