@@ -6,7 +6,6 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     title: "Product",
     links: [
       { label: "Overview", href: "/product" },
-      { label: "Try the demo", href: "/demo" },
       { label: "AI Assistant", href: "/assistant" },
       { label: "Kubernetes", href: "/kubernetes" },
       { label: "Logs", href: "/logs" },
@@ -45,7 +44,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
 export function MarketingFooter() {
   return (
-    <footer className="border-t border-[var(--border)] bg-[var(--bg-subtle)]">
+    <footer className="marketing-footer border-t border-[var(--border)] bg-[var(--bg)]">
       <div className="shell py-16">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)]">
           <div>
@@ -57,13 +56,8 @@ export function MarketingFooter() {
               <Image className="wordmark-ink" src="/tarn-wordmark-ink.svg" alt="" width={118} height={36} />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-6 text-[var(--text-muted)]">
-              Read-only diagnosis for infrastructure failures, with observations
-              kept separate from hypotheses and linked to their evidence.
+              Evidence-backed diagnosis for infrastructure failures.
             </p>
-            <div className="mt-6 flex items-center gap-2 label-caps">
-              <span className="dot dot-good" />
-              Read-only by default
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
@@ -88,9 +82,10 @@ export function MarketingFooter() {
         </div>
 
         <div className="mt-14 flex flex-col justify-between gap-4 border-t border-[var(--border)] pt-6 sm:flex-row sm:items-center">
-          <div className="label-caps">Tarn · v0.2.0</div>
-          <div className="label-caps">Self-hosted by design</div>
+          <div className="label-caps">Tarn</div>
+          <div className="label-caps">Built for infrastructure teams</div>
         </div>
+        <div className="footer-wordmark" aria-hidden="true">Tarn</div>
       </div>
     </footer>
   );

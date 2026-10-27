@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
-import { Inter_Tight, JetBrains_Mono, Newsreader } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-client";
 import { SITE_URL } from "@/lib/seo";
-
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-newsreader",
-  display: "swap",
-});
 
 const interTight = Inter_Tight({
   subsets: ["latin"],
@@ -59,7 +53,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${newsreader.variable} ${interTight.variable} ${jetBrainsMono.variable}`}
+      className={`${interTight.variable} ${jetBrainsMono.variable}`}
     >
       <body>
         <a href="#main-content" className="skip-link">
