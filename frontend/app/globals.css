@@ -6964,3 +6964,79 @@ h4,
 .grid-overlay {
   display: none;
 }
+
+.home-page .home-hero-copy > .home-eyebrow {
+  animation: home-enter 240ms ease-out both;
+}
+
+.home-page .home-hero-copy h1 {
+  animation: home-enter 260ms 45ms ease-out both;
+}
+
+.home-page .home-lead {
+  animation: home-enter 260ms 100ms ease-out both;
+}
+
+.home-page .home-actions {
+  animation: home-enter 260ms 155ms ease-out both;
+}
+
+.home-page .home-visual-mark {
+  animation:
+    home-mark-reveal 300ms 100ms ease-out both,
+    home-mark-drift 9s 400ms ease-in-out infinite;
+}
+
+.home-page .home-shot-frame {
+  animation: home-enter 300ms 180ms ease-out both;
+}
+
+.home-page .home-float-card {
+  animation:
+    home-card-reveal 260ms 320ms ease-out both,
+    home-float 7s 580ms ease-in-out infinite;
+}
+
+.home-page .home-float-card-findings {
+  animation-delay: 380ms, 700ms;
+}
+
+@keyframes home-mark-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.1;
+  }
+}
+
+@keyframes home-mark-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes home-card-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page .home-hero-copy > .home-eyebrow,
+  .home-page .home-hero-copy h1,
+  .home-page .home-lead,
+  .home-page .home-actions,
+  .home-page .home-visual-mark,
+  .home-page .home-shot-frame,
+  .home-page .home-float-card {
+    animation: none;
+  }
+}
