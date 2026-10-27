@@ -4,7 +4,6 @@ import { SITE_URL } from "@/lib/seo";
 
 const PUBLIC_ROUTES = [
   "/",
-  "/demo",
   "/product",
   "/solutions",
   "/solutions/platform",

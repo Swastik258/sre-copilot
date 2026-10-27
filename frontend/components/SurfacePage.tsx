@@ -17,8 +17,6 @@ export type SurfaceConfig = {
   subtitle: string;
   status: "live" | "planned" | "partial";
   milestone: string;
-  preview?: ReactNode;
-  previewLabel?: string;
   capabilitiesTitle: string;
   capabilities: Feature[];
   roadmapTitle?: string;
@@ -49,26 +47,13 @@ export function SurfacePage({ config }: { config: SurfaceConfig }) {
             <Link href="/docs" className="btn-ghost">
               Read the docs
             </Link>
-            <Link href="/support" className="btn-accent">
-              Talk to us
+            <Link href="/sign-up" className="btn-accent">
+              Get started
               <Icon name="arrow" className="size-4" />
             </Link>
           </>
         }
       >
-        {config.preview && (
-          <section className="border-b border-hairline">
-            <div className="shell py-16">
-              <div className="mb-5 flex items-center justify-between">
-                <span className="demo-data-note">
-                  {config.previewLabel ?? "Demo data"}
-                </span>
-              </div>
-              {config.preview}
-            </div>
-          </section>
-        )}
-
         <Section
           eyebrow="Capabilities"
           title={config.capabilitiesTitle}

@@ -103,8 +103,8 @@ export default function Page() {
       </ul>
 
       <div className="mt-12 flex flex-wrap gap-3">
-        <Link href="/kubernetes" className="btn-accent">
-          Open Kubernetes diagnosis
+        <Link href="/sign-up" className="btn-accent">
+          Get started
         </Link>
         <Link href="/docs" className="btn-ghost">
           Read the docs
@@ -115,9 +115,8 @@ export default function Page() {
         <span className="label-caps">Product status</span>
         <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
           The surfaces above are implemented. Live infrastructure data requires
-          operator-configured read-only credentials; deterministic fixtures are
-          always labelled as demo data. AI explanations are optional, and
-          deterministic diagnosis remains authoritative.
+          operator-configured read-only credentials. AI explanations are
+          optional, and deterministic diagnosis remains authoritative.
         </p>
       </aside>
     </div>

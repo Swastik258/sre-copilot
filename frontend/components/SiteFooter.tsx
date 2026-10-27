@@ -59,10 +59,6 @@ export function SiteFooter() {
               Read-only investigation for Kubernetes, logs, CI/CD, and Terraform.
               Evidence-backed diagnoses you can act on — never guesses.
             </p>
-            <div className="mt-6 flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-tertiary">
-              <span className="dot dot-idle" />
-              Read-only · demo environment
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">

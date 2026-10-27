@@ -6771,3 +6771,130 @@ h4,
     animation: none;
   }
 }
+
+/* Keep public reading and product pages on the same grid and component system. */
+.shell {
+  width: 100%;
+  max-width: var(--container-wide);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+.page-shell,
+.page-shell-header,
+.marketing-footer {
+  min-width: 0;
+  background: var(--bg);
+}
+
+.page-shell-header {
+  border-color: var(--border);
+}
+
+.page-shell-header .shell {
+  padding-block: var(--space-6);
+}
+
+.shell > h1.heading-display,
+.page-shell-header h1.heading-display,
+.product-surface-hero h1.heading-display {
+  max-width: 16ch;
+  font-family: var(--font-sans);
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-weight: 350;
+  letter-spacing: -0.05em;
+  line-height: 1.04;
+}
+
+.btn-accent,
+.btn-primary,
+.btn-ghost,
+.btn-light,
+.btn-glass {
+  min-height: var(--control-height);
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+
+.btn-ghost {
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text);
+}
+
+.card,
+.card-soft,
+.surface-elevated,
+.surface-subtle,
+.tool-card,
+.home-feature-card,
+.home-step-row,
+.surface-grid > *,
+.pricing-card,
+.feature-card,
+.surface-margin-note,
+.customer-ledger,
+.security-ledger,
+.support-ledger,
+.blog-empty-state,
+.changelog-entry,
+.product-status-note {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  box-shadow: none;
+}
+
+.surface-margin-note,
+.customer-ledger,
+.security-ledger,
+.support-ledger,
+.blog-empty-state,
+.changelog-entry,
+.product-status-note {
+  padding: var(--space-4);
+}
+
+.pricing-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+}
+
+.editorial-table th,
+.editorial-table td {
+  border-color: var(--border);
+}
+
+.editorial-table th {
+  color: var(--text);
+}
+
+.editorial-table td,
+.editorial-table th span,
+.editorial-table th p {
+  color: var(--text-muted);
+}
+
+@media (max-width: 767px) {
+  .shell > h1.heading-display,
+  .page-shell-header h1.heading-display,
+  .product-surface-hero h1.heading-display {
+    font-size: clamp(2rem, 9vw, 2.5rem);
+  }
+
+  .page-shell-header .shell {
+    padding-block: var(--space-5);
+  }
+
+  .surface-margin-note,
+  .customer-ledger,
+  .security-ledger,
+  .support-ledger,
+  .blog-empty-state,
+  .changelog-entry,
+  .product-status-note {
+    padding: var(--space-3);
+  }
+}
