@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="w-full max-w-md">
-      <div className="card p-8 sm:p-10">
+    <div className="w-full">
+      <div className="auth-form-card">
         <AuthForm mode="login" />
       </div>
     </div>

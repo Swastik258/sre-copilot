@@ -8,8 +8,7 @@ import { useAuth } from "@/lib/auth-client";
 
 type Mode = "login" | "signup";
 
-const inputClass =
-  "w-full rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg)] px-3.5 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] transition focus:border-[var(--accent)] focus:outline-none";
+const inputClass = "cw-input";
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const { setUser } = useAuth();
@@ -84,22 +83,18 @@ export function AuthForm({ mode }: { mode: Mode }) {
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <span className="label-caps">
-          {isSignup ? "Create account" : "Sign in"}
-        </span>
-        <span className="badge badge-neutral">
-          <span className="dot dot-good" />
-          Local
+        <span className="section-label">
+          {isSignup ? "Create account" : "Account access"}
         </span>
       </div>
 
-      <h1 className="heading-display mt-5 text-4xl text-[var(--text)]">
+      <h1 className="mt-5 text-4xl text-[var(--text)]">
         {isSignup ? "Create an account" : "Sign in"}
       </h1>
       <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
         {isSignup
-          ? "No external identity provider. Your account is stored on your own backend."
-          : "Open your investigation dashboard with your local account."}
+          ? "This deployment stores your account and credentials. No hosted identity service is required."
+          : "Continue to your investigation dashboard."}
       </p>
 
       <form className="mt-8 space-y-4" onSubmit={onSubmit}>
@@ -107,7 +102,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           <div>
             <label
               htmlFor="name"
-              className="label-caps mb-2 block"
+              className="form-label"
             >
               Name <span className="normal-case tracking-normal">(optional)</span>
             </label>
@@ -125,7 +120,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         )}
 
         <div>
-          <label htmlFor="email" className="label-caps mb-2 block">
+          <label htmlFor="email" className="form-label">
             Email
           </label>
           <input
@@ -143,7 +138,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
         <div>
           <div className="mb-2 flex items-center justify-between gap-3">
-            <label htmlFor="password" className="label-caps block">
+            <label htmlFor="password" className="form-label">
               Password
             </label>
             {!isSignup && (
@@ -180,7 +175,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
         {isSignup && (
           <div>
-            <label htmlFor="confirm" className="label-caps mb-2 block">
+            <label htmlFor="confirm" className="form-label">
               Confirm password
             </label>
             <input
@@ -257,7 +252,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </Link>
       </p>
 
-      <p className="mt-6 text-center label-caps">
+      <p className="auth-footnote">
         Passwords are hashed · HttpOnly session
       </p>
     </div>

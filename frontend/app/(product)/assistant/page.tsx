@@ -140,7 +140,6 @@ export default function AssistantPage() {
           <div className="assistant-entry-grid">
             <div className="assistant-entry-intro">
               <span className="assistant-entry-eyebrow">
-                <span className="dot dot-good" />
                 Tarn <span aria-hidden="true">/</span> Assistant
               </span>
               <h1 className="assistant-entry-title">
@@ -186,9 +185,9 @@ export default function AssistantPage() {
               <span className="assistant-entry-card-label">Your workspace</span>
               <h2>Start an investigation</h2>
               <p>
-                Sign in or create a local account to use the assistant. Your
+                Sign in or create an account to use the assistant. Your
                 investigations and message history are stored against your
-                account. No third-party identity provider is involved.
+                account in this deployment.
               </p>
               <div className="assistant-entry-actions">
                 <Link href="/sign-up" className="btn-accent">
@@ -201,7 +200,7 @@ export default function AssistantPage() {
               </div>
               <div className="assistant-entry-security">
                 <Icon name="shield" className="size-4" />
-                Local account · Read-only investigations
+                Stored in this deployment · Read-only investigations
               </div>
             </aside>
           </div>
@@ -241,7 +240,7 @@ export default function AssistantPage() {
           <div className="flex items-center gap-2">
             {user && (
               <span className="font-mono text-[10.5px] text-tertiary">
-                {user.display_name || user.email}
+                Signed in as {user.display_name || user.email}
               </span>
             )}
             <button
@@ -311,7 +310,7 @@ export default function AssistantPage() {
                       {active.kind} · {active.status} · {active.evidence_ids.length} evidence
                     </div>
                   </div>
-                  <span className="tag-live">persisted</span>
+                  <span className="tag-quiet">persisted</span>
                 </div>
 
                 <div className="flex-1 space-y-4 overflow-y-auto p-4">

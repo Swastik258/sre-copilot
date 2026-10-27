@@ -133,6 +133,95 @@ export const DEMO_DIAGNOSES = {
       },
     ],
   },
+  "staging/batch-7c8f5d-q2m4n": {
+    pod: {
+      namespace: "staging",
+      name: "batch-7c8f5d-q2m4n",
+      phase: "Pending",
+    },
+    diagnosis: {
+      summary:
+        "Pod batch-7c8f5d-q2m4n is Pending and cannot be scheduled: 0/4 nodes are available: 4 Insufficient memory.",
+      confirmed_observations: [
+        "Pod staging/batch-7c8f5d-q2m4n is in phase Pending (not scheduled)",
+        "Total container restart count: 0",
+      ],
+      hypotheses: [
+        {
+          statement:
+            "Pod batch-7c8f5d-q2m4n is Pending and cannot be scheduled: 0/4 nodes are available: 4 Insufficient memory.",
+          confidence: 0.85,
+          evidence_refs: ["pod/status#2", "pod/events#1"],
+        },
+      ],
+    },
+    evidence: [
+      {
+        reference: "pod/status#1",
+        summary:
+          "Container batch: state=waiting reason=ContainerCreating restarts=0",
+      },
+      {
+        reference: "pod/status#2",
+        summary:
+          "Pod staging/batch-7c8f5d-q2m4n phase=Pending node=unassigned",
+      },
+      {
+        reference: "pod/events#1",
+        summary:
+          "Scheduling failure: 0/4 nodes are available: 4 Insufficient memory.",
+      },
+      {
+        reference: "pod/events#2",
+        summary:
+          "Event FailedScheduling (Warning, count=6): 0/4 nodes are available: 4 Insufficient memory.",
+      },
+    ],
+  },
+  "prod/edge-6f9c7b-probe": {
+    pod: {
+      namespace: "prod",
+      name: "edge-6f9c7b-probe",
+      phase: "Running",
+    },
+    diagnosis: {
+      summary:
+        'Readiness/liveness probe failing: Readiness probe failed: Get "http://10.1.2.9:8080/readyz": dial tcp 10.1.2.9:8080: connect: connection refused',
+      confirmed_observations: [
+        "Pod prod/edge-6f9c7b-probe is in phase Running on node node-c",
+        "Total container restart count: 0",
+      ],
+      hypotheses: [
+        {
+          statement:
+            'Readiness/liveness probe failing: Readiness probe failed: Get "http://10.1.2.9:8080/readyz": dial tcp 10.1.2.9:8080: connect: connection refused',
+          confidence: 0.7,
+          evidence_refs: ["pod/events#1"],
+        },
+      ],
+    },
+    evidence: [
+      {
+        reference: "pod/status#1",
+        summary: "Container edge: state=running reason=none restarts=0",
+      },
+      {
+        reference: "pod/status#2",
+        summary:
+          "Pod prod/edge-6f9c7b-probe phase=Running node=node-c",
+      },
+      {
+        reference: "pod/events#1",
+        summary:
+          'Event Unhealthy (Warning, count=12): Readiness probe failed: Get "http://10.1.2.9:8080/readyz": dial tcp 10.1.2.9:8080: connect: connection refused',
+      },
+      {
+        reference: "pod/logs#1",
+        summary:
+          "Pod logs (last 2 lines) for prod/edge-6f9c7b-probe",
+      },
+    ],
+  },
   "staging/reporting-6c4b7d-i9p2": {
     pod: {
       namespace: "staging",

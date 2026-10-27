@@ -1,69 +1,85 @@
 "use client";
 
 import { useState } from "react";
+import { DepthScale } from "@/components/editorial";
 import { DEMO_DIAGNOSES } from "@/data/demo-diagnoses";
 
 const SCENARIOS = [
   {
     label: "CrashLoopBackOff",
     fixture: "prod/api-7d9f8b6c4-x2k9p",
+    detail: "api container, 14 restarts",
   },
   {
     label: "OOMKilled",
     fixture: "prod/worker-5f8c9d-oom1",
+    detail: "worker container, exit 137",
   },
   {
-    label: "ImagePullBackOff / ErrImagePull",
+    label: "ImagePullBackOff",
     fixture: "staging/reporting-6c4b7d-i9p2",
+    detail: "reporting image not found",
   },
   {
     label: "Pending",
-    fixture: "staging/reporting-6c4b7d-i9p2",
+    fixture: "staging/batch-7c8f5d-q2m4n",
+    detail: "no node has enough memory",
   },
   {
     label: "Failing readiness probe",
-    fixture: "prod/api-7d9f8b6c4-x2k9p",
+    fixture: "prod/edge-6f9c7b-probe",
+    detail: "edge process not yet listening",
   },
 ] as const;
 
 export function DiagnosisDemo() {
   const [selected, setSelected] = useState(0);
-  const result = DEMO_DIAGNOSES[SCENARIOS[selected].fixture];
+  const scenario = SCENARIOS[selected];
+  const result = DEMO_DIAGNOSES[scenario.fixture];
   const { diagnosis } = result;
 
   return (
-    <section className="diagnosis-demo" aria-label="Try a sample diagnosis">
+    <section className="diagnosis-demo" aria-label="Sample diagnosis">
       <div className="diagnosis-demo-toolbar">
-        <label htmlFor="demo-scenario">Choose a failure</label>
+        <label htmlFor="demo-scenario">Failure</label>
         <select
           id="demo-scenario"
           value={selected}
           onChange={(event) => setSelected(Number(event.currentTarget.value))}
         >
-          {SCENARIOS.map((scenario, index) => (
-            <option value={index} key={scenario.label}>{scenario.label}</option>
+          {SCENARIOS.map((item, index) => (
+            <option value={index} key={item.fixture + item.label}>
+              {item.label}
+            </option>
           ))}
         </select>
         <span className="demo-data-note">Demo data · rules-engine snapshot</span>
       </div>
 
       <div className="diagnosis-demo-content">
-        <aside className="depth-scale" aria-label="Diagnosis depth">
-          <span><b>0m</b> Observed</span>
-          <span><b>1m</b> Evidence</span>
-          <span><b>2m</b> Hypothesis</span>
-        </aside>
+        <DepthScale
+          compact
+          items={[
+            { mark: "0m", label: "Observed" },
+            { mark: "1m", label: "Evidence" },
+            { mark: "2m", label: "Hypothesis" },
+          ]}
+        />
 
         <div className="diagnosis-output" aria-live="polite">
           <p className="diagnosis-resource">
             {result.pod.namespace}/{result.pod.name} · {result.pod.phase}
+            <span aria-hidden="true"> · </span>
+            {scenario.detail}
           </p>
           <h2>{diagnosis.summary}</h2>
 
           <section className="diagnosis-depth-section">
             <h3>Observed facts</h3>
             <ul>
-              {diagnosis.confirmed_observations.map((fact) => <li key={fact}>{fact}</li>)}
+              {diagnosis.confirmed_observations.map((fact) => (
+                <li key={fact}>{fact}</li>
+              ))}
             </ul>
           </section>
 
@@ -80,18 +96,24 @@ export function DiagnosisDemo() {
           </section>
 
           <section className="diagnosis-depth-section">
-            <h3>Hypotheses</h3>
+            <h3>Ranked hypotheses</h3>
+            <p className="diagnosis-note">
+              Interpretations, not confirmed facts. Confidence belongs to the
+              rules engine; the evidence stays attached.
+            </p>
             <ul>
-              {diagnosis.hypotheses.map((hypothesis) => (
-                <li key={hypothesis.statement}>
+              {diagnosis.hypotheses.map((hypothesis, index) => (
+                <li key={`${scenario.fixture}-${index}`}>
                   <span className="hypothesis-text">{hypothesis.statement}</span>
                   <span className="hypothesis-confidence">
-                    {Math.round(hypothesis.confidence * 100)}% confidence
+                    {Math.round(hypothesis.confidence * 100)}%
                   </span>
                   {hypothesis.evidence_refs.length > 0 && (
                     <span className="evidence-inline">
                       {hypothesis.evidence_refs.map((reference) => (
-                        <span className="evidence-reference" key={reference}>{reference}</span>
+                        <span className="evidence-reference" key={reference}>
+                          {reference}
+                        </span>
                       ))}
                     </span>
                   )}

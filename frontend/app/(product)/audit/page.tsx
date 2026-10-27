@@ -13,7 +13,8 @@ type Phase = "loading" | "signed_out" | "ready" | "error";
 
 function formatTime(value: string): string {
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+  if (Number.isNaN(date.getTime())) return value;
+  return `${date.toISOString().slice(0, 16).replace("T", " ")} UTC`;
 }
 
 function summarizeResource(resource?: Record<string, unknown> | null): string {
@@ -170,7 +171,7 @@ export default function AuditPage() {
           <div className="flex flex-wrap items-center gap-2">
             {user && (
               <span className="font-mono text-[10.5px] text-tertiary">
-                {user.display_name || user.email}
+                Viewing as {user.display_name || user.email}
               </span>
             )}
             <a
@@ -184,7 +185,7 @@ export default function AuditPage() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] animate-fade-in">
+        <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px] animate-fade-in">
           <section className="min-w-0">
             <div className="card p-4">
               <div className="flex flex-wrap items-end gap-3">
@@ -233,7 +234,7 @@ export default function AuditPage() {
             )}
 
             <div className="mt-4 overflow-hidden rounded-[4px] border border-hairline">
-              <div className="hidden grid-cols-[9rem_10rem_1fr_4.5rem] gap-3 border-b border-hairline bg-[var(--bg-subtle)] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-tertiary md:grid">
+              <div className="hidden grid-cols-[9rem_10rem_1fr_4.5rem] gap-3 border-b border-hairline bg-[var(--bg-subtle)] px-4 py-2 text-[11px] font-medium text-[var(--text-subtle)] md:grid">
                 <span>When</span>
                 <span>Action</span>
                 <span>Resource / reason</span>
@@ -248,25 +249,30 @@ export default function AuditPage() {
                 {events.map((event) => (
                   <div
                     key={event.id}
-                    className="grid gap-1 px-4 py-3 font-mono text-[11px] md:grid-cols-[9rem_10rem_1fr_4.5rem] md:gap-3"
+                    className="audit-event grid gap-1 px-4 py-3 font-mono text-[11px] md:grid-cols-[9rem_10rem_1fr_4.5rem] md:gap-3"
                   >
-                    <span className="text-tertiary">{formatTime(event.created_at)}</span>
-                    <span className="truncate text-primary">{event.action}</span>
-                    <span className="min-w-0 text-secondary">
-                      <span className="block truncate">
+                    <span data-label="When" className="text-tertiary">
+                      {formatTime(event.created_at)}
+                    </span>
+                    <span data-label="Action" className="truncate text-primary">
+                      {event.action}
+                    </span>
+                    <span data-label="Resource" className="min-w-0 text-secondary">
+                      <span className="block break-words">
                         {summarizeResource(event.resource)}
                       </span>
                       {event.reason && (
-                        <span className="mt-0.5 block truncate text-tertiary">
+                        <span className="mt-0.5 block break-words text-tertiary">
                           {event.reason}
                         </span>
                       )}
-                      <span className="mt-0.5 block truncate text-[10px] text-tertiary">
+                      <span className="mt-0.5 block break-words text-[10px] text-tertiary">
                         {event.actor}
                         {event.request_id ? ` · ${event.request_id}` : ""}
                       </span>
                     </span>
                     <span
+                      data-label="Decision"
                       className={
                         event.decision === "allow"
                           ? "text-good"

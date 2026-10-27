@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ContourField } from "@/components/ContourField";
 import { api, type IntegrationsResponse, type Investigation } from "@/lib/api";
 import { useAuth } from "@/lib/auth-client";
 
@@ -80,18 +81,19 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard-content space-y-8">
-      <section className="dashboard-hero contour-field">
+      <section className="dashboard-hero">
+        <ContourField rings={8} />
         <div>
-          <p className="label-caps">Workspace overview</p>
-          <h1 className="heading-display mt-4 text-4xl sm:text-5xl">
+          <p className="section-label">Workspace overview</p>
+          <h1 className="mt-4 text-4xl sm:text-5xl">
             Welcome back, {displayName}
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
-            Start an evidence-backed investigation or pick up where you left off.
-            Diagnostics are read-only by default.
+            Start with evidence from a read-only source, or pick up a saved
+            investigation. Tarn never applies infrastructure changes.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/kubernetes" className="btn-accent">Diagnose Kubernetes</Link>
+            <Link href="/kubernetes" className="btn-primary">Diagnose Kubernetes</Link>
             <Link href="/cicd" className="btn-ghost">Inspect a pipeline</Link>
           </div>
         </div>
@@ -99,10 +101,10 @@ export default function DashboardPage() {
 
       <section aria-label="Workspace status" aria-live="polite" className="dashboard-status">
         {[
-          { title: "Plan", value: "Free access", detail: "All live capabilities" },
+          { title: "Plan", value: "Free", detail: "All implemented surfaces; Pro and Team are planned" },
           { title: "Kubernetes", value: kubernetesValue, detail: kubernetesDetail },
           { title: "Integrations", value: integrationValue, detail: integrationDetail },
-          { title: "Execution", value: "Disabled", detail: "Tarn does not apply infrastructure changes" },
+          { title: "Execution", value: "Disabled", detail: "No apply, mutation, or re-run path" },
         ].map((item) => (
           <div key={item.title} className="dashboard-status-row">
             <h2>{item.title}</h2>

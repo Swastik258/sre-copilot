@@ -9,6 +9,7 @@ import {
   type K8sPod,
   type PodDiagnosisResponse,
 } from "@/lib/api";
+import { Badge } from "@/components/ui";
 
 type Phase = "loading" | "ready" | "not_configured" | "error";
 
@@ -668,26 +669,5 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <div className="mb-2 label-caps">{title}</div>
       {children}
     </div>
-  );
-}
-
-function Badge({
-  tone,
-  children,
-}: {
-  tone: "good" | "warn" | "neutral";
-  children: React.ReactNode;
-}) {
-  const styles = {
-    good: "border-good bg-good-soft text-good",
-    warn: "border-warn bg-accent-soft text-warn",
-    neutral: "border-[var(--border-strong)] text-secondary",
-  }[tone];
-  return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${styles}`}
-    >
-      {children}
-    </span>
   );
 }

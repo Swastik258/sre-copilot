@@ -1,24 +1,28 @@
 @theme static {
-  --accent: #8fd3d9;
-  --accent-hover: #b2e5e8;
-  --accent-soft: rgba(143, 211, 217, 0.14);
-  --accent-soft-text: #8fd3d9;
-  --nav-backdrop: rgba(5, 13, 15, 0.48);
+  /* Clear water palette. Every UI colour resolves to one of these values. */
+  --ink: #0b1416;
+  --ink-raised: #101c1f;
+  --ink-deep: #071012;
+  --bone: #efebe2;
+  --bone-raised: #f6f3eb;
+  --bone-subtle: #e5e0d5;
+  --glacial: #8fd3d9;
+  --glacial-bright: #b2e5e8;
+  --glacial-soft: rgba(143, 211, 217, 0.12);
+  --amber: #e8a94b;
+  --amber-soft: rgba(232, 169, 75, 0.14);
+  --brick: #d9604c;
+  --brick-soft: rgba(217, 96, 76, 0.14);
 
-  --signal-good: #8fd3d9;
-  --signal-warn: #e8a94b;
-  --signal-bad: #d9604c;
-  --signal-idle: #8d9a98;
-  --signal-info: #8fd3d9;
-
+  /* Raw role tokens. */
   --bg-paper: #efebe2;
   --bg-elevated-paper: #f6f3eb;
   --bg-subtle-paper: #e5e0d5;
   --text-paper: #10201f;
   --text-muted-paper: #435452;
-  --text-subtle-paper: #697773;
+  --text-subtle-paper: #5c6b67;
   --border-paper: rgba(16, 32, 31, 0.13);
-  --border-strong-paper: rgba(16, 32, 31, 0.22);
+  --border-strong-paper: rgba(16, 32, 31, 0.24);
 
   --bg-ink: #0b1416;
   --bg-elevated-ink: #101c1f;
@@ -27,26 +31,45 @@
   --text-muted-ink: #b5c3c0;
   --text-subtle-ink: #879895;
   --border-ink: rgba(190, 225, 230, 0.12);
-  --border-strong-ink: rgba(190, 225, 230, 0.22);
+  --border-strong-ink: rgba(190, 225, 230, 0.24);
 
+  /* Type: one display serif, one grotesk, one mono. */
   --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-newsreader), Georgia, serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-serif: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-display: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", monospace;
   --font-inter: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
   --font-space-grotesk: var(--font-newsreader), Georgia, serif;
 
-  --container-wide: 80rem;
-  --container-content: 46rem;
-  --text-display-sm: 2rem;
-  --text-display: 2.75rem;
-  --text-display-lg: 3.25rem;
-  --text-display-xl: 4rem;
+  /* Layout and rhythm. */
+  --container-wide: 86rem;
+  --container-content: 44rem;
+  --gutter: clamp(1.25rem, 3.5vw, 3.25rem);
+  --section: clamp(4.5rem, 9vw, 8.5rem);
+  --nav-height: 4.25rem;
+  --measure: 44rem;
+
+  /* Type scale. */
+  --text-display-sm: clamp(2.25rem, 4vw, 3.25rem);
+  --text-display: clamp(3rem, 5.6vw, 4.75rem);
+  --text-display-lg: clamp(3.75rem, 7.5vw, 6.75rem);
+  --text-display-xl: clamp(4.25rem, 9vw, 8.25rem);
   --text-dense: 0.875rem;
   --text-dense-lg: 1rem;
-  --text-label: 0.6875rem;
+  --text-label: 0.8125rem;
 
-  --animate-fade-in: fade-in 0.75s ease-out both;
-  --animate-fade-up: fade-up 0.8s ease-out both;
+  /* Motion: slow, physical, never bouncy. */
+  --ease-water: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration-quick: 180ms;
+  --duration-medium: 420ms;
+  --duration-slow: 900ms;
+  --duration-contour: 42s;
+
+  --nav-backdrop: rgba(7, 16, 18, 0.62);
+  --selection: rgba(143, 211, 217, 0.28);
+
+  --animate-fade-in: fade-in 0.75s var(--ease-water) both;
+  --animate-fade-up: fade-up 0.9s var(--ease-water) both;
 }
 
 :root {
@@ -59,6 +82,20 @@
   --text-subtle: var(--text-subtle-paper);
   --border: var(--border-paper);
   --border-strong: var(--border-strong-paper);
+  --accent: var(--glacial);
+  --accent-hover: #6bbec6;
+  --accent-soft: var(--glacial-soft);
+  --accent-soft-text: #19555a;
+  --on-accent: var(--ink);
+  --signal-good: var(--glacial);
+  --signal-warn: var(--amber);
+  --signal-bad: var(--brick);
+  --signal-idle: var(--text-subtle);
+  --signal-info: var(--glacial);
+  --focus: var(--glacial);
+  --inverse-bg: var(--ink);
+  --inverse-text: var(--bone);
+  --inverse-border: var(--border-ink);
 }
 
 [data-theme="paper"] {
@@ -71,6 +108,20 @@
   --text-subtle: var(--text-subtle-paper);
   --border: var(--border-paper);
   --border-strong: var(--border-strong-paper);
+  --accent: var(--glacial);
+  --accent-hover: #6bbec6;
+  --accent-soft: var(--glacial-soft);
+  --accent-soft-text: #19555a;
+  --on-accent: var(--ink);
+  --signal-good: var(--glacial);
+  --signal-warn: var(--amber);
+  --signal-bad: var(--brick);
+  --signal-idle: var(--text-subtle);
+  --signal-info: var(--glacial);
+  --focus: #2f7f86;
+  --inverse-bg: var(--ink);
+  --inverse-text: var(--bone);
+  --inverse-border: var(--border-ink);
 }
 
 [data-theme="ink"] {
@@ -83,4 +134,18 @@
   --text-subtle: var(--text-subtle-ink);
   --border: var(--border-ink);
   --border-strong: var(--border-strong-ink);
+  --accent: var(--glacial);
+  --accent-hover: var(--glacial-bright);
+  --accent-soft: rgba(143, 211, 217, 0.1);
+  --accent-soft-text: var(--glacial);
+  --on-accent: var(--ink);
+  --signal-good: var(--glacial);
+  --signal-warn: var(--amber);
+  --signal-bad: var(--brick);
+  --signal-idle: var(--text-subtle);
+  --signal-info: var(--glacial);
+  --focus: var(--glacial);
+  --inverse-bg: var(--bone);
+  --inverse-text: var(--ink);
+  --inverse-border: transparent;
 }

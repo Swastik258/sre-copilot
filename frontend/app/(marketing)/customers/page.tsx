@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageHeader, StatusText } from "@/components/editorial";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/customers" },
@@ -10,42 +11,69 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="shell py-24">
-      <span className="label-caps">Customers</span>
-      <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
-        No logos yet. No invented quotes either.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        Tarn is early. We would rather show an honest empty state than
-        borrow credibility from companies that have not used it.
-      </p>
+    <article className="shell">
+      <PageHeader
+        label="Customers"
+        title="No logos yet. No invented quotes either."
+        lead="Tarn is early. We would rather show an honest empty state than borrow credibility from companies that have not used it."
+        meta={<StatusText state="disabled">No published customers</StatusText>}
+        actions={
+          <>
+            <Link href="/support" className="btn-primary">
+              Become a design partner
+            </Link>
+            <Link href="/product" className="btn-ghost">
+              See the product
+            </Link>
+          </>
+        }
+      />
 
-      <section className="customer-ledger mt-16" aria-label="Publication policy">
-        <div>
-          <p className="label-caps">Publication policy</p>
-          <p className="mt-4 font-serif text-3xl leading-snug text-[var(--text)]">
-            A reference belongs to the team that gave it.
-          </p>
-        </div>
-        <div className="customer-ledger-notes">
-          <p>
-            No customer names, logos, testimonials, or outcome metrics are
-            published for this build. We will add them only after a real
-            deployment and explicit permission.
-          </p>
-          <Link href="/customers/case-studies">Case studies — what we will document</Link>
-          <Link href="/customers/testimonials">Testimonials — attributable feedback only</Link>
+      <section className="rail-section" aria-labelledby="publication-policy-title">
+        <div className="shell rail-section__grid">
+          <aside className="rail-section__margin">
+            <p className="section-label">Publication policy</p>
+            <p>
+              A reference belongs to the team that gave it. We publish nothing on
+              their behalf without permission.
+            </p>
+          </aside>
+          <div className="rail-section__body">
+            <h2 id="publication-policy-title">
+              A reference belongs to the team that gave it.
+            </h2>
+            <p>
+              No customer names, logos, testimonials, or outcome metrics are
+              published for this build. We will add them only after a real
+              deployment and explicit permission.
+            </p>
+            <div className="ledger-grid mt-8">
+              <section>
+                <h2>Case studies</h2>
+                <ul>
+                  <li>Only after a real team has used Tarn on real incidents.</li>
+                  <li>Environment, failure, approach, and measured outcome.</li>
+                  <li>Including the number, whether or not it flatters us.</li>
+                </ul>
+                <Link href="/customers/case-studies" className="link-editorial mt-5 inline-block text-sm">
+                  What we will document
+                </Link>
+              </section>
+              <section>
+                <h2>Testimonials</h2>
+                <ul>
+                  <li>Attributable by name and role.</li>
+                  <li>Feedback collected against specific questions.</li>
+                  <li>No anonymous praise or invented quotes.</li>
+                </ul>
+                <Link href="/customers/testimonials" className="link-editorial mt-5 inline-block text-sm">
+                  How feedback will be used
+                </Link>
+              </section>
+            </div>
+          </div>
         </div>
       </section>
-
-      <div className="mt-16 flex flex-wrap gap-3">
-        <Link href="/support" className="btn-accent">
-          Become a design partner
-        </Link>
-        <Link href="/product" className="btn-ghost">
-          See the product
-        </Link>
-      </div>
-    </div>
+    </article>
   );
 }

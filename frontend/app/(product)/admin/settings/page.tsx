@@ -194,7 +194,7 @@ export default function SettingsPage() {
         </div>
 
         {settings && (
-          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] animate-fade-in">
+          <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] animate-fade-in">
             <section className="space-y-5">
               {!isAdmin && (
                 <div className="rounded-[4px] border border-warn bg-accent-soft p-4">
@@ -213,7 +213,7 @@ export default function SettingsPage() {
                       Deterministic diagnosis and the mock provider still work.
                     </p>
                   </div>
-                  <span className="tag-live">
+                  <span className="tag-quiet">
                     {settings.ai_privacy_source === "override" ? "policy" : "env"}
                   </span>
                 </div>

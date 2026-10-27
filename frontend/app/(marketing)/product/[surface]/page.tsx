@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Icon, type IconName } from "@/components/ui";
+import { StatusText } from "@/components/editorial";
+import type { IconName } from "@/components/ui";
 
 const SURFACES = {
   assistant: {
@@ -201,62 +202,81 @@ export default async function ProductSurfacePage({
   if (!Object.hasOwn(SURFACES, surface)) notFound();
   const content = SURFACES[surface as SurfaceSlug];
 
-  return (
-    <div className="shell py-16 sm:py-20">
-      <div className="mb-8 flex items-center gap-2 text-sm text-[var(--text-subtle)]">
-        <Link href="/product" className="transition-colors hover:text-[var(--text)]">
-          Product
-        </Link>
-        <span aria-hidden="true">/</span>
-        <span className="text-[var(--text-muted)]">{content.name}</span>
-      </div>
+  const providerOptional = surface === "assistant";
+  const proposalOnly = surface === "infra-code";
 
-      <div className="product-surface-hero grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)] lg:gap-16">
-        <header className="max-w-3xl">
-          <span className="label-caps">{content.eyebrow}</span>
-          <h1 className="heading-display mt-5 text-4xl text-[var(--text)] sm:text-5xl lg:text-6xl">
-            {content.title}
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--text-muted)] sm:text-lg sm:leading-8">
-            {content.summary}
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href={content.href} className="btn-accent">
-              Explore {content.name}
+  return (
+    <article className="shell product-surface-page">
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <Link href="/product">Product</Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{content.name}</span>
+      </nav>
+
+      <section className="surface-hero">
+        <div>
+          <p className="section-label">{content.eyebrow}</p>
+          <h1 className="mt-4">{content.title}</h1>
+          <p className="surface-hero__lead">{content.summary}</p>
+          <div className="page-actions">
+            <Link href={content.href} className="btn-primary">
+              Open {content.name}
             </Link>
-            <Link href="/product" className="btn-ghost">
-              All product surfaces
+            <Link href="/demo" className="btn-ghost">
+              Inspect the public fixture
             </Link>
           </div>
-        </header>
+        </div>
 
-        <aside className="surface-margin-note">
-          <span className="label-caps">Why Tarn</span>
-          <h2 className="mt-4 text-2xl text-[var(--text)]">
-            {content.challenge}
-          </h2>
-          <p className="mt-4 border-t border-[var(--border)] pt-4 text-sm leading-6 text-[var(--text-muted)]">
-            {content.value}
+        <aside className="surface-hero__note">
+          <StatusText state={providerOptional ? "demo" : "live"}>
+            {providerOptional
+              ? "Live · provider optional"
+              : proposalOnly
+                ? "Live · proposal only"
+                : "Live surface"}
+          </StatusText>
+          <h2 className="mt-4">{content.challenge}</h2>
+          <p className="mt-4">{content.value}</p>
+          <p className="surface-hero__requirements">
+            Live data requires an operator-configured read-only source.
+            Deterministic output remains available with fixtures or supplied
+            input.
           </p>
         </aside>
-      </div>
-
-      <section className="surface-detail mt-16 border-t border-[var(--border)] pt-10 sm:mt-20 sm:pt-12">
-        <div className="mb-7 max-w-2xl">
-          <h2 className="heading-display mt-3 text-2xl text-[var(--text)] sm:text-3xl">
-            Evidence to inspect, decisions left to your team.
-          </h2>
-        </div>
-        <ul className="surface-points-list">
-          {content.points.map((point) => (
-            <li key={point.title}>
-              <span className="surface-point-icon"><Icon name={point.icon} className="size-4" /></span>
-              <h3>{point.title}</h3>
-              <p>{point.body}</p>
-            </li>
-          ))}
-        </ul>
       </section>
-    </div>
+
+      <section className="rail-section" aria-labelledby="surface-detail-title">
+        <div className="shell rail-section__grid">
+          <aside className="rail-section__margin">
+            <p className="section-label">What changes</p>
+            <p>
+              Nothing in your infrastructure. Diagnosis is a read; the next step
+              remains a decision for your team.
+            </p>
+          </aside>
+          <div className="rail-section__body">
+            <h2 id="surface-detail-title">
+              Evidence to inspect, decisions left to your team.
+            </h2>
+            <ul className="surface-list mt-8">
+              {content.points.map((point) => (
+                <li key={point.title}>
+                  <h3>{point.title}</h3>
+                  <p>{point.body}</p>
+                </li>
+              ))}
+            </ul>
+            <div className="surface-detail-actions">
+              <Link href={content.href} className="link-editorial">
+                Open {content.name}
+              </Link>
+              <Link href="/security">Read the security model</Link>
+              <Link href="/product">All product surfaces</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    </article>
   );
 }

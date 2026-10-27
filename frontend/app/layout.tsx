@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter_Tight, JetBrains_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
+import "./clear-water.css";
 import { AuthProvider } from "@/lib/auth-client";
 import { SITE_URL } from "@/lib/seo";
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EmptyState, PageHeader, StatusText } from "@/components/editorial";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/blog" },
@@ -10,37 +11,39 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="shell py-24">
-      <span className="label-caps">Blog</span>
-      <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
-        Engineering notes, when there are notes.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        No posts yet. When there is something worth explaining — a read-only
-        adapter, an evidence contract, a diagnosis that failed — it will live
-        here.
-      </p>
+    <article className="shell">
+      <PageHeader
+        label="Blog"
+        title="Engineering notes, when there are notes."
+        lead="No posts yet. When there is something worth explaining — a read-only adapter, an evidence contract, a diagnosis that failed — it will live here."
+        meta={<StatusText state="disabled">No published posts</StatusText>}
+        actions={
+          <>
+            <Link href="/docs" className="btn-primary">
+              Read the docs
+            </Link>
+            <Link href="/changelog" className="btn-ghost">
+              View the changelog
+            </Link>
+          </>
+        }
+      />
 
-      <section className="blog-empty-state mt-16" aria-label="Blog status">
-        <p className="label-caps">Editorial note</p>
-        <div>
-          <p className="font-serif text-3xl leading-snug text-[var(--text)]">
-            We are not padding the index with SEO filler.
-          </p>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
-            In the meantime, the docs describe the architecture and the changelog
-            records what actually shipped.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Link href="/docs" className="btn-accent">
-            Read the docs
-          </Link>
-          <Link href="/changelog" className="btn-ghost">
-            View the changelog
-          </Link>
-        </div>
-      </section>
-    </div>
+      <EmptyState
+        title="We are not padding the index with SEO filler."
+        body="In the meantime, the docs describe the architecture and the changelog records what actually shipped. A post will be published when it can show a real decision, a real failure, or a real implementation detail worth checking."
+        note="No invented thought leadership."
+        actions={
+          <>
+            <Link href="/docs" className="btn-ghost">
+              Architecture and setup
+            </Link>
+            <Link href="/changelog" className="btn-ghost">
+              What shipped
+            </Link>
+          </>
+        }
+      />
+    </article>
   );
 }

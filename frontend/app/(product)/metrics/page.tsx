@@ -124,10 +124,10 @@ export default function MetricsPage() {
               spike with a deploy or log event. A timing signal is not causation.
             </p>
           </div>
-          {result?.demo && <span className="tag-planned">demo series</span>}
+          {result?.demo && <span className="tag-warn">demo series</span>}
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] animate-fade-in">
+        <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] animate-fade-in">
           <section className="min-w-0 space-y-5">
             <div className="card p-5">
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem_7rem]">

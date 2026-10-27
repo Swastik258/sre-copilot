@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { RolePage } from "@/components/RolePage";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/solutions/platform" },
@@ -10,50 +10,46 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="shell py-24">
-      <span className="label-caps">Solutions / Platform teams</span>
-      <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
-        Standardize how incidents get diagnosed.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        When every cluster, service, and pipeline speaks a different dialect,
-        diagnosis becomes tribal knowledge. Tarn gives platform teams one
-        read-only, evidence-backed way to explain a failure across everything
-        they run.
-      </p>
-
-      <div className="mt-12 grid gap-4 md:grid-cols-2">
-        <div className="card p-6">
-          <span className="label-caps">One contract</span>
-          <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
-            The same evidence shape everywhere
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            Kubernetes, logs, CI/CD, Terraform, and Prometheus all emit the same
-            structured, citable evidence. Generated infrastructure changes stay
-            proposal-only.
-          </p>
-        </div>
-        <div className="card p-6">
-          <span className="label-caps">Read-only</span>
-          <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
-            The safe path is the only path
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            The Kubernetes client has no mutating methods, enforced by tests.
-            Diagnosis never changes the cluster it is inspecting.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-10 flex flex-wrap gap-3">
-        <Link href="/solutions" className="btn-ghost">
-          Back to solutions
-        </Link>
-        <Link href="/assistant" className="btn-accent">
-          Start an investigation
-        </Link>
-      </div>
-    </div>
+    <RolePage
+      config={{
+        label: "Platform teams",
+        title: "Standardize how incidents get diagnosed.",
+        lead:
+          "When every cluster, service, and pipeline speaks a different dialect, diagnosis becomes tribal knowledge. Tarn gives platform teams one read-only, evidence-backed account of a failure across the systems they operate.",
+        patternLabel: "Operating pattern",
+        patternTitle: "Make the evidence reusable, not the dashboard.",
+        patternLead:
+          "A platform standard is only useful if an on-call engineer can inspect it. The contract below is the part Tarn can enforce.",
+        steps: [
+          {
+            mark: "0m",
+            title: "Normalize the read",
+            body:
+              "Kubernetes, logs, CI/CD, Terraform, and Prometheus adapters expose observations in one shape. The source remains visible.",
+          },
+          {
+            mark: "1m",
+            title: "Keep the payload",
+            body:
+              "Each observation carries an evidence reference back to the status, event, log line, run, or plan change that produced it.",
+          },
+          {
+            mark: "2m",
+            title: "Rank, then stop",
+            body:
+              "Hypotheses are ordered with confidence and citations. The output is a review artifact, not an execution plan.",
+          },
+        ],
+        boundariesTitle: "A shared standard is not a shared control plane.",
+        boundaries: [
+          "Tarn does not replace your incident process, change approval, or observability stack.",
+          "The Kubernetes client is structurally read-only; there is no exec, delete, patch, or apply method.",
+          "Generated infrastructure code is a proposal. It is not written to a repository or applied by Tarn.",
+          "A missing integration is reported as missing evidence, not filled in with a guess.",
+        ],
+        primary: { label: "Open the demo", href: "/demo" },
+        secondary: { label: "See the product", href: "/product" },
+      }}
+    />
   );
 }

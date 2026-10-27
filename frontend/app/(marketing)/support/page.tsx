@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageHeader } from "@/components/editorial";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/support" },
@@ -16,70 +17,74 @@ const supportEmail =
 
 export default function Page() {
   return (
-    <div className="shell py-24">
-      <span className="label-caps">Support</span>
-      <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
-        Ask a specific question. Get a specific answer.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        Support is operated per deployment. Include the surface, the failing
-        state, and the evidence you expected to see. Never include credentials
-        or production payloads.
-      </p>
-
-      <div className="support-ledger mt-16">
-        <section>
-          <span className="label-caps">Documentation</span>
-          <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
+    <article className="shell">
+      <PageHeader
+        label="Support"
+        title="Ask a specific question. Get a specific answer."
+        lead="Support is operated per deployment. Include the surface, the failing state, and the evidence you expected to see. Never include credentials or production payloads."
+        meta={<span>Operator-run contact</span>}
+        actions={
+          <Link href="/docs" className="btn-primary">
             Start with the docs
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            Local setup, API behavior, security controls, and the Kubernetes
-            adapter are documented before you file a question.
-          </p>
-          <Link href="/docs" className="btn-ghost mt-6">
-            Read the docs
           </Link>
+        }
+      />
+
+      <div className="support-ledger">
+        <section>
+          <p className="section-label">Before you ask</p>
+          <h2>Include the failure, not the whole incident.</h2>
+          <p>
+            The useful details are the surface you used, the exact state you
+            expected, the evidence ID or request ID if one was shown, and a
+            minimal reproduction. Redact anything that looks like a credential
+            before you paste it.
+          </p>
+          <p className="mt-3 text-xs leading-6 text-[var(--text-subtle)]">
+            Do not send production secrets, private keys, bearer tokens, or
+            customer payloads through support.
+          </p>
         </section>
 
         <section>
-          <span className="label-caps">Contact</span>
-          <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
-            Email support
-          </h2>
+          <p className="section-label">Contact</p>
+          <h2>{supportEmail ? "Email support" : "No public support address"}</h2>
           {supportEmail ? (
             <>
-              <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
+              <p>
                 Bug reports, design-partner requests, and security disclosures
                 can go to the address configured by this deployment. Do not
                 include secrets or production payloads.
               </p>
-              <a href={`mailto:${supportEmail}`} className="btn-accent mt-6">
+              <a href={`mailto:${supportEmail}`} className="btn-primary">
                 {supportEmail}
               </a>
             </>
           ) : (
-            <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-              No public support address is configured for this deployment. Set
-              <code className="mx-1 font-mono">NEXT_PUBLIC_SUPPORT_EMAIL</code>
-              before publishing, or contact the operator through your internal
-              support channel.
+            <p>
+              No public support address is configured for this deployment.
+              Contact the operator who runs this instance through your
+              organization&rsquo;s internal support channel.
             </p>
           )}
         </section>
 
         <section className="support-disclosure">
-          <span className="label-caps">Security disclosure</span>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
+          <p className="section-label">Security disclosure</p>
+          <p>
             For a vulnerability, include the affected endpoint or component, a
             minimal reproduction, and the impact you believe is possible. Do not
-            test against systems you do not own.
+            test against systems you do not own. Do not open a public issue with
+            exploitable details.
           </p>
-          <Link href="/security" className="link-editorial mt-4 inline-block text-sm">
-            Read the security page
-          </Link>
+          <div className="surface-detail-actions">
+            <Link href="/security" className="link-editorial">
+              Read the security page
+            </Link>
+            <Link href="/docs">Documentation</Link>
+          </div>
         </section>
       </div>
-    </div>
+    </article>
   );
 }

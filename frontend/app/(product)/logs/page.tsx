@@ -179,7 +179,7 @@ export default function LogsPage() {
                       <div className="label-caps">Analysis</div>
                       <p className="mt-2 text-[13px] text-primary">{result.summary}</p>
                     </div>
-                    {result.truncated && <span className="tag-planned">truncated</span>}
+                    {result.truncated && <span className="tag-warn">truncated</span>}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2 font-mono text-[10.5px] text-tertiary">
                     <span>{result.total_lines.toLocaleString()} total lines</span>
@@ -316,7 +316,7 @@ function AIExplanation({ result }: { result: LogAnalyzeResponse }) {
           <div className="flex flex-wrap gap-2 font-mono text-[10.5px] text-tertiary">
             <span>{ai.model_provider ?? "provider"}/{ai.model_name ?? "model"}</span>
             <span>· {Math.round(ai.confidence * 100)}% confidence</span>
-            {ai.model_generated && <span className="tag-planned">AI-generated</span>}
+            {ai.model_generated && <span className="tag-warn">AI-generated</span>}
           </div>
           <p className="text-[12.5px] text-primary">{ai.summary}</p>
           {ai.next_steps.length > 0 && (

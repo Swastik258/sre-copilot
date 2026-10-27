@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PageHeader, StatusText } from "@/components/editorial";
 import { PLAN_CATALOG } from "@/lib/plans";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
   title: "Pricing — Tarn",
   description:
-    "Every live Tarn capability is free during launch. Paid tiers are planned, not sold.",
+    "Every live Tarn capability is free during launch. Pro and Team are planned, unpriced, and not sold.",
 };
 
 const TIERS = PLAN_CATALOG.map((plan) => ({
@@ -24,19 +25,21 @@ const TIERS = PLAN_CATALOG.map((plan) => ({
 
 export default function Page() {
   return (
-    <div className="shell py-24">
-      <span className="label-caps">Pricing</span>
-      <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
-        Every live feature is free.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        Kubernetes, CI/CD, investigations, audit export, organizations, and API
-        keys are available at no cost. Pro and Team are planned, not sold, and
-        not presented as shipped.
-      </p>
+    <article className="shell">
+      <PageHeader
+        label="Pricing"
+        title="Every live feature is free."
+        lead="Kubernetes, logs, CI/CD, Terraform, investigations, audit export, organizations, and API keys are available at no cost. Pro and Team are planned, not sold, and not presented as shipped."
+        meta={<StatusText state="live">Free is available</StatusText>}
+        actions={
+          <Link href="/sign-up" className="btn-primary">
+            Create an account
+          </Link>
+        }
+      />
 
-      <div className="pricing-table-wrap mt-12">
-        <table className="editorial-table pricing-table">
+      <div className="pricing-table-wrap mt-4">
+        <table className="pricing-table">
           <thead>
             <tr>
               <th scope="col">Plan</th>
@@ -48,26 +51,30 @@ export default function Page() {
           <tbody>
             {TIERS.map((tier) => (
               <tr key={tier.name}>
-                <th scope="row">
-                  <span className="font-serif text-2xl text-[var(--text)]">{tier.name}</span>
-                  <span className="mt-2 block font-normal text-[var(--text-muted)]">{tier.description}</span>
+                <th scope="row" data-label="Plan">
+                  <span>{tier.name}</span>
+                  <span>{tier.description}</span>
                 </th>
-                <td>
-                  <span className="font-serif text-2xl text-[var(--text)]">{tier.price}</span>
-                  <span className="ml-2 text-sm text-[var(--text-subtle)]">{tier.cadence}</span>
-                  <p className="mt-2 text-sm text-[var(--text-muted)]">
-                    {tier.status === "available" ? "Free today" : "Planned · not for sale"}
+                <td data-label="Price and status">
+                  <span>{tier.price}</span>
+                  <span>{tier.cadence}</span>
+                  <p>
+                    {tier.status === "available"
+                      ? "Free during launch. No card."
+                      : "Planned. No price has been set."}
                   </p>
                 </td>
-                <td>
-                  <ul className="space-y-2 text-sm leading-6 text-[var(--text-muted)]">
-                    {tier.features.map((feature) => <li key={feature}>{feature}</li>)}
+                <td data-label="Included">
+                  <ul>
+                    {tier.features.map((feature) => (
+                      <li key={feature}>{feature}</li>
+                    ))}
                   </ul>
                 </td>
-                <td>
+                <td data-label="Availability">
                   <Link
                     href={tier.href}
-                    className={tier.highlight ? "btn-accent" : "link-editorial"}
+                    className={tier.highlight ? "link-editorial" : "btn-ghost btn-small"}
                   >
                     {tier.cta}
                   </Link>
@@ -78,23 +85,37 @@ export default function Page() {
         </table>
       </div>
 
-      <p className="mt-8 text-xs leading-5 text-[var(--text-subtle)]">
-        No billing is wired up and no payment is collected. Paid tiers remain
-        planned until the features and purchase flow actually exist.
-      </p>
-
-      <div className="card mt-24 p-8">
-        <span className="label-caps">Questions</span>
-        <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
-          Need a self-hosted deployment, a security review, or a design-partner
-          arrangement? Use the support page and tell us what you are trying to
-          run. We do not claim certifications or customer outcomes that have not
-          been independently verified.
-        </p>
-        <Link href="/support" className="btn-ghost mt-6">
-          Contact support
-        </Link>
-      </div>
-    </div>
+      <section className="pricing-notes" aria-labelledby="pricing-notes-title">
+        <div>
+          <p className="section-label">The billing boundary</p>
+          <h2 id="pricing-notes-title">Nothing here takes a payment.</h2>
+        </div>
+        <div className="pricing-notes__body">
+          <p>
+            No billing provider is wired up and no payment is collected. The
+            Free plan reflects the capabilities currently implemented in this
+            repository. Pro and Team are placeholders for future work, with no
+            price and no purchase flow.
+          </p>
+          <p>
+            A future paid tier will need a real catalog, entitlements, tax and
+            invoicing behavior, and support commitments before it can be sold.
+            Until then, the correct state is “planned.”
+          </p>
+          <p>
+            Need a self-hosted deployment, a security review, or a design-partner
+            arrangement? Use the support page and state what you are trying to
+            run. Tarn does not claim certifications, customer outcomes, or
+            uptime that have not been independently verified.
+          </p>
+          <div className="surface-detail-actions">
+            <Link href="/support" className="link-editorial">
+              Ask a deployment question
+            </Link>
+            <Link href="/security">Read the security page</Link>
+          </div>
+        </div>
+      </section>
+    </article>
   );
 }

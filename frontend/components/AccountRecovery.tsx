@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ApiRequestError, api } from "@/lib/api";
 
-const inputClass =
-  "w-full rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg)] px-3.5 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] transition focus:border-[var(--accent)] focus:outline-none";
+const inputClass = "cw-input";
 
 function Message({
   kind,
@@ -54,15 +53,15 @@ export function ForgotPasswordForm() {
 
   return (
     <div>
-      <span className="label-caps">Account recovery</span>
-      <h1 className="heading-display mt-5 text-4xl">Reset your password</h1>
+      <span className="section-label">Account recovery</span>
+      <h1 className="mt-5 text-4xl">Reset your password</h1>
       <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
         Enter your account email and we will send a single-use reset link if the
         account exists.
       </p>
       <form className="mt-8 space-y-4" onSubmit={onSubmit}>
         <div>
-          <label htmlFor="email" className="label-caps mb-2 block">
+          <label htmlFor="email" className="form-label">
             Email
           </label>
           <input
@@ -140,8 +139,8 @@ export function ResetPasswordForm() {
   if (complete) {
     return (
       <div>
-        <span className="label-caps">Account recovery</span>
-        <h1 className="heading-display mt-5 text-4xl">Password updated</h1>
+        <span className="section-label">Account recovery</span>
+        <h1 className="mt-5 text-4xl">Password updated</h1>
         <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
           All previous sessions were signed out. Use your new password to sign in.
         </p>
@@ -154,11 +153,11 @@ export function ResetPasswordForm() {
 
   return (
     <div>
-      <span className="label-caps">Account recovery</span>
-      <h1 className="heading-display mt-5 text-4xl">Choose a new password</h1>
+      <span className="section-label">Account recovery</span>
+      <h1 className="mt-5 text-4xl">Choose a new password</h1>
       <form className="mt-8 space-y-4" onSubmit={onSubmit}>
         <div>
-          <label htmlFor="password" className="label-caps mb-2 block">
+          <label htmlFor="password" className="form-label">
             New password
           </label>
           <input
@@ -173,7 +172,7 @@ export function ResetPasswordForm() {
           />
         </div>
         <div>
-          <label htmlFor="confirm" className="label-caps mb-2 block">
+          <label htmlFor="confirm" className="form-label">
             Confirm password
           </label>
           <input
@@ -232,8 +231,8 @@ export function VerifyEmailStatus() {
 
   return (
     <div>
-      <span className="label-caps">Email verification</span>
-      <h1 className="heading-display mt-5 text-4xl">
+      <span className="section-label">Email verification</span>
+      <h1 className="mt-5 text-4xl">
         {status === "checking"
           ? "Verifying your email"
           : status === "success"

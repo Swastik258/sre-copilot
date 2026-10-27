@@ -12,7 +12,7 @@ export default function MarketingLayout({
       className="min-h-screen bg-[var(--bg)] text-[var(--text)]"
     >
       <TopNav />
-      <main id="main-content" className="pt-16">{children}</main>
+      <main id="main-content" className="site-main">{children}</main>
       <MarketingFooter />
     </div>
   );

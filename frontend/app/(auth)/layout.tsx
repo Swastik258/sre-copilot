@@ -1,4 +1,5 @@
 import { AuthHeader } from "@/components/AuthHeader";
+import { AuthShell } from "@/components/AuthShell";
 
 export default function AuthLayout({
   children,
@@ -8,11 +9,11 @@ export default function AuthLayout({
   return (
     <div
       data-theme="paper"
-      className="min-h-screen bg-[var(--bg)] text-[var(--text)]"
+      className="auth-page bg-[var(--bg)] text-[var(--text)]"
     >
       <AuthHeader />
-      <main id="main-content" className="grid min-h-screen place-items-center px-6 py-24">
-        {children}
+      <main id="main-content" className="auth-main">
+        <AuthShell>{children}</AuthShell>
       </main>
     </div>
   );

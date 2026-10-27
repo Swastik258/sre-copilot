@@ -105,14 +105,6 @@ export default function AccountSettingsPage() {
     });
   }
 
-  async function savePreferences(patch: Partial<AccountSnapshot["preferences"]>) {
-    await run("preferences", async () => {
-      const preferences = await api.account.updatePreferences(patch);
-      setAccount((current) => current ? { ...current, preferences } : current);
-      show("preferences", { kind: "success", text: "Preferences saved." });
-    });
-  }
-
   async function setIntegration(kind: keyof AccountSnapshot["integrations"], connected: boolean) {
     await run(`integration-${kind}`, async () => {
       const integrations = await api.account.updateIntegration(kind, connected);
@@ -159,11 +151,11 @@ export default function AccountSettingsPage() {
   if (loading) return <p className="py-12 text-sm text-[var(--text-muted)]">Loading account settings…</p>;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <header className="mb-7">
-        <p className="font-mono text-[11px] uppercase tracking-[.16em] text-[var(--accent)]">Account</p>
-        <h1 className="mt-2 text-3xl font-semibold">Settings</h1>
-        <p className="mt-2 text-sm text-[var(--text-muted)]">Manage your personal profile and workspace connections.</p>
+        <p className="section-label">Account</p>
+        <h1 className="mt-3 text-4xl">Settings</h1>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">Manage your personal profile and security.</p>
       </header>
       {notice.page && <Message value={notice.page} />}
 
@@ -176,28 +168,20 @@ export default function AccountSettingsPage() {
         </form>
       </Panel>
 
-      <Panel title="Security" description="Use a unique password with at least 8 characters.">
+      <Panel title="Security" description="Use a unique password with at least 12 characters.">
         <form onSubmit={savePassword} className="grid gap-4 sm:grid-cols-2">
           <Field label="Current password" type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} required />
-          <Field label="New password" type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={8} maxLength={128} required />
+          <Field label="New password" type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={12} maxLength={128} required />
           <div className="sm:col-span-2"><button disabled={busy === "security"} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--text)] hover:border-[var(--border-strong)] disabled:opacity-50">{busy === "security" ? "Updating…" : "Change password"}</button><Message value={notice.security ?? null} /></div>
         </form>
       </Panel>
 
-      <Panel title="Preferences">
-        {account && <div className="grid gap-5 sm:grid-cols-2">
-          <label className="text-sm"><span className="mb-2 block text-xs text-[var(--text-muted)]">Theme preference</span><select value={account.preferences.theme} disabled={busy === "preferences"} onChange={(event) => void savePreferences({ theme: event.target.value })} className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] px-3 py-2.5 text-[var(--text)]"><option value="dark">Dark</option><option value="system">System</option></select></label>
-          <label className="flex items-center gap-3 self-end text-sm text-[var(--text-muted)]"><input type="checkbox" checked={account.preferences.notifications} disabled={busy === "preferences"} onChange={(event) => void savePreferences({ notifications: event.target.checked })} className="accent-[var(--accent)]" />Email notifications</label>
-        </div>}
-        <Message value={notice.preferences ?? null} />
-      </Panel>
-
-      <Panel title="Integrations" description="Connection preferences are saved per account. Credentials and live connectivity are managed by your backend operator.">
+      <Panel title="Integration preferences" description="These flags only record what you prefer to use in the console. They do not connect to a cluster or service; credentials and connectivity are configured by the backend operator.">
         <div className="divide-y divide-[var(--border)]">
           {(["kubernetes", "github", "prometheus"] as const).map((kind) => (
             <div key={kind} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-              <div><p className="text-sm font-medium capitalize">{kind === "github" ? "GitHub" : kind}</p><p className="mt-1 text-xs text-[var(--text-muted)]">{account?.integrations[kind] ? "Enabled for this account" : "Not enabled"}</p></div>
-              <button type="button" disabled={Boolean(busy)} onClick={() => void setIntegration(kind, !account?.integrations[kind])} className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--text)] disabled:opacity-50">{busy === `integration-${kind}` ? "Saving…" : account?.integrations[kind] ? "Disconnect" : "Connect"}</button>
+              <div><p className="text-sm font-medium capitalize">{kind === "github" ? "GitHub" : kind}</p><p className="mt-1 text-xs text-[var(--text-muted)]">Saved preference: {account?.integrations[kind] ? "preferred" : "not preferred"}</p></div>
+              <button type="button" disabled={Boolean(busy)} onClick={() => void setIntegration(kind, !account?.integrations[kind])} className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--text)] disabled:opacity-50">{busy === `integration-${kind}` ? "Saving…" : account?.integrations[kind] ? "Clear preference" : "Set preference"}</button>
               <Message value={notice[`integration-${kind}`] ?? null} />
             </div>
           ))}
@@ -218,8 +202,14 @@ export default function AccountSettingsPage() {
       </Panel>
 
       <Panel title="Plan" description="No billing is enabled.">
-        <p className="text-sm font-medium capitalize">{account?.plan ?? "free"} plan · full feature access</p>
-        <p className="mt-1 text-xs text-[var(--text-muted)]">All product features are included for now.</p>
+        <p className="text-sm font-medium">
+          {account?.plan === "pro"
+            ? "Pro plan"
+            : account?.plan === "team"
+              ? "Team plan"
+              : "Free plan"}
+        </p>
+        <p className="mt-1 text-xs text-[var(--text-muted)]">Every implemented surface is included. Pro and Team are planned, unpriced, and not for sale.</p>
       </Panel>
 
       <Panel title="Danger zone" description="Deleting your account permanently removes your profile, API keys, sessions, and saved investigations.">

@@ -264,7 +264,7 @@ export default function InfraCodePage() {
                     <div className="label-caps">Generated summary</div>
                     <p className="mt-1 text-[13px] text-primary">{result.summary}</p>
                   </div>
-                  <span className="tag-live">proposal</span>
+                  <span className="tag-quiet">proposal</span>
                 </div>
 
                 <div className="overflow-hidden rounded-[4px] border border-hairline">

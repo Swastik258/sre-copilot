@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { ContourField } from "@/components/ContourField";
 
 export default function ErrorPage({
   error,
@@ -16,23 +17,35 @@ export default function ErrorPage({
   }, [error.digest]);
 
   return (
-    <main id="main-content" className="grid min-h-screen place-items-center bg-[#05080d] px-6 py-24 text-[#edf4ff]">
-      <div className="w-full max-w-xl rounded-[4px] border border-[rgba(148,180,255,0.18)] bg-[#0a1018] p-8">
-        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#f5b94c]">Unexpected error</p>
-        <h1 className="mt-4 text-3xl font-semibold">This view could not be rendered.</h1>
-        <p className="mt-3 text-sm leading-6 text-[#a8b7ca]">
-          No infrastructure data was changed. Try the request again; if the error
-          persists, check the browser console and the deployment logs with the
-          reference below.
+    <main
+      id="main-content"
+      data-theme="ink"
+      className="error-page"
+    >
+      <ContourField className="error-page__contour" rings={9} />
+      <section className="shell error-page__inner">
+        <p className="section-label">Unexpected error</p>
+        <h1>This view could not be rendered.</h1>
+        <p className="error-page__lead">
+          No infrastructure data was changed. Try the request again; if the
+          error persists, check the deployment logs with the reference below.
         </p>
-        {error.digest && (
-          <p className="mt-4 font-mono text-[11px] text-[#8191a6]">reference: {error.digest}</p>
-        )}
-        <div className="mt-7 flex flex-wrap gap-3">
-          <button type="button" onClick={reset} className="btn-accent">Try again</button>
-          <Link href="/" className="btn-ghost">Back to home</Link>
+        {error.digest ? (
+          <p className="error-page__reference">reference: {error.digest}</p>
+        ) : null}
+        <div className="page-actions">
+          <button type="button" onClick={reset} className="btn-primary">
+            Try again
+          </button>
+          <Link href="/" className="btn-glass">
+            Back to home
+          </Link>
         </div>
-      </div>
+        <p className="error-page__note">
+          The raw exception is not shown here because it can contain request or
+          account data.
+        </p>
+      </section>
     </main>
   );
 }

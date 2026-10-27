@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ContourField } from "@/components/ContourField";
+import { PageHeader } from "@/components/editorial";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/solutions" },
@@ -13,63 +15,100 @@ const AUDIENCES = [
     title: "Platform teams",
     body: "Standardize how incidents are diagnosed across clusters, services, and pipelines. One read-only evidence contract instead of tribal knowledge.",
     href: "/solutions/platform",
-    label: "For platform teams",
+    label: "Platform engineering",
+    note: "One evidence shape",
   },
   {
     title: "SRE on-call",
     body: "Get to the two or three facts that explain the page, with ranked hypotheses and cited next steps to review at 03:00.",
     href: "/solutions/sre",
-    label: "For SRE on-call",
+    label: "Incident response",
+    note: "Facts before the third tab",
   },
   {
     title: "DevOps",
     body: "Review failures and infrastructure changes before production. Explain the failing step or the destructive plan line before it becomes an incident.",
     href: "/solutions/devops",
-    label: "For DevOps",
+    label: "Delivery review",
+    note: "Pipeline and plan review",
   },
 ];
 
 export default function Page() {
   return (
-    <div className="shell py-24">
-      <span className="label-caps">Solutions</span>
-      <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
-        One diagnosis layer, three ways to use it.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        Tarn is built for the people who have to explain a failure under
-        time pressure. The same evidence model serves platform standards,
-        on-call triage, and pre-production review.
-      </p>
+    <article>
+      <div className="shell">
+        <PageHeader
+          label="Solutions"
+          title="One diagnosis layer, three ways to use it."
+          lead="Tarn is built for the people who have to explain a failure under time pressure. The same evidence model serves platform standards, on-call triage, and pre-production review."
+          meta={<span>No customer outcome claims</span>}
+          actions={
+            <>
+              <Link href="/demo" className="btn-primary">
+                Open the public fixture
+              </Link>
+              <Link href="/product" className="btn-ghost">
+                See the product
+              </Link>
+            </>
+          }
+        />
+      </div>
 
-      <div className="mt-12 grid gap-4 lg:grid-cols-3">
-        {AUDIENCES.map((audience) => (
-          <article key={audience.title} className="card flex flex-col p-6">
-            <span className="label-caps">{audience.label}</span>
-            <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
-              {audience.title}
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-              {audience.body}
+      <section className="rail-section" aria-labelledby="solutions-ledger-title">
+        <div className="shell rail-section__grid">
+          <aside className="rail-section__margin">
+            <p className="section-label">Who it is for</p>
+            <p>
+              Choose the operating context. The evidence contract stays the same;
+              the useful next question changes.
             </p>
-            <Link
-              href={audience.href}
-              className="link-editorial mt-6 text-sm"
-            >
-              Read the solution
-            </Link>
-          </article>
-        ))}
-      </div>
+          </aside>
+          <div className="rail-section__body">
+            <h2 id="solutions-ledger-title">Where the work starts.</h2>
+            <ol className="role-ledger mt-8">
+              {AUDIENCES.map((audience) => (
+                <li key={audience.title}>
+                  <span className="role-ledger__role">{audience.label}</span>
+                  <div>
+                    <h2>{audience.title}</h2>
+                    <p>{audience.body}</p>
+                  </div>
+                  <div className="role-ledger__link">
+                    <p className="text-[var(--text-subtle)]">{audience.note}</p>
+                    <Link href={audience.href} className="link-editorial mt-2 inline-block">
+                      Read the solution
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </section>
 
-      <div className="mt-16 flex flex-wrap gap-3">
-        <Link href="/assistant" className="btn-accent">
-          Start an investigation
-        </Link>
-        <Link href="/product" className="btn-ghost">
-          See the product
-        </Link>
-      </div>
-    </div>
+      <section className="home-cta" data-theme="ink" aria-labelledby="solutions-cta-title">
+        <ContourField className="home-cta__contour" rings={8} />
+        <div className="shell home-cta__inner">
+          <div>
+            <h2 id="solutions-cta-title">Bring the evidence to the room.</h2>
+            <p>
+              The same diagnosis can be inspected by the person on call, the
+              platform team, and the change author. No proof is manufactured
+              between those views.
+            </p>
+          </div>
+          <div className="page-actions">
+            <Link href="/demo" className="btn-primary">
+              Open the demo
+            </Link>
+            <Link href="/support" className="btn-glass">
+              Ask a specific question
+            </Link>
+          </div>
+        </div>
+      </section>
+    </article>
   );
 }

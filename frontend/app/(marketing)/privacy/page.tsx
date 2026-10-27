@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LegalLayout, PageHeader, StatusText } from "@/components/editorial";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
@@ -10,73 +11,73 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="shell py-24">
-      <span className="label-caps">Privacy</span>
-      <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
-        No ad analytics. Keys stay server-side.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
-        This page describes the data handled by a self-hosted deployment. The
-        operator of this instance is responsible for its retention settings,
-        AI-provider configuration, and any legal notices required in their
-        jurisdiction.
-      </p>
+    <article className="shell">
+      <PageHeader
+        label="Privacy"
+        title="No ad analytics. Keys stay server-side."
+        lead="This page describes the data handled by a self-hosted deployment. The operator of this instance is responsible for its retention settings, AI-provider configuration, and any legal notices required in their jurisdiction."
+        meta={<StatusText state="live">No tracking SDK</StatusText>}
+        actions={
+          <Link href="/security" className="btn-primary">
+            Read the security controls
+          </Link>
+        }
+      />
 
-      <div className="mt-12 grid gap-4 md:grid-cols-3">
-        <div className="card p-6">
-          <span className="label-caps">Analytics</span>
-          <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
-            None
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            The app does not ship an analytics SDK, advertising pixel, or
-            third-party tracking script. Account and operational data are not
-            sold.
-          </p>
-        </div>
-        <div className="card p-6">
-          <span className="label-caps">Keys</span>
-          <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
-            Backend only
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            Integration and AI credentials are read on the backend and are never
-            returned to the browser bundle. Queued email tokens are encrypted at
-            rest with the operator-managed job key.
-          </p>
-        </div>
-        <div className="card p-6">
-          <span className="label-caps">Investigation data</span>
-          <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
-            Local by default
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            Account details, saved investigations, evidence, and audit events are
-            stored in the deployment database. Raw log-analysis pastes are not
-            persisted by the analysis endpoint. Audit retention is configurable.
-          </p>
-        </div>
-      </div>
+      <LegalLayout scope="Self-hosted deployment" lastReviewed="2026-10-26">
+        <h2>What the application stores</h2>
+        <p>
+          Account details, workspace membership, saved investigations, evidence,
+          audit events, and API-key metadata are stored in the deployment
+          database. A raw log-analysis paste is size-validated, redacted, and
+          processed without being persisted by the analysis endpoint. Saved
+          investigations persist the evidence they contain until the operator&rsquo;s
+          retention policy removes them or the account is deleted.
+        </p>
 
-      <p className="mt-8 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
-        Authentication uses an HttpOnly session cookie and a readable CSRF
-        cookie. OAuth, when enabled, uses a short-lived state cookie. External AI
-        providers are contacted only when configured; redacted evidence summaries
-        and the operator's question are sent, and AI privacy mode blocks that
-        transmission. Accounts can be deleted from settings. Audit retention and
-        database backups are controlled by the deployment operator. Optional
-        error/trace exporters are configured by the operator and carry
-        operational metadata, not advertising identifiers.
-      </p>
+        <h2>Cookies and sessions</h2>
+        <p>
+          Authentication uses an HttpOnly session cookie and a readable CSRF
+          cookie. OAuth, when enabled, uses a short-lived state cookie. Session
+          tokens are stored hashed, and sessions have idle and absolute expiry.
+          The application does not ship an advertising pixel, analytics SDK, or
+          third-party tracking script.
+        </p>
 
-      <div className="mt-8 flex flex-wrap gap-3">
-        <Link href="/security" className="btn-accent">
-          Read the security page
-        </Link>
-        <Link href="/support" className="btn-ghost">
-          Ask a privacy question
-        </Link>
-      </div>
-    </div>
+        <h2>Optional AI providers</h2>
+        <p>
+          External AI providers are contacted only when configured. Tarn sends
+          redacted evidence summaries and the operator&rsquo;s question; AI privacy
+          mode blocks that transmission. Integration and AI credentials are read
+          on the backend and are never returned to the browser bundle. Review the
+          configured provider&rsquo;s data policy before enabling it.
+        </p>
+
+        <h2>Retention and deletion</h2>
+        <p>
+          Audit retention is configurable by the operator. Database backups and
+          any optional error or trace exporters are also controlled by the
+          operator; exporters carry operational metadata, not advertising
+          identifiers. Accounts can be deleted from settings, subject to the
+          deployment&rsquo;s documented retention and backup behavior.
+        </p>
+
+        <h2>What this page cannot promise</h2>
+        <p>
+          This application is not a certified data processor and does not
+          provide a jurisdiction-specific privacy notice. If you operate it for
+          an organization or the public, replace these notes with terms reviewed
+          for your legal, security, and support obligations.
+        </p>
+
+        <div className="surface-detail-actions">
+          <Link href="/security" className="link-editorial">
+            Read the security page
+          </Link>
+          <Link href="/support">Ask a privacy question</Link>
+          <Link href="/terms">Read the terms</Link>
+        </div>
+      </LegalLayout>
+    </article>
   );
 }
