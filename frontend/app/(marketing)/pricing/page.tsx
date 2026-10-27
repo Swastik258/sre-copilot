@@ -36,7 +36,10 @@ export default function Page() {
       </p>
 
       <div className="pricing-table-wrap mt-12">
-        <table className="editorial-table pricing-table">
+        <table
+          className="editorial-table pricing-table"
+          aria-label="Plan pricing and availability"
+        >
           <thead>
             <tr>
               <th scope="col">Plan</th>
@@ -52,19 +55,19 @@ export default function Page() {
                   <span className="font-serif text-2xl text-[var(--text)]">{tier.name}</span>
                   <span className="mt-2 block font-normal text-[var(--text-muted)]">{tier.description}</span>
                 </th>
-                <td>
+                <td data-label="Price and status">
                   <span className="font-serif text-2xl text-[var(--text)]">{tier.price}</span>
                   <span className="ml-2 text-sm text-[var(--text-subtle)]">{tier.cadence}</span>
                   <p className="mt-2 text-sm text-[var(--text-muted)]">
                     {tier.status === "available" ? "Free today" : "Planned · not for sale"}
                   </p>
                 </td>
-                <td>
+                <td data-label="Included">
                   <ul className="space-y-2 text-sm leading-6 text-[var(--text-muted)]">
                     {tier.features.map((feature) => <li key={feature}>{feature}</li>)}
                   </ul>
                 </td>
-                <td>
+                <td data-label="Availability">
                   <Link
                     href={tier.href}
                     className={tier.highlight ? "btn-accent" : "link-editorial"}

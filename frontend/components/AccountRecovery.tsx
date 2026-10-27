@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ApiRequestError, api } from "@/lib/api";
 
 const inputClass =
-  "w-full rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg)] px-3.5 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] transition focus:border-[var(--accent)] focus:outline-none";
+  "w-full rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--bg)] px-3.5 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] transition focus:border-[var(--accent)] focus:outline-none";
 
 function Message({
   kind,
@@ -60,7 +60,7 @@ export function ForgotPasswordForm() {
         Enter your account email and we will send a single-use reset link if the
         account exists.
       </p>
-      <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+      <form className="auth-form mt-8 space-y-4" onSubmit={onSubmit}>
         <div>
           <label htmlFor="email" className="label-caps mb-2 block">
             Email
@@ -156,7 +156,7 @@ export function ResetPasswordForm() {
     <div>
       <span className="label-caps">Account recovery</span>
       <h1 className="heading-display mt-5 text-4xl">Choose a new password</h1>
-      <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+      <form className="auth-form mt-8 space-y-4" onSubmit={onSubmit}>
         <div>
           <label htmlFor="password" className="label-caps mb-2 block">
             New password

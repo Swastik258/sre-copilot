@@ -17,7 +17,7 @@ const POINTS: { icon: IconName; title: string; body: string }[] = [
   {
     icon: "bolt",
     title: "Runs locally, offline",
-    body: "Demo mode needs no keys and no paid AI service. Bring your own provider when ready.",
+    body: "Deterministic diagnosis remains authoritative; optional AI explanations cannot execute infrastructure actions.",
   },
 ];
 

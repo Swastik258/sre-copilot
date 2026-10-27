@@ -6898,3 +6898,83 @@ h4,
     padding: var(--space-3);
   }
 }
+
+.auth-main {
+  min-height: calc(100vh - 4rem);
+  min-height: calc(100svh - 4rem);
+}
+
+.auth-main .card {
+  width: 100%;
+}
+
+.auth-form input:not([type="checkbox"]),
+.auth-form [role="alert"],
+.auth-form [role="status"] {
+  border-radius: var(--radius);
+}
+
+.auth-form input:not([type="checkbox"]) {
+  min-height: var(--control-height);
+  border-color: var(--border);
+  background: var(--bg);
+}
+
+@media (max-width: 767px) {
+  .pricing-table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .pricing-table {
+    display: block;
+    min-width: 0;
+  }
+
+  .pricing-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  .pricing-table tbody {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .pricing-table tbody tr {
+    display: grid;
+    gap: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-3);
+    background: var(--bg-elevated);
+  }
+
+  .pricing-table tbody th,
+  .pricing-table tbody td {
+    display: block;
+    border: 0;
+    padding: 0;
+  }
+
+  .pricing-table tbody th span:first-child,
+  .pricing-table tbody td > span:first-child {
+    color: var(--text);
+  }
+
+  .pricing-table tbody td::before {
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--text-muted);
+    content: attr(data-label);
+    font-size: var(--type-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}

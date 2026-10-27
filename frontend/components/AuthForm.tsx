@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth-client";
 type Mode = "login" | "signup";
 
 const inputClass =
-  "w-full rounded-[4px] border border-[var(--border-strong)] bg-[var(--bg)] px-3.5 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] transition focus:border-[var(--accent)] focus:outline-none";
+  "w-full rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--bg)] px-3.5 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] transition focus:border-[var(--accent)] focus:outline-none";
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const { setUser } = useAuth();
@@ -83,13 +83,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
         <span className="label-caps">
           {isSignup ? "Create account" : "Sign in"}
-        </span>
-        <span className="badge badge-neutral">
-          <span className="dot dot-good" />
-          Local
         </span>
       </div>
 
@@ -98,11 +94,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
       </h1>
       <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
         {isSignup
-          ? "No external identity provider. Your account is stored on your own backend."
-          : "Open your investigation dashboard with your local account."}
+          ? "Create an account to save investigations and workspace settings."
+          : "Continue to your Tarn workspace."}
       </p>
 
-      <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+      <form className="auth-form mt-8 space-y-4" onSubmit={onSubmit}>
         {isSignup && (
           <div>
             <label
@@ -253,12 +249,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
           href={isSignup ? "/login" : "/sign-up"}
           className="link-editorial font-medium"
         >
-          {isSignup ? "Sign in" : "Create one"}
+          {isSignup ? "Sign in" : "Create account"}
         </Link>
-      </p>
-
-      <p className="mt-6 text-center label-caps">
-        Passwords are hashed · HttpOnly session
       </p>
     </div>
   );
