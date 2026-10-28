@@ -156,6 +156,15 @@ OPENROUTER_API_KEY=sk-or-...
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 ```
 
+For NVIDIA's OpenAI-compatible Integrate API:
+
+```dotenv
+AI_PROVIDER=nvidia
+AI_MODEL=nvidia/nemotron-3.5-super-vl-120b-a12b
+NVIDIA_API_KEY=your-nvidia-api-key
+NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+```
+
 Anthropic (`AI_PROVIDER=anthropic`) uses the native Messages API. Keep all keys
 server-side. See [docs/AI_PROVIDERS.md](AI_PROVIDERS.md).
 

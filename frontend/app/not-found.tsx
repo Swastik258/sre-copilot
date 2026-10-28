@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <div data-theme="paper" className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <TopNav />
       <main id="main-content" className="shell grid min-h-[70vh] place-items-center py-24">
         <div className="max-w-xl text-center">

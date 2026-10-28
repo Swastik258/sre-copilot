@@ -1,0 +1,316 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-28T11:43:48+05:30",
+  "title": "Design System: Tarn Homepage, Marketing Chrome & Account Access",
+  "extensions": {
+    "colorMeta": {
+      "packet-blue": {
+        "role": "primary",
+        "displayName": "Packet Cobalt",
+        "canonical": "#2347b8",
+        "tonalRamp": ["#101a3c", "#16275d", "#1c3687", "#2347b8", "#506fd0", "#8499de", "#b8c5ed", "#edf0fa"]
+      },
+      "packet-blue-deep": {
+        "role": "primary",
+        "displayName": "Deep Packet Blue",
+        "canonical": "#142a72",
+        "tonalRamp": ["#0b1021", "#101936", "#142455", "#142a72", "#40558d", "#7785aa", "#aeb7cc", "#edf0f6"]
+      },
+      "packet-paper": {
+        "role": "neutral",
+        "displayName": "Envelope Paper",
+        "canonical": "#f3efe3",
+        "tonalRamp": ["#29271f", "#4b483d", "#716d5f", "#999484", "#bdb8a8", "#d4cfbf", "#e7e2d5", "#f3efe3"]
+      },
+      "packet-holder": {
+        "role": "neutral",
+        "displayName": "Holder Paper",
+        "canonical": "#e8e2d3",
+        "tonalRamp": ["#29271f", "#4b483d", "#716d5f", "#999484", "#bdb8a8", "#d4cfbf", "#e8e2d3", "#f5f2e9"]
+      },
+      "packet-faq": {
+        "role": "neutral",
+        "displayName": "FAQ Paper",
+        "canonical": "#e7e2d5",
+        "tonalRamp": ["#29271f", "#4b483d", "#716d5f", "#999484", "#bdb8a8", "#d4cfbf", "#e7e2d5", "#f5f2e9"]
+      },
+      "packet-insert": {
+        "role": "neutral",
+        "displayName": "Insert Paper",
+        "canonical": "#fffdf6",
+        "tonalRamp": ["#292820", "#4b493f", "#706e61", "#999789", "#bdbbaa", "#d5d3c3", "#e9e7d8", "#fffdf6"]
+      },
+      "packet-ink": {
+        "role": "neutral",
+        "displayName": "Packet Ink",
+        "canonical": "#17233c",
+        "tonalRamp": ["#0c101b", "#10182b", "#14203a", "#17233c", "#4b5364", "#818692", "#b8bbc2", "#f0f1f3"]
+      },
+      "packet-muted": {
+        "role": "neutral",
+        "displayName": "Muted Blue-Gray",
+        "canonical": "#48566f",
+        "tonalRamp": ["#171b24", "#29313f", "#3b485f", "#48566f", "#6e798d", "#99a1af", "#c4c9d0", "#f1f2f4"]
+      },
+      "packet-tab": {
+        "role": "secondary",
+        "displayName": "Signal Tab",
+        "canonical": "#d7f44a",
+        "tonalRamp": ["#252b0d", "#414b16", "#64751f", "#94b02e", "#d7f44a", "#e1f77b", "#ebf9a9", "#f8fde8"]
+      },
+      "packet-orange": {
+        "role": "tertiary",
+        "displayName": "Transfer Coral",
+        "canonical": "#f2764c",
+        "tonalRamp": ["#32190f", "#5a2a19", "#8d4026", "#c65c38", "#f2764c", "#f69676", "#f9b9a2", "#fcece6"]
+      },
+      "auth-story-border": {
+        "role": "neutral",
+        "displayName": "Story Panel Divider",
+        "canonical": "#c7c1b2",
+        "tonalRamp": ["#29271f", "#4b483d", "#716d5f", "#999484", "#bdb8a8", "#c7c1b2", "#e7e2d5", "#f3efe3"]
+      },
+      "auth-rule": {
+        "role": "neutral",
+        "displayName": "Evidence Rule",
+        "canonical": "#b5b1a7",
+        "tonalRamp": ["#29271f", "#4b483d", "#716d5f", "#999484", "#b5b1a7", "#d4cfbf", "#e7e2d5", "#f3efe3"]
+      },
+      "auth-field-border": {
+        "role": "neutral",
+        "displayName": "Field Border",
+        "canonical": "#969ca5",
+        "tonalRamp": ["#22262d", "#3b414b", "#58616e", "#77808d", "#969ca5", "#b5bac1", "#d5d8dc", "#f1f2f4"]
+      },
+      "auth-text-subtle": {
+        "role": "neutral",
+        "displayName": "Subtle Form Text",
+        "canonical": "#657189",
+        "tonalRamp": ["#1e232c", "#333c4e", "#4a566d", "#657189", "#8490a4", "#a6afbd", "#c9ced7", "#f0f1f4"]
+      },
+      "auth-action-hover": {
+        "role": "secondary",
+        "displayName": "Action Hover Tab",
+        "canonical": "#e6ff73",
+        "tonalRamp": ["#252b0d", "#414b16", "#64751f", "#94b02e", "#c7e04b", "#e6ff73", "#efffa9", "#f9ffe4"]
+      },
+      "auth-error-border": {
+        "role": "tertiary",
+        "displayName": "Validation Border",
+        "canonical": "#bd6a60",
+        "tonalRamp": ["#32190f", "#5a2a19", "#8d4026", "#bd6a60", "#d08b82", "#dfaca5", "#edceca", "#faeeec"]
+      },
+      "auth-error-background": {
+        "role": "neutral",
+        "displayName": "Validation Paper",
+        "canonical": "#fff4ed",
+        "tonalRamp": ["#292820", "#4b493f", "#706e61", "#999789", "#bdbbaa", "#d5d3c3", "#e9e7d8", "#fff4ed"]
+      },
+      "auth-error-text": {
+        "role": "tertiary",
+        "displayName": "Validation Ink",
+        "canonical": "#842d25",
+        "tonalRamp": ["#24100d", "#421715", "#65211c", "#842d25", "#a35047", "#c07a73", "#ddb0ab", "#f3e5e3"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Promise Display",
+        "purpose": "Homepage hero headline."
+      },
+      "headline": {
+        "displayName": "Section Headline",
+        "purpose": "Marketing section headings."
+      },
+      "title": {
+        "displayName": "Insert Title",
+        "purpose": "Short evidence-step titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Supporting marketing copy."
+      },
+      "label": {
+        "displayName": "Packet Label",
+        "purpose": "Compact identifiers and category labels."
+      },
+      "auth-display": {
+        "displayName": "Account Form Title",
+        "purpose": "Direct sign-in and account-creation headings."
+      },
+      "auth-story-display": {
+        "displayName": "Account Evidence Statement",
+        "purpose": "Expressive heading on the adjacent account evidence panel."
+      },
+      "auth-label": {
+        "displayName": "Account Field Label",
+        "purpose": "Compact mono labels identifying account form fields."
+      }
+    },
+    "shadows": [
+      {
+        "name": "envelope-lift",
+        "value": "0 28px 56px -32px rgba(4, 17, 61, 0.62)",
+        "purpose": "Separates the homepage sheet and account-access paper packet from their cobalt fields."
+      },
+      {
+        "name": "insert-edge",
+        "value": "0 5px 12px -10px rgba(23, 35, 60, 0.4)",
+        "purpose": "Adds a faint edge beneath each evidence slip."
+      }
+    ],
+    "motion": [
+      {
+        "name": "control-transition",
+        "value": "160ms ease",
+        "purpose": "Short color and transform response for homepage actions and packet controls."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "Homepage and navigation transitions are reduced for users requesting reduced motion."
+      },
+      {
+        "name": "account-control-transition",
+        "value": "150ms ease",
+        "purpose": "Border and background response on account fields and primary actions; disabled when reduced motion is requested."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mobile",
+        "value": "767px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Homepage Primary Action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "High-salience start action on paper, with an arrow cue.",
+      "html": "<a class=\"ds-primary\" href=\"#\">Start free <svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M3.5 10h12m-5-5 5 5-5 5\"/></svg></a>",
+      "css": ".ds-primary{display:inline-flex;min-height:3.25rem;align-items:center;justify-content:center;gap:.75rem;background:#d7f44a;color:#17233c;padding:.8rem 1.15rem;font:650 .9375rem/1.2 'Inter Tight',ui-sans-serif,system-ui,sans-serif;text-decoration:none;transition:background-color 160ms ease,transform 160ms ease}.ds-primary svg{width:1.1rem;height:1.1rem;fill:none;stroke:currentColor;stroke-width:1.7;transition:transform 160ms ease}.ds-primary:hover{background:#e6ff73;transform:translateY(-2px)}.ds-primary:hover svg{transform:translateX(3px)}.ds-primary:focus-visible{outline:2px solid #f2764c;outline-offset:2px}"
+    },
+    {
+      "name": "Documentation Link",
+      "kind": "custom",
+      "refersTo": "button-secondary",
+      "description": "Underlined secondary route beside the primary action.",
+      "html": "<a class=\"ds-secondary\" href=\"#\">Read the docs</a>",
+      "css": ".ds-secondary{display:inline-flex;min-height:2.75rem;align-items:center;border-bottom:1px solid currentColor;color:#17233c;font:650 .9375rem/1.2 'Inter Tight',ui-sans-serif,system-ui,sans-serif;text-decoration:none;text-underline-offset:.25em;transition:color 160ms ease}.ds-secondary:hover{color:#2347b8}.ds-secondary:focus-visible{outline:2px solid #f2764c;outline-offset:2px}"
+    },
+    {
+      "name": "Evidence Packet",
+      "kind": "card",
+      "refersTo": "packet-trace",
+      "description": "Warm-paper holder that stages the source-to-finding inserts.",
+      "html": "<section class=\"ds-packet\"><div class=\"ds-address\"><span>How diagnosis works</span><span>Source to finding</span></div><article class=\"ds-slip\"><span class=\"ds-index\">01</span><div><span class=\"ds-label\">Source records</span><h3>Collect</h3><p>Connect a supported source and choose the system you need to inspect.</p></div></article></section>",
+      "css": ".ds-packet{position:relative;border:1px solid #b9b5a8;background:#e8e2d3;padding:1.25rem 1.25rem 1rem}.ds-packet:before{position:absolute;top:-.55rem;right:1.6rem;width:8rem;height:1.1rem;background:#f2764c;clip-path:polygon(0 0,100% 0,96% 100%,4% 100%);content:''}.ds-address{display:flex;justify-content:space-between;gap:1rem;border-bottom:1px solid #a6a296;padding:0 0 .9rem;color:#48566f;font: .6875rem/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.065em;text-transform:uppercase}.ds-address span:first-child{color:#2347b8}.ds-slip{display:grid;grid-template-columns:2.7rem minmax(0,1fr);gap:.8rem;margin-top:1rem;border:1px solid #d5d0c3;background:#fffdf6;padding:1rem .8rem;box-shadow:0 5px 12px -10px rgba(23,35,60,.4)}.ds-index{display:grid;width:1.75rem;height:1.75rem;place-items:center;border:1px solid #2347b8;color:#2347b8;font: .6875rem/1 'JetBrains Mono',ui-monospace,monospace}.ds-label{color:#2347b8;font: .6875rem/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}.ds-slip h3{margin:.2rem 0 0;color:#17233c;font:600 1.25rem/1.2 'Inter Tight',ui-sans-serif,system-ui,sans-serif;letter-spacing:-.025em}.ds-slip p{margin:.3rem 0 0;color:#48566f;font: .8125rem/1.45 'Inter Tight',ui-sans-serif,system-ui,sans-serif}"
+    },
+    {
+      "name": "Trace Disclosure",
+      "kind": "custom",
+      "refersTo": "evidence-slip",
+      "description": "Native disclosure opens a compact explanation of provenance.",
+      "html": "<details class=\"ds-trace\"><summary><span>Trace how a finding is supported</span><span class=\"ds-tab\">Open insert</span></summary><p>Evidence references identify source records. Observed facts remain separate from ranked hypotheses.</p></details>",
+      "css": ".ds-trace{margin-top:.85rem;border-top:1px dashed #a6a296}.ds-trace summary{display:flex;min-height:3.25rem;align-items:center;justify-content:space-between;gap:.8rem;color:#17233c;cursor:pointer;font:600 .8125rem/1.35 'Inter Tight',ui-sans-serif,system-ui,sans-serif;list-style:none}.ds-trace summary::-webkit-details-marker{display:none}.ds-tab{display:inline-flex;min-height:2rem;align-items:center;background:#d7f44a;padding:.35rem .65rem;color:#17233c;font: .6875rem/1.3 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.04em;text-transform:uppercase}.ds-trace p{border-top:1px solid #cbc5b6;padding:.8rem 0 .25rem;color:#48566f;font: .8125rem/1.55 'Inter Tight',ui-sans-serif,system-ui,sans-serif}.ds-trace summary:focus-visible{outline:2px solid #f2764c;outline-offset:2px}"
+    },
+    {
+      "name": "Marketing Navigation",
+      "kind": "nav",
+      "refersTo": "navigation-marketing",
+      "description": "Wordmark and links on cobalt stock; mobile links move into a deep-blue sheet.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-brand\" href=\"#\">Tarn</a><div class=\"ds-links\"><a href=\"#\">Product</a><a href=\"#\">Docs</a><a href=\"#\">Pricing</a></div><a class=\"ds-nav-cta\" href=\"#\">Get started</a></nav>",
+      "css": ".ds-nav{display:flex;min-height:4.5rem;align-items:center;justify-content:space-between;gap:1.5rem;border-bottom:1px solid rgba(255,255,255,.2);background:#2347b8;padding:0 1.5rem;color:#fffdf6;font: .875rem/1.3 'Inter Tight',ui-sans-serif,system-ui,sans-serif}.ds-brand{color:inherit;font-size:1.25rem;text-decoration:none}.ds-links{display:flex;gap:1.5rem}.ds-links a{position:relative;color:inherit;text-decoration:none}.ds-links a:hover:after,.ds-links a:focus-visible:after{position:absolute;right:0;bottom:-.5rem;left:0;height:1px;background:#d7f44a;content:''}.ds-nav-cta{border-radius:12px;background:#d7f44a;padding:.7rem 1rem;color:#17233c;text-decoration:none;transition:background-color 160ms ease,transform 160ms ease}.ds-nav-cta:hover{background:#e6ff73;transform:translateY(-1px)}.ds-nav a:focus-visible{outline:2px solid #f2764c;outline-offset:2px}"
+    },
+    {
+      "name": "FAQ Accordion Row",
+      "kind": "custom",
+      "refersTo": "faq-row",
+      "description": "Rule-separated question row with a blue chevron and one open answer.",
+      "html": "<div class=\"ds-faq\"><button type=\"button\" aria-expanded=\"false\"><span>What does an evidence reference point to?</span><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"m4 6 4 4 4-4\"/></svg></button><p>Each reference identifies the source record used by a diagnosis.</p></div>",
+      "css": ".ds-faq{border-top:1px solid #848a91}.ds-faq button{display:flex;width:100%;min-height:3.75rem;align-items:center;justify-content:space-between;gap:1rem;border:0;border-bottom:1px solid #b5b1a7;background:transparent;padding:.8rem 0;color:#17233c;text-align:left;font:550 .9375rem/1.4 'Inter Tight',ui-sans-serif,system-ui,sans-serif}.ds-faq svg{width:1rem;height:1rem;fill:none;stroke:#2347b8;stroke-width:1.5}.ds-faq p{padding:0 2.5rem 1rem 0;color:#48566f;font: .875rem/1.6 'Inter Tight',ui-sans-serif,system-ui,sans-serif}.ds-faq button:focus-visible{outline:2px solid #f2764c;outline-offset:2px}"
+    },
+    {
+      "name": "Account Header",
+      "kind": "nav",
+      "refersTo": "auth-navigation",
+      "description": "Cobalt 4rem header with preserved Tarn wordmark and a home link for account routes.",
+      "html": "<nav class=\"ds-auth-nav\"><a class=\"ds-auth-brand\" href=\"#\" aria-label=\"Tarn home\"><svg viewBox=\"0 0 148 44\" role=\"img\" aria-label=\"Tarn\"><g fill=\"none\" stroke=\"#8FD3D9\" stroke-width=\"1.15\" stroke-linecap=\"round\"><path d=\"M4 22C3 15 9 8 16.5 5.3 24.5 2 35.2 7.5 38.7 15.7 42.2 24 36 32.9 28.8 37 20 42 9.3 36.2 5.4 29.1 3.7 26 4 23.8 4 22Z\"/><path d=\"M9 21.5c-.2-5.6 4.2-10.5 10-11.7 7.1-1.5 14.8 3.1 15.9 9.6 1.2 6.6-4.2 12.8-10.8 14.4-6.6 1.6-13.8-2-14.9-8.1-.3-1.5-.3-2.9-.2-4.2Z\"/><path d=\"M14.1 22.2c-.2-3.8 2.7-7.2 6.4-7.9 4.4-.9 8.8 2 9.3 6 .6 4.2-2.5 8-6.8 8.8-4.4.8-8.5-1.7-8.9-5.4-.1-.5-.1-1 0-1.5Z\"/><path d=\"M18.4 21.8c.1-1.9 1.5-3.4 3.4-3.5 2-.1 3.6 1.4 3.6 3.3 0 1.9-1.5 3.6-3.5 3.7-2 .1-3.6-1.3-3.5-3.5Z\"/></g><text x=\"52\" y=\"32\" fill=\"#EDEDED\" font-family=\"system-ui,sans-serif\" font-size=\"29\" letter-spacing=\"-1.2\">Tarn</text></svg></a><a class=\"ds-auth-home\" href=\"#\">Back to home</a></nav>",
+      "css": ".ds-auth-nav{display:flex;height:4rem;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.2);background:#2347b8;padding:0 max(1.25rem,calc((100% - 72rem)/2));color:#fffdf6;font:400 .875rem/1.4 'Inter Tight',ui-sans-serif,system-ui,sans-serif}.ds-auth-brand{color:inherit;font-size:1.25rem;font-weight:600;text-decoration:none}.ds-auth-home{color:inherit;text-underline-offset:.3em;text-decoration-color:rgba(255,255,255,.45)}.ds-auth-home:hover{color:#d7f44a}.ds-auth-nav a:focus-visible{outline:2px solid #f2764c;outline-offset:2px}"
+    },
+    {
+      "name": "Account Form Field",
+      "kind": "input",
+      "refersTo": "auth-field",
+      "description": "Square pale-paper field with a visible blue-and-coral keyboard focus treatment.",
+      "html": "<label class=\"ds-auth-label\" for=\"account-email\">Email</label><input class=\"ds-auth-input\" id=\"account-email\" type=\"email\" placeholder=\"you@company.com\">",
+      "css": ".ds-auth-label{display:block;margin:0 0 .5rem;color:#48566f;font:400 .6875rem/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.065em;text-transform:uppercase}.ds-auth-input{display:block;width:100%;min-height:3.25rem;border:1px solid #969ca5;border-radius:0;background:#fffdf6;padding:.75rem .85rem;color:#17233c;font:400 .9375rem/1.4 'Inter Tight',ui-sans-serif,system-ui,sans-serif;transition:border-color 150ms ease,background-color 150ms ease}.ds-auth-input::placeholder{color:#657189;opacity:1}.ds-auth-input:focus-visible{border-color:#2347b8;outline:2px solid #f2764c;outline-offset:2px}"
+    },
+    {
+      "name": "Account Primary Action",
+      "kind": "button",
+      "refersTo": "auth-action",
+      "description": "Full-width signal-tab action for sign-in or account creation.",
+      "html": "<button class=\"ds-auth-action\" type=\"button\">Sign in</button>",
+      "css": ".ds-auth-action{display:flex;width:100%;min-height:3.25rem;align-items:center;justify-content:center;border:1px solid #d7f44a;border-radius:0;background:#d7f44a;color:#17233c;padding:.75rem 1.25rem;font:600 .9375rem/1.2 'Inter Tight',ui-sans-serif,system-ui,sans-serif;transition:background-color 150ms ease,border-color 150ms ease}.ds-auth-action:hover:not(:disabled){border-color:#e6ff73;background:#e6ff73}.ds-auth-action:focus-visible{outline:2px solid #f2764c;outline-offset:2px}.ds-auth-action:disabled{cursor:not-allowed;opacity:.6}"
+    },
+    {
+      "name": "Account Evidence Panel",
+      "kind": "card",
+      "refersTo": "auth-story-panel",
+      "description": "Warm-stock panel adjacent to the login or signup insert, with a ruled factual evidence sequence.",
+      "html": "<aside class=\"ds-auth-story\"><div><h2>Evidence, kept in context.</h2><p>Review source records, separate observed facts from ranked hypotheses, and follow findings back to their evidence.</p></div><ol><li><span>01</span><strong>Source records</strong><small>From configured systems</small></li><li><span>02</span><strong>Observed facts</strong><small>Kept distinct from interpretation</small></li><li><span>03</span><strong>Ranked hypotheses</strong><small>Possible explanations to review</small></li></ol><p class=\"ds-auth-note\"><i aria-hidden=\"true\"></i>Read-only by default. Infrastructure changes stay with the operator.</p></aside>",
+      "css": ".ds-auth-story{display:flex;flex-direction:column;justify-content:space-between;gap:2rem;border-right:1px solid #c7c1b2;background:#e8e2d3;padding:clamp(1.5rem,4vw,3.5rem);color:#17233c}.ds-auth-story h2{max-width:13ch;margin:0;color:#17233c;font:600 clamp(2.15rem,4vw,3.5rem)/.99 'Inter Tight',ui-sans-serif,system-ui,sans-serif;letter-spacing:-.045em}.ds-auth-story>div>p{max-width:38ch;margin:1rem 0 0;color:#48566f;font:400 .9375rem/1.6 'Inter Tight',ui-sans-serif,system-ui,sans-serif}.ds-auth-story ol{margin:0;padding:0;border-top:1px solid #b5b1a7;list-style:none}.ds-auth-story li{display:grid;grid-template-columns:2.5rem minmax(0,1fr);gap:.8rem;border-bottom:1px solid #b5b1a7;padding:.85rem 0}.ds-auth-story li span{grid-row:span 2;color:#2347b8;font:400 .6875rem/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.06em}.ds-auth-story li strong{font:600 .9375rem/1.4 'Inter Tight',ui-sans-serif,system-ui,sans-serif}.ds-auth-story li small{color:#48566f;font:400 .8125rem/1.4 'Inter Tight',ui-sans-serif,system-ui,sans-serif}.ds-auth-note{display:flex;align-items:flex-start;gap:.65rem;margin:0;color:#17233c;font:400 .8125rem/1.5 'Inter Tight',ui-sans-serif,system-ui,sans-serif}.ds-auth-note i{width:.55rem;height:.55rem;flex:none;margin-top:.35rem;background:#f2764c}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Evidence Packet",
+    "overview": "The public homepage and its shared marketing chrome turn provenance into a physical-feeling packet: cobalt is the outer stock, warm paper is the envelope, and pale inserts carry the ordered evidence trail. The homepage's blue surround, cut-paper corner, punched-looking numbered slips, transfer line, and bright seal are not a generic product-preview frame; they make the source-to-finding sequence the organizing structure. The completed `/login` and `/sign-up` routes extend that same material language into a focused account task: a square-edged two-part paper packet, with the working form on pale insert stock and a factual evidence sequence on the adjacent holder panel.\n\nInter Tight gives the promise, section headings, and account forms a confident, compact voice. JetBrains Mono is reserved for machine-readable labels and identifiers, including the small numbered account evidence list. The named Tarn wordmark remains the brand mark. This documentation covers the shipped homepage and shared marketing navigation/footer treatment, plus the `/login` and `/sign-up` account-access routes and their shared header. It does not define the dashboard, recovery pages, or other app surfaces.",
+    "keyCharacteristics": [
+      "Cobalt envelope stock and warm, layered paper.",
+      "Acid yellow-green action/seal with a restrained coral transfer mark.",
+      "Oversized tight-grotesk promise paired with compact monospaced labels.",
+      "Source records, observed facts, and ranked hypotheses remain visibly distinct.",
+      "Account access uses the same cobalt surround, warm holder, pale insert, and signal-tab action in a task-first responsive packet."
+    ],
+    "rules": [
+      {
+        "name": "The Packet Contrast Rule",
+        "body": "Keep ink on paper and readable light text on the blue navigation/closing surfaces; reserve the saturated accents for controls and packet marks. In account forms, use the red feedback colors only for errors and reserve coral for the visible input focus outline and the read-only marker.",
+        "section": "colors"
+      },
+      {
+        "name": "The Label Has a Job Rule",
+        "body": "Use the mono face for compact identifiers and category labels; keep explanatory sentences in the sans-serif body face.",
+        "section": "typography"
+      },
+      {
+        "name": "The Task Title Rule",
+        "body": "Keep the account form heading direct and the evidence-panel statement more editorial in character; field labels remain compact and functional.",
+        "section": "typography"
+      },
+      {
+        "name": "The Paper Does the Layering Rule",
+        "body": "Prefer contrast, overlap, and fine strokes to stronger shadows; the page's depth belongs to its paper construction.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep the homepage's ordered evidence sequence visibly distinct and source-oriented.",
+      "Do use the mono face for the small functional labels shown on packet parts and adapter names.",
+      "Do preserve the Tarn wordmark and its contrast against the blue navigation.",
+      "Do retain the one-column mobile reading order and keep the action near the promise.",
+      "Do keep login and signup within the evidenced packet materials and preserve their form-first mobile order.",
+      "Do use the account routes' square corners and visible blue-border/coral-outline input focus treatment."
+    ],
+    "donts": [
+      "Don't apply this homepage's envelope palette and geometry as an assumed dashboard theme.",
+      "Don't add unsupported product proof, customer claims, prices, or metrics to the visual system.",
+      "Don't turn the two signal accents into large competing color fields; their use is concentrated in controls and packet marks.",
+      "Don't extend this account layout or its account-specific feedback colors to recovery pages, dashboards, or other app surfaces without evidence from those surfaces.",
+      "Don't use the error palette for ordinary decoration or imply account behavior beyond what the implemented forms establish."
+    ]
+  }
+}

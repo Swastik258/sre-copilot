@@ -1,7 +1,7 @@
 # AI providers
 
 > **Status: implemented for `mock`, OpenAI-compatible providers including Groq,
-> OpenRouter, and
+> NVIDIA, OpenRouter, and
 > Anthropic's native Messages API.** AI explanations are optional; deterministic
 > diagnosis remains authoritative.
 
@@ -10,6 +10,7 @@
 - `mock` — deterministic, no external calls (default for development/tests).
 - `openai` — OpenAI-compatible chat completions.
 - `groq` — Groq's OpenAI-compatible chat completions API.
+- `nvidia` — NVIDIA's OpenAI-compatible Integrate API.
 - `openrouter` — OpenRouter's OpenAI-compatible chat completions; model IDs must
   be namespaced.
 - `anthropic` — native Anthropic Messages API (`system` prompt, `messages`, and
@@ -23,13 +24,14 @@ available. Provider/model metadata is recorded, never keys.
 
 | Env var | Purpose |
 |---------|---------|
-| `AI_PROVIDER` | `mock` \| `openai` \| `openrouter` \| `anthropic` \| `groq` |
-| `AI_MODEL` | Model name (Groq example: `llama-3.3-70b-versatile`; OpenRouter: `openai/gpt-4o-mini`; Anthropic: e.g. `claude-3-5-sonnet-latest`) |
+| `AI_PROVIDER` | `mock` \| `openai` \| `openrouter` \| `anthropic` \| `groq` \| `nvidia` |
+| `AI_MODEL` | Model name (NVIDIA example: `nvidia/nemotron-3.5-super-vl-120b-a12b`; Groq: `llama-3.3-70b-versatile`; OpenRouter: `openai/gpt-4o-mini`; Anthropic: e.g. `claude-3-5-sonnet-latest`) |
 | `AI_TIMEOUT_SECONDS` | Request timeout |
 | `AI_MAX_OUTPUT_TOKENS` | Output cap |
 | `AI_PRIVACY_MODE` | Block all external providers |
 | `OPENAI_API_KEY` / `OPENAI_BASE_URL` | OpenAI-compatible provider |
 | `GROQ_API_KEY` / `GROQ_BASE_URL` | Groq OpenAI-compatible API (`https://api.groq.com/openai/v1`) |
+| `NVIDIA_API_KEY` / `NVIDIA_BASE_URL` | NVIDIA Integrate OpenAI-compatible API (`https://integrate.api.nvidia.com/v1`) |
 | `OPENROUTER_API_KEY` / `OPENROUTER_BASE_URL` | OpenRouter provider |
 | `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL` | Anthropic provider |
 
@@ -49,6 +51,25 @@ AI_PRIVACY_MODE=false
 
 The backend uses its existing OpenAI-compatible HTTP adapter; no additional
 Groq SDK dependency is needed. See the [Groq quickstart](https://console.groq.com/docs/quickstart).
+
+## NVIDIA example
+
+Set these in `backend/.env` or the backend deployment environment. Obtain an
+API key from the NVIDIA API catalog and keep it server-side; never put it in a
+frontend environment variable or commit it.
+
+```dotenv
+AI_PROVIDER=nvidia
+AI_MODEL=nvidia/nemotron-3.5-super-vl-120b-a12b
+NVIDIA_API_KEY=your-nvidia-api-key
+NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+AI_PRIVACY_MODE=false
+```
+
+NVIDIA uses the existing OpenAI-compatible HTTP adapter, so no additional SDK
+dependency is required. The current AI explanation flow sends structured text
+prompts and expects one JSON response; image input and streaming are not part
+of that flow.
 
 ## OpenRouter example
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ApiRequestError, api, type AccountSnapshot } from "@/lib/api";
 import { useAuth } from "@/lib/auth-client";
+import { ThemePreferenceControl } from "@/components/ThemeControls";
 
 type Notice = { kind: "success" | "error"; text: string } | null;
 
@@ -29,7 +30,7 @@ function Field({ label, ...props }: { label: string } & React.InputHTMLAttribute
 
 function Message({ value }: { value: Notice }) {
   if (!value) return null;
-  return <p role="status" className={`mt-3 text-sm ${value.kind === "error" ? "text-rose-300" : "text-[var(--signal-good)]"}`}>{value.text}</p>;
+  return <p role="status" className={`mt-3 text-sm ${value.kind === "error" ? "text-[var(--danger)]" : "text-[var(--success)]"}`}>{value.text}</p>;
 }
 
 export default function AccountSettingsPage() {
@@ -165,6 +166,9 @@ export default function AccountSettingsPage() {
         <h1 className="mt-2 text-3xl font-semibold">Settings</h1>
         <p className="mt-2 text-sm text-[var(--text-muted)]">Manage your personal profile and workspace connections.</p>
       </header>
+      <section className="console-panel p-5 sm:p-6">
+        <ThemePreferenceControl />
+      </section>
       {notice.page && <Message value={notice.page} />}
 
       <Panel title="Profile" description="Update your name and sign-in email. Changing email requires your current password.">
@@ -172,7 +176,7 @@ export default function AccountSettingsPage() {
           <Field label="Name" value={name} onChange={(event) => setName(event.target.value)} maxLength={120} />
           <Field label="Email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required maxLength={320} />
           {email.trim().toLowerCase() !== (account?.profile.email ?? "").toLowerCase() && <div className="sm:col-span-2"><Field label="Current password (required to change email)" type="password" value={profilePassword} onChange={(event) => setProfilePassword(event.target.value)} required /></div>}
-          <div className="sm:col-span-2"><button disabled={busy === "profile"} className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--text)] disabled:opacity-50">{busy === "profile" ? "Saving…" : "Save profile"}</button><Message value={notice.profile ?? null} /></div>
+          <div className="sm:col-span-2"><button disabled={busy === "profile"} className="rounded-lg bg-[var(--button-bg)] px-4 py-2 text-sm font-medium text-[var(--button-text)] disabled:opacity-50">{busy === "profile" ? "Saving…" : "Save profile"}</button><Message value={notice.profile ?? null} /></div>
         </form>
       </Panel>
 
@@ -186,7 +190,6 @@ export default function AccountSettingsPage() {
 
       <Panel title="Preferences">
         {account && <div className="grid gap-5 sm:grid-cols-2">
-          <label className="text-sm"><span className="mb-2 block text-xs text-[var(--text-muted)]">Theme preference</span><select value={account.preferences.theme} disabled={busy === "preferences"} onChange={(event) => void savePreferences({ theme: event.target.value })} className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] px-3 py-2.5 text-[var(--text)]"><option value="dark">Dark</option><option value="system">System</option></select></label>
           <label className="flex items-center gap-3 self-end text-sm text-[var(--text-muted)]"><input type="checkbox" checked={account.preferences.notifications} disabled={busy === "preferences"} onChange={(event) => void savePreferences({ notifications: event.target.checked })} className="accent-[var(--accent)]" />Email notifications</label>
         </div>}
         <Message value={notice.preferences ?? null} />
@@ -208,11 +211,11 @@ export default function AccountSettingsPage() {
         {createdKey && <div className="mb-4 break-all rounded-lg border border-[var(--signal-good)]/20 bg-[var(--signal-good)]/[.06] p-3"><p className="mb-2 text-xs text-[var(--signal-good)]">Copy your key now. You will not be able to view it again.</p><code className="text-sm text-[var(--text)]">{createdKey}</code><button type="button" onClick={() => setCreatedKey(null)} className="ml-3 text-xs text-[var(--text-muted)]">Dismiss</button></div>}
         <form onSubmit={createKey} className="flex flex-wrap gap-3">
           <Field label="Key name" value={keyName} onChange={(event) => setKeyName(event.target.value)} maxLength={80} required className="max-w-sm" />
-          <button disabled={busy === "keys"} className="self-end rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm text-[var(--text)] disabled:opacity-50">{busy === "keys" ? "Working…" : "Create API key"}</button>
+          <button disabled={busy === "keys"} className="self-end rounded-lg bg-[var(--button-bg)] px-4 py-2.5 text-sm text-[var(--button-text)] disabled:opacity-50">{busy === "keys" ? "Working…" : "Create API key"}</button>
         </form>
         <Message value={notice.keys ?? null} />
         <ul className="mt-4 divide-y divide-[var(--border)]">
-          {account?.api_keys.map((key) => <li key={key.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"><span>{key.name} <code className="ml-2 text-xs text-[var(--text-muted)]">{key.prefix}…</code></span><button type="button" disabled={busy === "keys"} onClick={() => void revokeKey(key.id)} className="text-xs text-rose-300 hover:text-rose-200">Revoke</button></li>)}
+          {account?.api_keys.map((key) => <li key={key.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"><span>{key.name} <code className="ml-2 text-xs text-[var(--text-muted)]">{key.prefix}…</code></span><button type="button" disabled={busy === "keys"} onClick={() => void revokeKey(key.id)} className="text-xs text-[var(--danger)] hover:text-[var(--danger-hover)]">Revoke</button></li>)}
           {!account?.api_keys.length && <li className="py-3 text-sm text-[var(--text-muted)]">No active API keys.</li>}
         </ul>
       </Panel>
@@ -225,8 +228,8 @@ export default function AccountSettingsPage() {
       <Panel title="Danger zone" description="Deleting your account permanently removes your profile, API keys, sessions, and saved investigations.">
         <form onSubmit={deleteAccount} className="space-y-4">
           <Field label="Confirm with your password" type="password" value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)} required />
-          <label className="flex items-start gap-2 text-sm text-[var(--text-muted)]"><input type="checkbox" checked={deleteConfirmed} onChange={(event) => setDeleteConfirmed(event.target.checked)} className="mt-1 accent-rose-400" />I understand that deleting my account is permanent.</label>
-          <button disabled={busy === "danger"} className="rounded-lg border border-rose-400/30 px-4 py-2 text-sm text-rose-300 hover:bg-rose-400/10 disabled:opacity-50">{busy === "danger" ? "Deleting…" : "Delete account"}</button>
+          <label className="flex items-start gap-2 text-sm text-[var(--text-muted)]"><input type="checkbox" checked={deleteConfirmed} onChange={(event) => setDeleteConfirmed(event.target.checked)} className="mt-1 accent-[var(--danger)]" />I understand that deleting my account is permanent.</label>
+          <button disabled={busy === "danger"} className="rounded-lg border border-[var(--danger)] px-4 py-2 text-sm text-[var(--danger)] hover:bg-[var(--danger-soft)] disabled:opacity-50">{busy === "danger" ? "Deleting…" : "Delete account"}</button>
           <Message value={notice.danger ?? null} />
         </form>
       </Panel>

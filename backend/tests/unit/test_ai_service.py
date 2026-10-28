@@ -192,6 +192,26 @@ def test_groq_without_api_key_is_not_configured() -> None:
         ai_service.build_provider(Settings(ai_provider="groq", ai_model="llama-3.3-70b-versatile"))
 
 
+def test_nvidia_configuration_uses_openai_compatible_provider() -> None:
+    settings = Settings(
+        ai_provider="nvidia",
+        ai_model="nvidia/nemotron-3.5-super-vl-120b-a12b",
+        nvidia_api_key="test-nvidia-key",
+    )
+
+    assert settings.external_ai_configured is True
+    provider = ai_service.build_provider(settings)
+    assert provider.name == "nvidia"
+    assert provider.model == "nvidia/nemotron-3.5-super-vl-120b-a12b"
+
+
+def test_nvidia_without_api_key_is_not_configured() -> None:
+    with pytest.raises(NotConfiguredError, match="NVIDIA_API_KEY"):
+        ai_service.build_provider(
+            Settings(ai_provider="nvidia", ai_model="nvidia/nemotron-3.5-super-vl-120b-a12b")
+        )
+
+
 def test_unknown_citation_is_removed_from_result(monkeypatch: pytest.MonkeyPatch) -> None:
     response: dict[str, Any] = {
         "summary": "Insufficient evidence.",

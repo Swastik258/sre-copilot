@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { TopNav } from "@/components/TopNav";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { WorkspaceLayout } from "@/components/WorkspaceLayout";
 import { useAuth } from "@/lib/auth-client";
 
@@ -20,18 +21,17 @@ export default function ProductLayout({
   const isWorkspace = isWorkspacePath || (!loading && Boolean(user));
 
   return (
-    <div
-      data-theme="ink"
-      className="min-h-screen bg-[var(--bg)] text-[var(--text)]"
-    >
-      {isWorkspace ? (
-        <WorkspaceLayout>{children}</WorkspaceLayout>
-      ) : (
-        <>
-          <TopNav />
-          <main id="main-content" className="pt-16">{children}</main>
-        </>
-      )}
-    </div>
+    <ThemeProvider>
+      <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+        {isWorkspace ? (
+          <WorkspaceLayout>{children}</WorkspaceLayout>
+        ) : (
+          <>
+            <TopNav />
+            <main id="main-content" className="pt-16">{children}</main>
+          </>
+        )}
+      </div>
+    </ThemeProvider>
   );
 }

@@ -1,8 +1,8 @@
 """OpenAI-compatible chat-completions adapter.
 
-Both OpenAI and OpenRouter expose the same ``/chat/completions`` shape. The
-adapter deliberately uses the standard library so enabling AI does not add a
-runtime dependency to the backend.
+OpenAI, Groq, NVIDIA, and OpenRouter expose compatible ``/chat/completions``
+shapes. The adapter deliberately uses the standard library so enabling AI does
+not add a runtime dependency to the backend.
 """
 
 from __future__ import annotations

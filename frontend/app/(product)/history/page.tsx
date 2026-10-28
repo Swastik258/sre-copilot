@@ -30,7 +30,7 @@ export default function InvestigationHistoryPage() {
       </header>
       <div className="console-panel overflow-hidden">
         {loading ? <p className="p-6 text-sm text-[var(--text-muted)]">Loading history…</p> :
-          error ? <p role="status" className="p-6 text-sm text-rose-300">{error}</p> :
+          error ? <p role="status" className="p-6 text-sm text-[var(--danger)]">{error}</p> :
             items.length === 0 ? (
               <div className="p-8 text-center">
                 <p className="text-sm font-medium">Nothing saved yet</p>

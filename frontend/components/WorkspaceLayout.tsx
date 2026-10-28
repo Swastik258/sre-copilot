@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FEATURES, DEFAULT_PLAN, PLANS, featureForPath, hasFeatureAccess } from "@/lib/feature-access";
 import { useAuth } from "@/lib/auth-client";
+import { ThemeToggle } from "@/components/ThemeControls";
 
 const EXTRA_ROUTES = [
   { label: "AI assistant", href: "/assistant", status: "live" },
@@ -210,6 +211,7 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <button type="button" className="workspace-command-button" onClick={() => setCommandOpen(true)} aria-label="Open command palette">
               <span>Search</span><kbd>⌘ K</kbd>
             </button>
