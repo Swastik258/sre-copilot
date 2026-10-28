@@ -8,7 +8,7 @@ export default function AuthLayout({
   return (
     <div
       data-theme="ink"
-      className="min-h-screen bg-[var(--bg)] text-[var(--text)]"
+      className="auth-page min-h-screen bg-[var(--bg)] text-[var(--text)]"
     >
       <AuthHeader />
       <main id="main-content" className="auth-main grid place-items-center px-6 py-16">

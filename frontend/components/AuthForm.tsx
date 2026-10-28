@@ -8,8 +8,7 @@ import { useAuth } from "@/lib/auth-client";
 
 type Mode = "login" | "signup";
 
-const inputClass =
-  "w-full rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--bg)] px-3.5 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] transition focus:border-[var(--accent)] focus:outline-none";
+const inputClass = "auth-input w-full";
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const { setUser } = useAuth();
@@ -83,18 +82,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   return (
     <div>
-      <div className="flex items-center gap-3">
-        <span className="label-caps">
-          {isSignup ? "Create account" : "Sign in"}
-        </span>
-      </div>
-
-      <h1 className="heading-display mt-5 text-4xl text-[var(--text)]">
+      <h1 className="heading-display auth-form-title text-4xl text-[var(--text)]">
         {isSignup ? "Create an account" : "Sign in"}
       </h1>
       <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
         {isSignup
-          ? "Create an account to save investigations and workspace settings."
+          ? "Create your account to start using Tarn."
           : "Continue to your Tarn workspace."}
       </p>
 
@@ -167,7 +160,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               type="button"
               onClick={() => setShowPassword((value) => !value)}
               aria-label={showPassword ? "Hide password" : "Show password"}
-              className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-[var(--text-muted)] transition hover:text-[var(--text)]"
+              className="auth-password-toggle absolute inset-y-0 right-0 px-3 text-xs font-medium text-[var(--text-muted)] transition hover:text-[var(--text)]"
             >
               {showPassword ? "Hide" : "Show"}
             </button>

@@ -29,46 +29,38 @@ export function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section className="home-section home-faq" id="faq" aria-labelledby="home-faq-title">
-      <div className="home-container home-grid">
-        <div className="home-section-heading">
-          <p className="home-eyebrow">FAQ</p>
-          <h2 id="home-faq-title">A few useful details.</h2>
-        </div>
-        <div className="home-faq-list">
-          {QUESTIONS.map((item, index) => {
-            const isOpen = open === index;
-            const questionId = `home-faq-question-${index}`;
-            const answerId = `home-faq-answer-${index}`;
+    <div className="packet-faq-list">
+      {QUESTIONS.map((item, index) => {
+        const isOpen = open === index;
+        const questionId = `home-faq-question-${index}`;
+        const answerId = `home-faq-answer-${index}`;
 
-            return (
-              <div key={item.q}>
-                <button
-                  type="button"
-                  id={questionId}
-                  aria-controls={answerId}
-                  aria-expanded={isOpen}
-                  onClick={() => setOpen(isOpen ? null : index)}
-                >
-                  <span>{item.q}</span>
-                  <svg
-                    className={`home-faq-chevron${isOpen ? " is-open" : ""}`}
-                    viewBox="0 0 16 16"
-                    aria-hidden="true"
-                  >
-                    <path d="m4 6 4 4 4-4" />
-                  </svg>
-                </button>
-                {isOpen && (
-                  <p id={answerId} role="region" aria-labelledby={questionId}>
-                    {item.a}
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
+        return (
+          <div key={item.q}>
+            <button
+              type="button"
+              id={questionId}
+              aria-controls={answerId}
+              aria-expanded={isOpen}
+              onClick={() => setOpen(isOpen ? null : index)}
+            >
+              <span>{item.q}</span>
+              <svg
+                className={`home-faq-chevron${isOpen ? " is-open" : ""}`}
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+              >
+                <path d="m4 6 4 4 4-4" />
+              </svg>
+            </button>
+            {isOpen && (
+              <p id={answerId} role="region" aria-labelledby={questionId}>
+                {item.a}
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }

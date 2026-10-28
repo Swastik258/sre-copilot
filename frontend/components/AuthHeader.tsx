@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export function AuthHeader() {
   return (
-    <header className="border-b border-[var(--border)]">
+    <header className="auth-header border-b border-[var(--border)]">
       <div className="shell flex h-16 items-center justify-between">
         <Link
           href="/"
