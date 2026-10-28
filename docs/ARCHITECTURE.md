@@ -147,8 +147,9 @@ is intentionally simple; finer-grained per-resource policy is future work.
 | `AUTH_REQUIRED` | `false` | Off for local demo; production always enforces |
 | `DEFAULT_TENANT_ID` | `default` | `default` gives each signup a personal workspace; a non-default ID creates a shared workspace for new members |
 | `RATE_LIMIT_PER_MINUTE` | `0` | `0` disables locally; production defaults to 120 |
-| `AI_PROVIDER` | `mock` | `mock`, `openai`, `groq`, `openrouter`, or `anthropic` |
+| `AI_PROVIDER` | `mock` | `mock`, `openai`, `groq`, `nvidia`, `openrouter`, or `anthropic` |
 | `GROQ_API_KEY` / `GROQ_BASE_URL` | empty / Groq OpenAI-compatible endpoint | Server-side Groq chat completions |
+| `NVIDIA_API_KEY` / `NVIDIA_BASE_URL` | empty / NVIDIA Integrate endpoint | Server-side NVIDIA chat completions |
 | `AI_PRIVACY_MODE` | `false` | Blocks external LLM transmission; per-tenant override available |
 | `GITHUB_ENABLED` / `GITHUB_TOKEN` | `false` / empty | Read-only Actions access |
 | `PROMETHEUS_ENABLED` / `PROMETHEUS_URL` | `false` / empty | Fixture mode when enabled without a URL |

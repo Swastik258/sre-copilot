@@ -78,6 +78,18 @@ def build_provider(settings: Settings) -> AIProvider:
             max_output_tokens=settings.ai_max_output_tokens,
         )
 
+    if provider == "nvidia":
+        if not settings.nvidia_api_key:
+            raise NotConfiguredError("NVIDIA is selected but NVIDIA_API_KEY is not set.")
+        return OpenAICompatibleProvider(
+            name="nvidia",
+            model=settings.ai_model,
+            api_key=settings.nvidia_api_key,
+            base_url=settings.nvidia_base_url,
+            timeout_seconds=settings.ai_timeout_seconds,
+            max_output_tokens=settings.ai_max_output_tokens,
+        )
+
     if provider == "anthropic":
         if not settings.anthropic_api_key:
             raise NotConfiguredError("Anthropic is selected but ANTHROPIC_API_KEY is not set.")

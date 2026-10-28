@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { HomepageSections } from "@/components/HomepageSections";
 
@@ -7,55 +6,98 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   title: "Tarn — Evidence-backed infrastructure diagnosis",
   description:
-    "Read-only investigation for Kubernetes, logs, CI/CD, and Terraform. Structured diagnoses separate observed facts from ranked hypotheses.",
+    "Read-only infrastructure diagnosis across Kubernetes, GitHub Actions, and Prometheus. Structured findings keep observed facts distinct from ranked hypotheses.",
 };
+
+const EVIDENCE_STEPS = [
+  {
+    label: "Source records",
+    title: "Collect",
+    body: "Connect a supported source and choose the system you need to inspect.",
+  },
+  {
+    label: "Observed facts",
+    title: "Inspect",
+    body: "Review observations, events, logs, and their evidence references.",
+  },
+  {
+    label: "Ranked hypotheses",
+    title: "Assess",
+    body: "Compare ranked hypotheses with the facts before choosing what to do.",
+  },
+];
 
 export default function Page() {
   return (
-    <div className="home-page">
-      <section className="home-hero" aria-labelledby="home-title">
-        <div className="home-container home-hero-layout">
-          <div className="home-hero-copy">
-            <p className="home-eyebrow">Infrastructure diagnosis</p>
+    <div className="home-page envelope-homepage">
+      <section className="envelope-hero" aria-labelledby="home-title">
+        <div className="home-container">
+          <div className="envelope-heading">
             <h1 id="home-title">Infrastructure diagnosis you can verify.</h1>
-            <p className="home-lead">
+            <p className="envelope-lead">
               Follow every finding back to the source evidence behind it.
             </p>
-            <div className="home-actions">
-              <Link href="/sign-up" className="home-button home-button-primary">
-                Get started
+            <div className="envelope-actions">
+              <Link href="/sign-up" className="envelope-action-primary">
+                Start free
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M3.5 10h12m-5-5 5 5-5 5" />
+                </svg>
               </Link>
-              <Link href="/docs" className="home-button home-button-secondary">
+              <Link href="/docs" className="envelope-action-secondary">
                 Read the docs
               </Link>
             </div>
+            <p className="envelope-readonly">
+              Read-only by default. Infrastructure changes stay with the
+              operator.
+            </p>
           </div>
-          <div className="home-product-shot">
-            <div className="home-visual-mark" aria-hidden="true">
-              <Image
-                src="/tarn-wordmark-ink.svg"
-                alt=""
-                width={444}
-                height={132}
-              />
+
+          <div className="packet-inserts">
+            <div className="packet-address">
+              <span>How diagnosis works</span>
+              <span>Source to finding</span>
             </div>
-            <div className="home-shot-frame">
-              <Image
-                src="/images/tarn-workspace-empty.png"
-                alt="Tarn dashboard showing the empty recent investigations panel"
-                width={1068}
-                height={336}
-                priority
-              />
-            </div>
-            <div className="home-float-card home-float-card-evidence">
-              <span className="home-float-label">Evidence</span>
-              <span>Linked to source records</span>
-            </div>
-            <div className="home-float-card home-float-card-findings">
-              <span className="home-float-label">Findings</span>
-              <span>Facts kept distinct from hypotheses</span>
-            </div>
+            <ol className="packet-sequence">
+              {EVIDENCE_STEPS.map((step, index) => (
+                <li className="packet-slip" key={step.title}>
+                  <span className="packet-slip-index" aria-hidden="true">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <span className="packet-slip-label">{step.label}</span>
+                    <h2>{step.title}</h2>
+                    <p>{step.body}</p>
+                  </div>
+                  {index === 0 && (
+                    <span className="packet-source-mark" aria-hidden="true">
+                      SOURCE
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ol>
+            <details className="packet-trace">
+              <summary>
+                <span>Trace how a finding is supported</span>
+                <span className="packet-pull-tab">Open insert</span>
+              </summary>
+              <p>
+                Evidence references identify source records. Observed facts
+                remain separate from ranked hypotheses.
+              </p>
+            </details>
+          </div>
+
+          <div className="packet-edge">
+            <span>Built-in adapters</span>
+            <ul aria-label="Current built-in adapters">
+              <li>Kubernetes</li>
+              <li>GitHub Actions</li>
+              <li>Prometheus</li>
+            </ul>
+            <span className="packet-seal">TARN / 01</span>
           </div>
         </div>
       </section>

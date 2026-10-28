@@ -40,7 +40,7 @@ minimum:
 | `SMTP_USERNAME`, `SMTP_PASSWORD` | when SMTP is enabled | Mail relay credentials. |
 | `SENTRY_DSN` | optional | Error tracking. |
 | `GOOGLE_OAUTH_CLIENT_SECRET`, `GITHUB_OAUTH_CLIENT_SECRET` | optional | OAuth providers. |
-| `OPENAI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY` | optional | Live AI providers. |
+| `OPENAI_API_KEY`, `GROQ_API_KEY`, `NVIDIA_API_KEY`, `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY` | optional | Live AI providers. |
 | `GITHUB_TOKEN` | optional | Read-only GitHub integration. |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | optional | Billing remains disabled in this release. |
 

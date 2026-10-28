@@ -18,7 +18,6 @@ export function TopNav() {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
   useEffect(() => {
     const updateScrollState = () => setScrolled(window.scrollY > 8);
     updateScrollState();
@@ -57,7 +56,6 @@ export function TopNav() {
             alt="Tarn"
             width={118}
             height={36}
-            style={{ width: "118px", height: "auto" }}
             priority
           />
         </Link>

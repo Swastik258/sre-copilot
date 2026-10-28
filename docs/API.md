@@ -251,8 +251,8 @@ Deterministic diagnosis remains authoritative, and no suggested change is
 executed by the product.
 
 Only evidence **summaries** and the question are sent to the provider. Payloads
-and credentials are not forwarded. Providers: `mock`, `openai`, `openrouter`,
-and native `anthropic`. See `docs/AI_PROVIDERS.md`.
+and credentials are not forwarded. Providers: `mock`, `openai`, `groq`,
+`nvidia`, `openrouter`, and native `anthropic`. See `docs/AI_PROVIDERS.md`.
 
 ---
 

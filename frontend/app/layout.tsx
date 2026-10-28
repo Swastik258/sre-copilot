@@ -52,9 +52,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="dark"
+      suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`${interTight.variable} ${jetBrainsMono.variable}`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(()=>{const paths=["/admin","/assistant","/audit","/cicd","/dashboard","/history","/infra-code","/kubernetes","/logs","/metrics","/runbooks","/settings","/terraform"];const path=location.pathname;const isProduct=paths.some((route)=>path===route||path.startsWith(route+"/"));if(!isProduct)return;const valid=(value)=>value==="light"||value==="dark"||value==="system";let preference;try{preference=localStorage.getItem("tarn-theme");}catch(error){console.error("Unable to read the saved theme preference.",error);}if(!valid(preference)){const cookie=document.cookie.split("; ").find((entry)=>entry.startsWith("tarn-theme="))?.slice(11);preference=valid(cookie)?cookie:"system";}document.documentElement.dataset.theme=preference==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):preference;})();`,
+          }}
+        />
+      </head>
       <body>
         <a href="#main-content" className="skip-link">
           Skip to main content

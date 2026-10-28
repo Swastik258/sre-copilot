@@ -22,7 +22,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.core.urls import https_required, validate_base_url
 
-AIProviderName = Literal["mock", "openai", "openrouter", "anthropic", "groq"]
+AIProviderName = Literal["mock", "openai", "openrouter", "anthropic", "groq", "nvidia"]
 
 # Integrations that, when enabled, mean the app is *not* solely in demo mode.
 _INTEGRATION_FLAGS = (
@@ -175,6 +175,9 @@ class Settings(BaseSettings):
     groq_api_key: str | None = None
     groq_base_url: str = "https://api.groq.com/openai/v1"
 
+    nvidia_api_key: str | None = None
+    nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
+
     # OpenRouter exposes an OpenAI-compatible chat-completions API. Model IDs
     # are namespaced (for example ``openai/gpt-4o-mini``).
     openrouter_api_key: str | None = None
@@ -236,6 +239,7 @@ class Settings(BaseSettings):
         "prometheus_url",
         "openai_base_url",
         "groq_base_url",
+        "nvidia_base_url",
         "openrouter_base_url",
         "anthropic_base_url",
         "openrouter_http_referer",
@@ -395,6 +399,7 @@ class Settings(BaseSettings):
             ("PROMETHEUS_URL", self.prometheus_url),
             ("OPENAI_BASE_URL", self.openai_base_url),
             ("GROQ_BASE_URL", self.groq_base_url),
+            ("NVIDIA_BASE_URL", self.nvidia_base_url),
             ("OPENROUTER_BASE_URL", self.openrouter_base_url),
             ("ANTHROPIC_BASE_URL", self.anthropic_base_url),
         ):
@@ -442,6 +447,8 @@ class Settings(BaseSettings):
             return bool(self.openrouter_api_key)
         if self.ai_provider == "groq":
             return bool(self.groq_api_key)
+        if self.ai_provider == "nvidia":
+            return bool(self.nvidia_api_key)
         if self.ai_provider == "anthropic":
             return bool(self.anthropic_api_key)
         return False
