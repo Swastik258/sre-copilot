@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FAQ } from "@/components/FAQ";
+import { Analytics } from "@vercel/analytics/next"
 
 const INTEGRATIONS = ["Kubernetes", "GitHub Actions", "Prometheus"];
 
@@ -15,6 +16,8 @@ export function HomepageSections() {
           </p>
         </div>
       </section>
+      <Analytics />
+
 
       <section
         className="packet-section packet-integrations"

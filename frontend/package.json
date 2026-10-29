@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "framer-motion": "^14.3.0",
     "next": "16.4.0",
     "react": "^19.0.0",

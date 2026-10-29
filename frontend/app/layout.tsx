@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-client";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { SITE_URL } from "@/lib/seo";
 
 const interTight = Inter_Tight({
@@ -69,6 +70,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <AuthProvider>{children}</AuthProvider>
+        <GoogleAnalytics />
       </body>
     </html>
   );

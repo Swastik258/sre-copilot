@@ -13,7 +13,7 @@ export default function Page() {
     <div className="shell py-24">
       <span className="label-caps">Privacy</span>
       <h1 className="heading-display mt-6 text-[var(--text)] text-5xl md:text-6xl">
-        No ad analytics. Keys stay server-side.
+        Google Analytics. Keys stay server-side.
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--text-muted)]">
         This page describes the data handled by a self-hosted deployment. The
@@ -26,12 +26,14 @@ export default function Page() {
         <div className="card p-6">
           <span className="label-caps">Analytics</span>
           <h2 className="mt-4 font-serif text-2xl text-[var(--text)]">
-            None
+            Google Analytics
           </h2>
           <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-            The app does not ship an analytics SDK, advertising pixel, or
-            third-party tracking script. Account and operational data are not
-            sold.
+            When enabled, Google Analytics receives page-view and device/browser
+            information and may use analytics cookies. Google processes this
+            information under its own privacy terms. The deployment operator is
+            responsible for any notices or consent required in their
+            jurisdiction.
           </p>
         </div>
         <div className="card p-6">
