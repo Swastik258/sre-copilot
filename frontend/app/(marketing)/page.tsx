@@ -80,8 +80,8 @@ export default function Page() {
             </ol>
             <details className="packet-trace">
               <summary>
-                <span>Trace how a finding is supported</span>
-                <span className="packet-pull-tab">Open insert</span>
+                <span>Trace the source-to-finding path</span>
+                <span className="packet-pull-tab">Trace path</span>
               </summary>
               <p>
                 Evidence references identify source records. Observed facts

@@ -7,9 +7,9 @@
 
 ## Providers
 
-- `mock` — deterministic, no external calls (default for development/tests).
+- `mock` — deterministic, no external calls; useful for tests and offline use.
 - `openai` — OpenAI-compatible chat completions.
-- `groq` — Groq's OpenAI-compatible chat completions API.
+- `groq` — Groq's OpenAI-compatible chat completions API (default).
 - `nvidia` — NVIDIA's OpenAI-compatible Integrate API.
 - `openrouter` — OpenRouter's OpenAI-compatible chat completions; model IDs must
   be namespaced.
@@ -25,7 +25,7 @@ available. Provider/model metadata is recorded, never keys.
 | Env var | Purpose |
 |---------|---------|
 | `AI_PROVIDER` | `mock` \| `openai` \| `openrouter` \| `anthropic` \| `groq` \| `nvidia` |
-| `AI_MODEL` | Model name (NVIDIA example: `nvidia/nemotron-3.5-super-vl-120b-a12b`; Groq: `llama-3.3-70b-versatile`; OpenRouter: `openai/gpt-4o-mini`; Anthropic: e.g. `claude-3-5-sonnet-latest`) |
+| `AI_MODEL` | Model name (Groq: `openai/gpt-oss-20b`; NVIDIA: `nvidia/nemotron-3.5-super-vl-120b-a12b`; OpenRouter: `openai/gpt-4o-mini`; Anthropic: e.g. `claude-3-5-sonnet-latest`) |
 | `AI_TIMEOUT_SECONDS` | Request timeout |
 | `AI_MAX_OUTPUT_TOKENS` | Output cap |
 | `AI_PRIVACY_MODE` | Block all external providers |
@@ -43,7 +43,7 @@ frontend environment variable or commit it.
 
 ```dotenv
 AI_PROVIDER=groq
-AI_MODEL=llama-3.3-70b-versatile
+AI_MODEL=openai/gpt-oss-20b
 GROQ_API_KEY=your-new-groq-key
 GROQ_BASE_URL=https://api.groq.com/openai/v1
 AI_PRIVACY_MODE=false

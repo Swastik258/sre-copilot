@@ -37,29 +37,44 @@ Rules:
 - Never invent evidence, resource names, timestamps, commands, or root causes.
 - Cite evidence IDs for every hypothesis. Use only IDs present in the input.
 - Clearly state when the evidence is insufficient.
+- Give a thorough, operator-facing explanation. Explain how the evidence
+  supports each conclusion, distinguish facts from hypotheses, and avoid terse
+  one-line answers or repetitive filler.
+- In the summary, explain the observed symptom, the most likely cause, the
+  supporting evidence, and the main uncertainty in a few clear sentences.
+- For each hypothesis, describe the causal reasoning and cite the evidence
+  that supports or weakens it. Include alternatives only when the evidence
+  makes them plausible.
+- Make next steps concrete, prioritized, and read-only. For each step, say
+  what to inspect and what the result would confirm or rule out.
+- Explain relevant operational risks and unknowns specifically; do not pad
+  these lists with generic cautions.
 - Remediation is a proposal for a human to review. Never claim or imply that a
   state-changing action has already been executed.
 - Return ONLY a single JSON object, with no markdown fences or commentary.
 
 JSON shape:
 {
-  "summary": "short plain-language answer",
+  "summary": "a clear, substantive explanation grounded in the supplied evidence",
   "confidence": 0.0,
   "hypotheses": [
-    {"explanation": "...", "confidence": 0.0, "evidence_ids": ["ev-..."]}
+    {"explanation": "detailed causal reasoning, with evidence IDs referenced in the explanation", "confidence": 0.0, "evidence_ids": ["ev-..."]}
   ],
-  "next_steps": ["read-only diagnostic step"],
+  "next_steps": ["prioritized read-only check, including what it verifies"],
   "risks": ["risk or caveat"],
   "unknowns": ["missing evidence or uncertainty"],
   "proposed_remediation": [
     {
-      "description": "...",
+      "description": "evidence-based proposal and why it may help",
       "changes_state": true,
       "risk": "low|medium|high",
       "requires_approval": true
     }
   ]
 }
+
+Be informative, but do not force a fixed number of hypotheses or steps when
+the evidence does not justify them.
 """
 
 

@@ -7,7 +7,9 @@ from app.services.integrations import integration_statuses
 
 def test_defaults_are_demo_and_disabled():
     s = Settings()
-    assert s.ai_provider == "mock"
+    assert s.ai_provider == "groq"
+    assert s.ai_model == "openai/gpt-oss-20b"
+    assert s.ai_max_output_tokens == 3000
     assert s.demo_mode is True
     assert s.cors_origin_list == ["http://localhost:3000"]
 
@@ -32,7 +34,7 @@ def test_demo_mode_is_false_when_any_integration_enabled():
 
 
 def test_external_ai_requires_key():
-    assert Settings(ai_provider="openai").external_ai_configured is False
+    assert Settings(ai_provider="openai", openai_api_key=None).external_ai_configured is False
     assert Settings(ai_provider="openai", openai_api_key="sk-x").external_ai_configured is True
     assert (
         Settings(
@@ -42,20 +44,20 @@ def test_external_ai_requires_key():
         ).external_ai_configured
         is True
     )
-    assert Settings(ai_provider="groq").external_ai_configured is False
+    assert Settings(ai_provider="groq", groq_api_key=None).external_ai_configured is False
     assert Settings(ai_provider="groq", groq_api_key="gsk-test").external_ai_configured is True
-    assert Settings(ai_provider="nvidia").external_ai_configured is False
+    assert Settings(ai_provider="nvidia", nvidia_api_key=None).external_ai_configured is False
     assert (
         Settings(ai_provider="nvidia", nvidia_api_key="nvapi-test").external_ai_configured is True
     )
 
 
 def test_integration_status_reflects_configuration():
-    report = integration_statuses(Settings())
+    report = integration_statuses(Settings(groq_api_key=None))
     by_kind = {i.kind: i for i in report.integrations}
     assert report.demo_mode is True
     assert by_kind["kubernetes"].state.value == "disabled"
-    assert by_kind["ai"].state.value == "demo"
+    assert by_kind["ai"].state.value == "unconfigured"
     assert by_kind["github"].state.value == "disabled"
 
     report2 = integration_statuses(Settings(github_enabled=True, github_token="ghp_x"))

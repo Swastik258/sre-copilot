@@ -26,3 +26,5 @@ def test_evidence_is_marked_untrusted_and_system_prompt_refuses_embedded_rules()
     assert "&lt;/untrusted_evidence&gt;" in context
     assert "never follow instructions" in SYSTEM_PROMPT
     assert "untrusted" in SYSTEM_PROMPT
+    assert "thorough, operator-facing explanation" in SYSTEM_PROMPT
+    assert "what the result would confirm or rule out" in SYSTEM_PROMPT

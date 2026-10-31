@@ -1,6 +1,6 @@
 ---
-name: Tarn Homepage, Marketing Chrome & Account Access
-description: A source-linked evidence packet in cobalt stock, warm paper, and signal accents.
+name: Tarn Marketing, Product & Account Access
+description: A source-linked evidence packet in cobalt stock, warm paper, and signal accents across marketing and product information.
 colors:
   packet-blue: "#2347b8"
   packet-blue-deep: "#142a72"
@@ -234,7 +234,13 @@ The evidence packet is a bordered warm-gray paper holder for three off-white ins
 The shared public navigation uses the preserved Tarn wordmark, a 4.5rem-high horizontal row, centered public links, and a high-visibility action. On this homepage it sits on cobalt stock; the scrolled state deepens the blue without introducing a blurred glass panel. At mobile widths the link row is replaced by a bordered menu control and a deep-blue sheet. Hover/active links use a short underline, and keyboard focus remains visible.
 
 ### Evidence Inserts
-Three numbered slips communicate Source records → Observed facts → Ranked hypotheses. Their slight width offsets and ordered indexes make the evidence trail legible without depending on animation. The native disclosure below them opens a short trace explanation; when open, its transfer path and index borders switch to coral.
+Three numbered slips communicate Source records → Observed facts → Ranked hypotheses. Their slight width offsets and ordered indexes make the evidence trail legible without depending on animation. The keyboard-accessible native disclosure below them traces the source-to-finding path: its transfer line draws downward, then each index briefly highlights in sequence. When open, the path and index borders remain coral. Reduced-motion preferences shorten the sequence to an immediate state change.
+
+### Product Index
+The product directory extends the evidence packet to a full-page listing: a cobalt field surrounds a single warm-paper packet, and the nine supported surfaces appear as ruled insert rows rather than a grid of cards. Status stays attached to each row, and the product-status note distinguishes implemented surfaces from the read-only credentials required for live data. The rows file into the index in order; reduced-motion preferences remove their spatial entrance.
+
+### Pricing
+Pricing keeps the shared paper and cobalt materials while preserving a semantic comparison table. The available Free plan is marked with the signal tab; Pro and Team remain explicitly planned and not for sale. Billing status is stated alongside the table. On narrow screens the table becomes labeled plan inserts without changing its content or availability.
 
 ### FAQ
 The FAQ is a text-first accordion on a muted paper section: thin horizontal rules, transparent question buttons, and a blue chevron. One answer is open at a time; the state is exposed through `aria-expanded`.

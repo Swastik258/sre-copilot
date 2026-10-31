@@ -312,19 +312,70 @@ function AIExplanation({ result }: { result: LogAnalyzeResponse }) {
       </div>
       {error && <p className="mt-3 font-mono text-[11px] text-bad">{error}</p>}
       {ai && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-4 space-y-4">
           <div className="flex flex-wrap gap-2 font-mono text-[10.5px] text-tertiary">
             <span>{ai.model_provider ?? "provider"}/{ai.model_name ?? "model"}</span>
             <span>· {Math.round(ai.confidence * 100)}% confidence</span>
             {ai.model_generated && <span className="tag-planned">AI-generated</span>}
           </div>
-          <p className="text-[12.5px] text-primary">{ai.summary}</p>
+          <p className="text-[13px] leading-relaxed text-primary">{ai.summary}</p>
+          {ai.hypotheses.length > 0 && (
+            <section>
+              <div className="mb-2 label-caps">Interpretations</div>
+              <ul className="space-y-2">
+                {ai.hypotheses.map((hypothesis, index) => (
+                  <li
+                    key={index}
+                    className="rounded-[4px] border border-hairline p-3 text-[12px] leading-relaxed text-secondary"
+                  >
+                    {hypothesis.explanation}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {ai.next_steps.length > 0 && (
-            <ul className="space-y-1 text-[11.5px] text-tertiary">
-              {ai.next_steps.map((step, index) => (
-                <li key={index}>· {step}</li>
-              ))}
-            </ul>
+            <section>
+              <div className="mb-2 label-caps">Suggested read-only checks</div>
+              <ul className="space-y-1.5 text-[12px] leading-relaxed text-secondary">
+                {ai.next_steps.map((step, index) => <li key={index}>· {step}</li>)}
+              </ul>
+            </section>
+          )}
+          {(ai.risks.length > 0 || ai.unknowns.length > 0) && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {ai.risks.length > 0 && (
+                <section>
+                  <div className="mb-2 label-caps">Risks</div>
+                  <ul className="space-y-1 text-[11.5px] leading-relaxed text-tertiary">
+                    {ai.risks.map((risk, index) => <li key={index}>· {risk}</li>)}
+                  </ul>
+                </section>
+              )}
+              {ai.unknowns.length > 0 && (
+                <section>
+                  <div className="mb-2 label-caps">Unknowns</div>
+                  <ul className="space-y-1 text-[11.5px] leading-relaxed text-tertiary">
+                    {ai.unknowns.map((unknown, index) => <li key={index}>· {unknown}</li>)}
+                  </ul>
+                </section>
+              )}
+            </div>
+          )}
+          {ai.proposed_remediation.length > 0 && (
+            <section>
+              <div className="mb-2 label-caps">Proposed actions · human review required</div>
+              <ul className="space-y-2">
+                {ai.proposed_remediation.map((action, index) => (
+                  <li
+                    key={index}
+                    className="rounded-[4px] border border-warn bg-accent-soft p-3 text-[12px] leading-relaxed text-secondary"
+                  >
+                    {action.description}
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </div>
       )}
