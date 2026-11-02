@@ -2,55 +2,18 @@ import Link from "next/link";
 import { FAQ } from "@/components/FAQ";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Pricing } from "@/components/Pricing";
+import { InvestigationFeature } from "@/components/landing/InvestigationFeature";
 import { Analytics } from "@vercel/analytics/next";
 
 const INTEGRATIONS = ["Kubernetes", "GitHub Actions", "Prometheus"];
-const EVIDENCE_STEPS = [
-  {
-    title: "Source records",
-    body: "Start with data from the systems your team has configured.",
-  },
-  {
-    title: "Observed facts",
-    body: "Review what the sources show, with references kept in context.",
-  },
-  {
-    title: "Ranked hypotheses",
-    body: "Compare possible explanations without treating them as confirmed causes.",
-  },
-];
-
 export function HomepageSections() {
+  const isVercelDeployment = process.env.VERCEL === "1";
+
   return (
     <>
-      <Analytics />
+      {isVercelDeployment ? <Analytics /> : null}
 
-      <section
-        className="marketing-evidence"
-        aria-labelledby="home-evidence-title"
-      >
-          <div className="shell">
-            <div className="marketing-section-heading">
-              <p className="marketing-section-label">Evidence, not guesswork</p>
-              <h2 id="home-evidence-title">
-                Every explanation starts with what the sources actually show.
-              </h2>
-              <p>
-                Keep source records, observations, and possible causes distinct
-                while you investigate.
-              </p>
-            </div>
-            <ol className="marketing-evidence-flow">
-              {EVIDENCE_STEPS.map((step) => (
-                <li key={step.title}>
-                  <span className="marketing-evidence-node" aria-hidden="true" />
-                  <h3>{step.title}</h3>
-                  <p>{step.body}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-      </section>
+      <InvestigationFeature />
 
       <HowItWorks />
 
