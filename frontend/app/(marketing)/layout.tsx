@@ -1,5 +1,6 @@
+import "@/components/landing/landing.css";
 import { MarketingFooter } from "@/components/MarketingFooter";
-import { TopNav } from "@/components/TopNav";
+import { MarketingNavigation } from "@/components/landing/MarketingNavigation";
 
 export default function MarketingLayout({
   children,
@@ -9,10 +10,10 @@ export default function MarketingLayout({
   return (
     <div
       data-theme="dark"
-      className="min-h-screen bg-[var(--bg)] text-[var(--text)]"
+      className="marketing-site min-h-screen bg-[var(--bg)] text-[var(--text)]"
     >
-      <TopNav />
-      <main id="main-content" className="pt-16">{children}</main>
+      <MarketingNavigation />
+      <main id="main-content">{children}</main>
       <MarketingFooter />
     </div>
   );

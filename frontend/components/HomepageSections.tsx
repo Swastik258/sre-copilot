@@ -1,66 +1,126 @@
 import Link from "next/link";
 import { FAQ } from "@/components/FAQ";
-import { Analytics } from "@vercel/analytics/next"
+import { HowItWorks } from "@/components/HowItWorks";
+import { Pricing } from "@/components/Pricing";
+import { Analytics } from "@vercel/analytics/next";
 
 const INTEGRATIONS = ["Kubernetes", "GitHub Actions", "Prometheus"];
+const EVIDENCE_STEPS = [
+  {
+    title: "Source records",
+    body: "Start with data from the systems your team has configured.",
+  },
+  {
+    title: "Observed facts",
+    body: "Review what the sources show, with references kept in context.",
+  },
+  {
+    title: "Ranked hypotheses",
+    body: "Compare possible explanations without treating them as confirmed causes.",
+  },
+];
 
 export function HomepageSections() {
   return (
     <>
-      <section className="packet-section packet-trust" aria-labelledby="home-trust-title">
-        <div className="home-container packet-trust-grid">
-          <h2 id="home-trust-title">Read-only by default.</h2>
-          <p>
-            Tarn gathers evidence from configured sources and leaves every
-            infrastructure change to the operator.
-          </p>
-        </div>
-      </section>
       <Analytics />
 
+      <section
+        className="marketing-evidence"
+        aria-labelledby="home-evidence-title"
+      >
+          <div className="shell">
+            <div className="marketing-section-heading">
+              <p className="marketing-section-label">Evidence, not guesswork</p>
+              <h2 id="home-evidence-title">
+                Every explanation starts with what the sources actually show.
+              </h2>
+              <p>
+                Keep source records, observations, and possible causes distinct
+                while you investigate.
+              </p>
+            </div>
+            <ol className="marketing-evidence-flow">
+              {EVIDENCE_STEPS.map((step) => (
+                <li key={step.title}>
+                  <span className="marketing-evidence-node" aria-hidden="true" />
+                  <h3>{step.title}</h3>
+                  <p>{step.body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+      </section>
+
+      <HowItWorks />
 
       <section
-        className="packet-section packet-integrations"
+        className="marketing-integrations"
         aria-labelledby="home-integrations-title"
       >
-        <div className="home-container packet-integrations-grid">
-          <div className="packet-section-copy">
-            <h2 id="home-integrations-title">Built-in adapters.</h2>
-            <p>Connect Tarn to the systems it currently supports.</p>
+          <div className="shell marketing-integrations-grid">
+            <div className="marketing-section-heading">
+              <p className="marketing-section-label">Supported sources</p>
+              <h2 id="home-integrations-title">Connect the systems you investigate.</h2>
+              <p>
+                Built-in adapters are available for Kubernetes, GitHub Actions,
+                and Prometheus.
+              </p>
+            </div>
+            <ul className="marketing-integration-list">
+              {INTEGRATIONS.map((integration) => (
+                <li key={integration}>
+                  <span aria-hidden="true" />
+                  {integration}
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="packet-adapter-list">
-            {INTEGRATIONS.map((integration) => (
-              <li key={integration}>{integration}</li>
-            ))}
-          </ul>
-        </div>
       </section>
 
-      <section
-        className="packet-section packet-faq"
-        aria-labelledby="home-faq-title"
-      >
-        <div className="home-container packet-section-grid">
-          <div className="packet-section-copy">
-            <h2 id="home-faq-title">Answers stay attached to their sources.</h2>
+      <section className="marketing-trust" aria-labelledby="home-trust-title">
+          <div className="shell marketing-trust-grid">
+            <div>
+              <p className="marketing-section-label">Operational control</p>
+              <h2 id="home-trust-title">Read-only by default.</h2>
+            </div>
+            <div>
+              <p>
+                Tarn gathers evidence from configured sources and leaves every
+                infrastructure change to the operator. Hypotheses are presented
+                for review; generated changes are proposals, not applied actions.
+              </p>
+              <Link href="/security" className="marketing-text-link">
+                Read about security <span aria-hidden="true">→</span>
+              </Link>
+            </div>
           </div>
-          <div className="packet-faq-content" aria-labelledby="home-faq-title">
-            <FAQ />
-          </div>
-        </div>
       </section>
 
-      <section className="packet-close" aria-labelledby="home-cta-title">
-        <div className="home-container packet-close-inner">
+      <section className="marketing-faq" aria-labelledby="home-faq-title">
+          <div className="shell marketing-faq-grid">
+            <div className="marketing-section-heading">
+              <p className="marketing-section-label">Questions</p>
+              <h2 id="home-faq-title">Answers stay attached to their sources.</h2>
+            </div>
+            <div className="marketing-faq-content">
+              <FAQ />
+            </div>
+          </div>
+      </section>
+
+      <Pricing />
+
+      <section className="marketing-close" aria-labelledby="home-cta-title">
+        <div className="shell marketing-close-inner">
           <div>
-            <h2 id="home-cta-title">
-              Make the next investigation easier to verify.
-            </h2>
+            <h2 id="home-cta-title">Make the next investigation easier to verify.</h2>
+            <p>Start with the evidence. Keep the decision with your team.</p>
           </div>
-          <Link href="/sign-up" className="packet-close-action">
-            Start free
+          <Link href="/sign-up" className="btn-accent">
+            Get started
             <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M3.5 10h12m-5-5 5 5-5 5" />
+              <path d="M4 10h12m-5-5 5 5-5 5" />
             </svg>
           </Link>
         </div>
