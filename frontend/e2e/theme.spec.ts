@@ -138,6 +138,83 @@ function contrast(foreground: string, background: string, underlay?: string) {
   return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
 }
 
+test("homepage hero and product preview fit supported viewport widths", async ({ page }) => {
+  test.setTimeout(60_000);
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+  page.on("pageerror", (error) => consoleErrors.push(error.message));
+
+  await mockApi(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  await expect(page.locator("video")).toHaveCount(0);
+  await expect(page.locator(".hero-browser")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evidence, not guesses" })).toBeVisible();
+  await expect(page.getByRole("region", {
+    name: "Everything between your pod and the root cause.",
+  })).toBeVisible();
+
+  for (const width of [1920, 1440, 1024, 768, 430, 390, 375]) {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+    const layout = await page.evaluate(() => ({
+      overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      navBottom: document.querySelector(".landing-nav")?.getBoundingClientRect().bottom,
+      heroTop: document.querySelector(".landing-hero")?.getBoundingClientRect().top,
+      preview: document.querySelector(".hero-browser")?.getBoundingClientRect().toJSON(),
+      contentWidth: document.documentElement.clientWidth,
+      mainBackground: getComputedStyle(document.querySelector(".landing-page")!).backgroundColor,
+    }));
+    expect(layout.overflow).toBe(false);
+    expect(layout.heroTop).toBeGreaterThanOrEqual(layout.navBottom ?? 0);
+    expect(layout.preview?.width).toBeGreaterThan(300);
+    expect(layout.preview?.left, `preview left edge at ${width}px`).toBeGreaterThanOrEqual(-1);
+    expect((layout.preview?.left ?? 0) + (layout.preview?.width ?? 0))
+      .toBeLessThanOrEqual(layout.contentWidth + 1);
+    expect(layout.mainBackground).toBe("rgb(8, 8, 10)");
+  }
+
+  await page.getByRole("button", { name: "Open navigation menu" }).click();
+  await expect(page.locator("#landing-mobile-menu")).toBeVisible();
+  await page.locator("#landing-mobile-menu").getByRole("link", { name: "Features" }).click();
+  await expect(page).toHaveURL(/#features$/);
+  expect(consoleErrors).toEqual([]);
+});
+
+test("investigation tabs respond to input and pause autoplay for reduced motion", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const section = page.locator("#features");
+  await section.scrollIntoViewIfNeeded();
+  const diagnoseTab = page.getByRole("tab", { name: "Diagnose any pod" });
+  const citedTab = page.getByRole("tab", { name: "Cited evidence" });
+  const fastTriageTab = page.getByRole("tab", { name: "Fast triage" });
+  await expect(diagnoseTab).toHaveAttribute("aria-selected", "true");
+
+  await citedTab.click();
+  await expect(citedTab).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", {
+    name: "Trace findings back to their sources.",
+  })).toBeVisible();
+  await citedTab.press("ArrowRight");
+  await expect(fastTriageTab).toHaveAttribute("aria-selected", "true");
+  await expect(fastTriageTab).toBeFocused();
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator("#features").scrollIntoViewIfNeeded();
+  const initialTab = page.getByRole("tab", { name: "Diagnose any pod" });
+  await expect(initialTab).toHaveAttribute("aria-selected", "true");
+  await page.waitForTimeout(6500);
+  await expect(initialTab).toHaveAttribute("aria-selected", "true");
+
+  const completedSteps = page.locator(".landing-progress-card li[aria-current='step']");
+  await expect(completedSteps).toHaveCount(1);
+});
 test("theme toggle follows system, persists, and has no first-paint mismatch", async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
