@@ -44,27 +44,30 @@ export function HowItWorks() {
         </div>
 
         {/* Steps */}
-        <div className="grid grid-cols-1 gap-px bg-[var(--border-strong)] lg:grid-cols-3">
-          {STEPS.map((s) => (
-            <article key={s.n} className="tick flex flex-col gap-5 bg-[var(--bg-elevated)] p-6">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-[11px] tracking-[0.14em] text-accent">
-                  {s.n}
-                </span>
-                <span className="h-px flex-1 bg-[var(--border-strong)]" />
-              </div>
+        <div className="workflow-grid grid grid-cols-1 gap-px bg-[var(--border-strong)] lg:grid-cols-3">
+            {STEPS.map((s) => (
+              <article
+                key={s.n}
+                className="workflow-step tick flex flex-col gap-5 bg-[var(--bg-elevated)] p-6"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-[11px] tracking-[0.14em] text-accent">
+                    {s.n}
+                  </span>
+                  <span className="h-px flex-1 bg-[var(--border-strong)]" />
+                </div>
 
-              <h3 className="font-serif text-[1.5rem] leading-snug tracking-tight text-primary">
-                {s.title}
-              </h3>
+                <h3 className="font-serif text-[1.5rem] leading-snug tracking-tight text-primary">
+                  {s.title}
+                </h3>
 
-              <p className="text-dense text-secondary">{s.body}</p>
+                <p className="text-dense text-secondary">{s.body}</p>
 
-              <div className="mt-auto border-t border-hairline pt-4 font-mono text-[10.5px] leading-relaxed text-tertiary">
-                {s.meta}
-              </div>
-            </article>
-          ))}
+                <div className="mt-auto border-t border-hairline pt-4 font-mono text-[10.5px] leading-relaxed text-tertiary">
+                  {s.meta}
+                </div>
+              </article>
+            ))}
         </div>
 
         {/* Bottom note */}

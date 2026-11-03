@@ -8,7 +8,9 @@
 - Optional: a read-only kubeconfig, GitHub token, Prometheus URL, or AI key for
   live integrations
 
-No cloud accounts or credentials are required for demo mode.
+No cloud accounts or credentials are required for demo mode. Groq is the
+default AI provider; set `GROQ_API_KEY` in `backend/.env` to enable live AI
+responses, or set `AI_PROVIDER=mock` to keep AI fully offline.
 
 ## Backend
 
@@ -147,7 +149,18 @@ fixture mode with `PROMETHEUS_URL=` and `PROMETHEUS_DEMO_MODE=true`. See
 
 ### AI
 
-The default `AI_PROVIDER=mock` makes no external calls. For OpenRouter:
+The default `AI_PROVIDER=groq` uses `openai/gpt-oss-20b`. Set
+`GROQ_API_KEY` in `backend/.env` to enable it; use `AI_PROVIDER=mock` to keep AI
+fully offline. For OpenRouter:
+
+```dotenv
+AI_PROVIDER=groq
+AI_MODEL=openai/gpt-oss-20b
+GROQ_API_KEY=your-groq-api-key
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+```
+
+For OpenRouter:
 
 ```dotenv
 AI_PROVIDER=openrouter

@@ -3,22 +3,62 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { FEATURES, DEFAULT_PLAN, PLANS, featureForPath, hasFeatureAccess } from "@/lib/feature-access";
+import { useEffect, useRef, useState } from "react";
+import {
+  Activity,
+  ArrowUpRight,
+  BookOpen,
+  Bot,
+  Boxes,
+  ChevronDown,
+  ChevronRight,
+  ClipboardList,
+  FileCode2,
+  GitBranch,
+  History,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Plug,
+  Search,
+  Settings2,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { FEATURES, DEFAULT_PLAN, featureForPath, hasFeatureAccess, type FeatureAccess } from "@/lib/feature-access";
+import type { FeatureId } from "@/lib/feature-access";
 import { useAuth } from "@/lib/auth-client";
 import { ThemeToggle } from "@/components/ThemeControls";
 
 const EXTRA_ROUTES = [
-  { label: "AI assistant", href: "/assistant", status: "live" },
-  { label: "Metrics", href: "/metrics", status: "live" },
-  { label: "Runbooks", href: "/runbooks", status: "live" },
-  { label: "Audit log", href: "/audit", status: "live" },
-  { label: "Infrastructure proposals", href: "/infra-code", status: "live" },
+  { label: "AI Assistant", href: "/assistant", status: "live", icon: Bot },
+  { label: "Metrics", href: "/metrics", status: "live", icon: Activity },
+  { label: "Runbooks", href: "/runbooks", status: "live", icon: BookOpen },
+  { label: "Audit Log", href: "/audit", status: "live", icon: ClipboardList },
+  { label: "Infrastructure Proposals", href: "/infra-code", status: "live", icon: FileCode2 },
+] as const;
+
+const FEATURE_ICONS: Record<FeatureId, LucideIcon> = {
+  overview: LayoutDashboard,
+  kubernetes: Boxes,
+  logs: Activity,
+  terraform: FileCode2,
+  cicd: GitBranch,
+  history: History,
+  settings: Settings2,
+};
+
+const WORKSPACE_ROUTES = [
+  { label: "Integrations", href: "/settings#integrations", icon: Plug },
+  { label: "Settings", href: "/settings", icon: Settings2 },
 ] as const;
 
 const COMMANDS = [
   ...FEATURES.map(({ label, href, status }) => ({ label, href, status })),
   ...EXTRA_ROUTES,
+  { label: "Integrations", href: "/settings#integrations", status: "live" },
 ];
 
 function initials(name: string | null, email: string | null): string {
@@ -35,8 +75,13 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
+  const [activeHash, setActiveHash] = useState("");
+  const profileRef = useRef<HTMLDetailsElement>(null);
   const routeFeature = featureForPath(pathname);
   const routeAllowed = !routeFeature || hasFeatureAccess(DEFAULT_PLAN, routeFeature.id);
+  const currentLabel = routeFeature?.label
+    ?? EXTRA_ROUTES.find((route) => pathname === route.href || pathname.startsWith(`${route.href}/`))?.label
+    ?? (pathname === "/admin/settings" ? "Admin settings" : "Overview");
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
@@ -45,16 +90,37 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => setDrawerOpen(false), [pathname]);
 
   useEffect(() => {
+    const updateHash = () => setActiveHash(window.location.hash);
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, []);
+
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setCommandOpen((open) => !open);
       }
-      if (event.key === "Escape") setCommandOpen(false);
+      if (event.key === "Escape") {
+        setCommandOpen(false);
+        if (profileRef.current) profileRef.current.open = false;
+      }
     }
 
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    function closeProfileOnOutside(event: PointerEvent) {
+      if (event.target instanceof Node && !profileRef.current?.contains(event.target)) {
+        if (profileRef.current) profileRef.current.open = false;
+      }
+    }
+
+    document.addEventListener("pointerdown", closeProfileOnOutside);
+    return () => document.removeEventListener("pointerdown", closeProfileOnOutside);
   }, []);
 
   async function signOut() {
@@ -72,10 +138,41 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const renderFeatureLink = (feature: FeatureAccess) => {
+    const allowed = hasFeatureAccess(DEFAULT_PLAN, feature.id);
+    const active = feature.id === "overview"
+      ? pathname === "/dashboard"
+      : feature.id === "settings"
+        ? pathname === "/settings" && activeHash !== "#integrations"
+        : feature.id === "history"
+          ? pathname === feature.href || pathname.startsWith(`${feature.href}/`)
+          : pathname === feature.href || pathname.startsWith(`${feature.href}/`);
+    const href = allowed ? feature.href : `/dashboard/upgrade?feature=${feature.id}`;
+    const NavIcon = FEATURE_ICONS[feature.id];
+
+    return (
+      <Link
+        key={feature.id}
+        href={href}
+        title={collapsed ? feature.label : undefined}
+        aria-current={active ? "page" : undefined}
+        className={`workspace-nav-link ${active ? "is-active" : ""}`}
+      >
+        <span className="workspace-nav-icon"><NavIcon aria-hidden="true" /></span>
+        <span className={`workspace-nav-text ${collapsed ? "lg:hidden" : ""}`}>{feature.label}</span>
+        {!collapsed && <span className={`workspace-status ${feature.status}`} aria-label={feature.status}>
+          <span className={`dot ${feature.status === "live" ? "dot-good" : "dot-idle"}`} />
+        </span>}
+        {!allowed && <span className={`workspace-upgrade-label ${collapsed ? "lg:hidden" : ""}`}>Upgrade</span>}
+      </Link>
+    );
+  };
+
   const sidebar = (
     <aside className={`workspace-rail ${collapsed ? "is-collapsed" : ""} ${collapsed ? "lg:w-[76px]" : "lg:w-[264px]"}`}>
-      <div className="flex h-16 items-center justify-between border-b border-[var(--border)] px-4">
+      <div className="workspace-rail-header">
         <Link href="/" className="workspace-brand" aria-label="Tarn home">
+          <span className="workspace-brand-symbol" aria-hidden="true">T</span>
           <Image
             className="wordmark-paper"
             src="/tarn-wordmark.svg"
@@ -91,72 +188,68 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
             height={36}
           />
         </Link>
-        <button type="button" onClick={() => setCollapsed(!collapsed)} className="hidden rounded-md border border-[var(--border)] px-2 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)] lg:block" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
-          {collapsed ? "»" : "«"}
-        </button>
-        <button type="button" onClick={() => setDrawerOpen(false)} className="text-sm text-[var(--text-muted)] lg:hidden" aria-label="Close navigation">Close</button>
+        <button type="button" onClick={() => setDrawerOpen(false)} className="workspace-drawer-close lg:hidden" aria-label="Close navigation"><X aria-hidden="true" /></button>
       </div>
-      <nav aria-label="Workspace navigation" className="workspace-nav flex-1 space-y-1 overflow-y-auto p-3">
-        <p className={`workspace-nav-label ${collapsed ? "lg:hidden" : ""}`}>Operations</p>
-        {FEATURES.map((feature) => {
-          const allowed = hasFeatureAccess(DEFAULT_PLAN, feature.id);
-          const active = feature.id === "overview"
-            ? pathname === "/dashboard"
-            : feature.id === "settings"
-              ? pathname === "/settings"
-              : pathname === feature.href;
-          const href = allowed ? feature.href : `/dashboard/upgrade?feature=${feature.id}`;
-          return (
-            <Link
-              key={feature.id}
-              href={href}
-              title={collapsed ? feature.label : undefined}
-              aria-current={active ? "page" : undefined}
-              className={`workspace-nav-link ${active ? "is-active" : ""}`}
-            >
-              <span aria-hidden className="w-5 shrink-0 text-center font-mono text-xs">{allowed ? "◇" : "·"}</span>
-              <span className={`min-w-0 flex-1 ${collapsed ? "lg:hidden" : ""}`}>{feature.label}</span>
-              <span className={`workspace-status ${feature.status} ${collapsed ? "lg:hidden" : ""}`}>
-                <span className={`dot ${feature.status === "live" ? "dot-good" : "dot-idle"}`} />
-                {feature.status}
-              </span>
-              {!allowed && <span className={`text-[10px] text-[var(--accent)] ${collapsed ? "lg:hidden" : ""}`}>Upgrade</span>}
-            </Link>
-          );
-        })}
-        <p className={`workspace-nav-label mt-4 ${collapsed ? "lg:hidden" : ""}`}>Signals &amp; tools</p>
-        {EXTRA_ROUTES.map((route) => {
-          const active = pathname === route.href || pathname.startsWith(`${route.href}/`);
-          return (
-            <Link
-              key={route.href}
-              href={route.href}
-              title={collapsed ? route.label : undefined}
-              aria-current={active ? "page" : undefined}
-              className={`workspace-nav-link ${active ? "is-active" : ""}`}
-            >
-              <span aria-hidden className="w-5 shrink-0 text-center font-mono text-xs">◇</span>
-              <span className={`min-w-0 flex-1 ${collapsed ? "lg:hidden" : ""}`}>{route.label}</span>
-              <span className={`workspace-status live ${collapsed ? "lg:hidden" : ""}`}>
-                <span className="dot dot-good" />
-                Live
-              </span>
-            </Link>
-          );
-        })}
+      <nav aria-label="Workspace navigation" className="workspace-nav">
+        <div className="workspace-nav-group">
+          <p className={`workspace-nav-label ${collapsed ? "lg:hidden" : ""}`}>Operations</p>
+          {FEATURES.filter((feature) => feature.id !== "settings").map(renderFeatureLink)}
+        </div>
+        <div className="workspace-nav-group">
+          <p className={`workspace-nav-label ${collapsed ? "lg:hidden" : ""}`}>Intelligence</p>
+          {EXTRA_ROUTES.map((route) => {
+            const active = pathname === route.href || pathname.startsWith(`${route.href}/`);
+            const NavIcon = route.icon;
+            return (
+              <Link
+                key={route.href}
+                href={route.href}
+                title={collapsed ? route.label : undefined}
+                aria-current={active ? "page" : undefined}
+                className={`workspace-nav-link ${active ? "is-active" : ""}`}
+              >
+                <span className="workspace-nav-icon"><NavIcon aria-hidden="true" /></span>
+                <span className={`workspace-nav-text ${collapsed ? "lg:hidden" : ""}`}>{route.label}</span>
+                {!collapsed && <span className="workspace-status live" aria-label="Live"><span className="dot dot-good" /></span>}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="workspace-nav-group">
+          <p className={`workspace-nav-label ${collapsed ? "lg:hidden" : ""}`}>Workspace</p>
+          {WORKSPACE_ROUTES.map((route) => {
+            const active = route.label === "Integrations"
+              ? pathname === "/settings" && activeHash === "#integrations"
+              : pathname === "/settings" && activeHash !== "#integrations";
+            const NavIcon = route.icon;
+            return (
+              <Link
+                key={route.href}
+                href={route.href}
+                title={collapsed ? route.label : undefined}
+                aria-current={active ? "page" : undefined}
+                className={`workspace-nav-link ${active ? "is-active" : ""}`}
+              >
+                <span className="workspace-nav-icon"><NavIcon aria-hidden="true" /></span>
+                <span className={`workspace-nav-text ${collapsed ? "lg:hidden" : ""}`}>{route.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
-      <Link href="/" className={`border-t border-[var(--border)] px-4 py-4 text-sm text-[var(--text-muted)] hover:text-[var(--text)] ${collapsed ? "text-center" : ""}`}>
-        {collapsed ? "←" : "← Back to website"}
+      <Link href="/" className={`workspace-site-link ${collapsed ? "is-collapsed" : ""}`} title={collapsed ? "Back to website" : undefined}>
+        <ArrowUpRight aria-hidden="true" />
+        <span className={collapsed ? "lg:hidden" : ""}>Back to website</span>
       </Link>
     </aside>
   );
 
   return (
-    <div className={`workspace-shell ${pathname === "/dashboard" ? "dashboard-workspace" : ""}`}>
+    <div className={`workspace-shell workspace-premium ${pathname === "/dashboard" ? "dashboard-workspace" : ""}`}>
       <div className="fixed inset-y-0 left-0 z-30 hidden lg:block">{sidebar}</div>
       {drawerOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <button type="button" className="absolute inset-0 bg-black/70" aria-label="Close navigation" onClick={() => setDrawerOpen(false)} />
+          <button type="button" className="workspace-drawer-backdrop absolute inset-0" aria-label="Close navigation" onClick={() => setDrawerOpen(false)} />
           <div className="relative h-full w-[min(86vw,300px)]">{sidebar}</div>
         </div>
       )}
@@ -202,25 +295,57 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
           </section>
         </div>
       )}
-      <div className={`min-h-screen transition-[padding] duration-200 ${collapsed ? "lg:pl-[76px]" : "lg:pl-[264px]"}`}>
-        <header className="workspace-header sticky top-0 z-20 flex h-16 items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={() => setDrawerOpen(true)} className="rounded-md border border-[var(--border)] px-2 py-1 text-sm text-[var(--text-muted)] lg:hidden" aria-label="Open navigation">☰</button>
-            <span className="font-mono text-[10px] uppercase tracking-[.14em] text-[var(--text-muted)]">
-              Workspace / {routeFeature?.label ?? EXTRA_ROUTES.find((route) => pathname === route.href || pathname.startsWith(`${route.href}/`))?.label ?? "Overview"}
-            </span>
+      <div className={`workspace-content min-h-screen transition-[padding] duration-200 ${collapsed ? "lg:pl-[76px]" : "lg:pl-[264px]"}`}>
+        <header className="workspace-header sticky top-0 z-20">
+          <div className="workspace-header-inner">
+            <div className="workspace-header-leading">
+              <button type="button" onClick={() => setCollapsed(!collapsed)} className="workspace-sidebar-toggle hidden lg:inline-flex" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!collapsed}>
+                {collapsed ? <PanelLeftOpen aria-hidden="true" /> : <PanelLeftClose aria-hidden="true" />}
+              </button>
+              <button type="button" onClick={() => setDrawerOpen(true)} className="workspace-menu-button lg:hidden" aria-label="Open navigation" aria-expanded={drawerOpen}>
+                <Menu aria-hidden="true" />
+              </button>
+              <nav className="workspace-breadcrumb" aria-label="Breadcrumb">
+                <span>Workspace</span>
+                <ChevronRight aria-hidden="true" />
+                <strong>{currentLabel}</strong>
+              </nav>
+            </div>
+            <div className="workspace-header-actions">
+              <button type="button" className="workspace-command-button" onClick={() => setCommandOpen(true)} aria-label="Open command palette">
+                <Search aria-hidden="true" />
+                <span>Search</span><kbd>Ctrl K</kbd>
+              </button>
+              <ThemeToggle />
+              <details className="workspace-profile" ref={profileRef}>
+                <summary aria-label="Open user profile menu">
+                  <span className="workspace-profile-avatar">{initials(user.display_name, user.email)}</span>
+                  <span className="workspace-profile-copy">
+                    <strong>{user.display_name?.trim() || user.email || "Tarn user"}</strong>
+                    <small>{user.role}</small>
+                  </span>
+                  <ChevronDown aria-hidden="true" />
+                </summary>
+                <div className="workspace-profile-menu">
+                  <div className="workspace-profile-details">
+                    <span>Signed in as</span>
+                    <strong>{user.email || "Email unavailable"}</strong>
+                    <small>{user.role}</small>
+                  </div>
+                  <Link href="/settings">
+                    <Settings2 aria-hidden="true" />
+                    Account settings
+                  </Link>
+                  <button type="button" onClick={() => void signOut()}>
+                    <LogOut aria-hidden="true" />
+                    Sign out
+                  </button>
+                </div>
+              </details>
           </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <button type="button" className="workspace-command-button" onClick={() => setCommandOpen(true)} aria-label="Open command palette">
-              <span>Search</span><kbd>⌘ K</kbd>
-            </button>
-            <span className="hidden border border-[var(--border)] bg-[var(--bg-subtle)] px-2.5 py-1 font-mono text-[9px] text-[var(--signal-good)] sm:inline-flex">{PLANS[DEFAULT_PLAN].name}</span>
-            <span className="grid size-8 place-items-center rounded-md border border-[var(--border)] bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--accent)]">{initials(user.display_name, user.email)}</span>
-            <button type="button" onClick={() => void signOut()} className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">Sign out</button>
           </div>
         </header>
-        <main id="main-content" className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
+        <main id="main-content" className="workspace-main mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
           {routeAllowed ? children : (
             <section className="mx-auto max-w-xl rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-8">
               <p className="font-mono text-[11px] uppercase tracking-[.16em] text-[var(--accent)]">Plan access</p>

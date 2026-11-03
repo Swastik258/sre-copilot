@@ -14,26 +14,26 @@ related_targets:
 Redesign the sign-in and account-creation routes as focused account tasks. Operate.
 
 ## Audience, job, action, proof, constraints
-Returning and prospective Tarn users need to sign in or create an account. Their primary action is to complete the existing authentication form. Preserve the current fields, validation, password visibility control, OAuth provider behavior, account recovery link, navigation links, and submission states. Do not imply account features, security guarantees, or authentication providers that are not implemented.
+Returning and prospective Tarn users need to sign in or create an account. Their primary action is to complete the existing authentication flow. Preserve password authentication, provider discovery, password visibility, account recovery, navigation, and submission states. Signup intentionally has no confirmation-password field. Do not imply account features, security guarantees, or authentication providers that are not implemented.
 
 ## Direction contract
 ### THESIS
-The account forms are the entry slip to the evidence packet: recognizable as Tarn, quiet enough for a focused task, and direct about the fields and next action.
+Account access should feel like a quiet, confident entry point to Tarn: direct about the form, unmistakable in its wordmark, and grounded in the evidence-focused product.
 
 ### OWN-WORLD
-Extend The Evidence Envelope's cobalt surround, warm stock, pale insert, packet ink, acid-green action, coral transfer mark, Inter Tight voice, and compact JetBrains Mono labels. Keep the form surface square-edged and paper-like rather than a generic floating card.
+Use a dark graphite canvas, near-white type, soft white field borders, a cool blue focus accent, and restrained rounded controls. Preserve the Tarn ring-mark wordmark. Use the existing mountain hero image in an inset, rounded image panel with a dark overlay and faint animated ripples.
 
 ### STORY
-Keep account access primary. A compact, factual evidence sequence reinforces how Tarn separates source records, observed facts, and ranked hypotheses. Retain the read-only principle without adding unsupported product or security claims.
+Keep account access primary. The image panel communicates only real product capabilities: read-only diagnosis, cited evidence, and the distinction between facts and hypotheses. Retain the read-only principle without adding unsupported product or security claims.
 
 ### FIRST VIEWPORT
-Show the Tarn wordmark and a working home link above one centered two-part paper packet. Keep the complete sign-in or account-creation form, its primary action, and account-switch link in the form insert. Put the evidence sequence and read-only note on the adjacent stock panel.
+Use a full-viewport 48/52 split at 1024px and wider. Keep the home-linked Tarn wordmark at the top-left and a centered form capped at 400px on the left. Inset the mountain panel by 16px, with support at top-right and a small source-evidence preview at the bottom. Hide the image panel below 1024px.
 
 ### FORM
-Use the shared packet grammar with the form as the primary task surface. On narrow screens, place the form first and stack the factual evidence panel beneath it. Keep all labels, focus states, validation messages, and password controls legible and usable without motion.
+Place circular OAuth provider links beneath the form, rendering only configured providers in the order GitHub, Google, Microsoft. Signup has optional full name, email, one password field, linked terms, and no confirm-password field. Login retains email, password visibility, and password recovery. Keep labels, keyboard focus, inline validation, loading, and API error states usable with reduced motion.
 
 ### FINISH
-Preserve the existing authentication behavior and confirm both account routes at desktop and mobile widths.
+Preserve password authentication, provider discovery, and OAuth start URLs. Confirm both routes at 375px, 768px, and 1280px; respect prefers-reduced-motion and keep all controls keyboard and screen-reader accessible.
 
 ## Unresolved decisions
 None.

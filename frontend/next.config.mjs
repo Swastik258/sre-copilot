@@ -22,9 +22,9 @@ const connectSources = [
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
+  `script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com${isProduction ? "" : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  "img-src 'self' data: blob: https://images.unsplash.com https://images.pexels.com",
   "font-src 'self' data:",
   `connect-src ${connectSources.join(" ")}`,
   "frame-ancestors 'none'",
@@ -59,6 +59,12 @@ const nextConfig = {
   // Emit a self-contained server bundle for the minimal production image.
   output: "standalone",
   poweredByHeader: false,
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "images.pexels.com" },
+    ],
+  },
   async headers() {
     return [
       {

@@ -138,6 +138,208 @@ function contrast(foreground: string, background: string, underlay?: string) {
   return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
 }
 
+test("homepage hero and product preview fit supported viewport widths", async ({ page }) => {
+  test.setTimeout(60_000);
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+  page.on("pageerror", (error) => consoleErrors.push(error.message));
+
+  await mockApi(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  await expect(page.locator("video")).toHaveCount(0);
+  await expect(page.locator(".hero-browser")).toBeVisible();
+  await expect(page.getByRole("heading", {
+    name: "Diagnose any failure. Cite every fact.",
+  })).toBeVisible();
+  await expect(page.getByRole("region", {
+    name: "Everything between your pod and the root cause.",
+  })).toBeVisible();
+  await expect(page.getByRole("heading", {
+    name: "From alert to answer in four steps.",
+  })).toBeVisible();
+  await expect(page.locator(".landing-workflow-card")).toHaveCount(4);
+  await expect(page.getByRole("heading", {
+    name: "Every live capability is free today.",
+  })).toBeVisible();
+  await expect(page.getByRole("heading", {
+    name: "Ready to make your next diagnosis easier to verify?",
+  })).toBeVisible();
+  await expect(page.locator(".landing-plan-card")).toHaveCount(3);
+  await expect(page.locator(".landing-feature-photo")).toHaveAttribute("loading", "lazy");
+  await expect(page.locator(".landing-workflow-photo")).toHaveAttribute("loading", "lazy");
+  const heroBackground = await page.locator(".landing-hero-background").evaluate(
+    (element) => element.getBoundingClientRect().toJSON(),
+  );
+  const heroHeading = await page.locator("#landing-hero-title").evaluate(
+    (element) => element.getBoundingClientRect().toJSON(),
+  );
+  const heroStyles = await page.locator(".landing-mountain-image").evaluate((image) => ({
+    opacity: Number.parseFloat(getComputedStyle(image).opacity),
+    wordGap: Number.parseFloat(getComputedStyle(document.querySelector("#landing-hero-title")!).columnGap),
+  }));
+  expect(heroBackground.top).toBeLessThanOrEqual(heroHeading.top);
+  expect(heroBackground.bottom).toBeGreaterThan(heroHeading.bottom);
+  expect(heroStyles.opacity).toBeGreaterThan(0.5);
+  expect(heroStyles.wordGap).toBeGreaterThan(5);
+  expect(heroStyles.wordGap).toBeLessThan(16);
+
+  for (const width of [1920, 1440, 1024, 768, 430, 390, 375]) {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+    const layout = await page.evaluate(() => ({
+      overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      navBottom: document.querySelector(".landing-nav")?.getBoundingClientRect().bottom,
+      heroTop: document.querySelector(".landing-hero")?.getBoundingClientRect().top,
+      preview: document.querySelector(".hero-browser")?.getBoundingClientRect().toJSON(),
+      contentWidth: document.documentElement.clientWidth,
+      mainBackground: getComputedStyle(document.querySelector(".landing-page")!).backgroundColor,
+    }));
+    expect(layout.overflow).toBe(false);
+    expect(layout.heroTop).toBeGreaterThanOrEqual(layout.navBottom ?? 0);
+    expect(layout.preview?.width).toBeGreaterThan(300);
+    expect(layout.preview?.left, `preview left edge at ${width}px`).toBeGreaterThanOrEqual(-1);
+    expect((layout.preview?.left ?? 0) + (layout.preview?.width ?? 0))
+      .toBeLessThanOrEqual(layout.contentWidth + 1);
+    expect(layout.mainBackground).toBe("rgb(8, 8, 10)");
+  }
+
+  await page.getByRole("button", { name: "Open navigation menu" }).click();
+  await expect(page.locator("#landing-mobile-menu")).toBeVisible();
+  await page.locator("#landing-mobile-menu").getByRole("link", { name: "Features" }).click();
+  await expect(page).toHaveURL(/#features$/);
+  expect(consoleErrors).toEqual([]);
+});
+
+test("Kubernetes setup options switch between documented configurations", async ({ page }) => {
+  await mockApi(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const demoTab = page.getByRole("tab", { name: "Explore with fixtures" });
+  const clusterTab = page.getByRole("tab", { name: "Use a local cluster" });
+  await expect(demoTab).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#landing-kubernetes-config")).toContainText(
+    "KUBERNETES_DEMO_MODE=true",
+  );
+
+  await clusterTab.click();
+  await expect(clusterTab).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#landing-kubernetes-config")).toContainText(
+    "KUBERNETES_DEMO_MODE=false",
+  );
+  await expect(page.locator("#landing-kubernetes-config")).toContainText(
+    "KUBERNETES_CONTEXT=your-context",
+  );
+});
+
+test("investigation tabs respond to input and pause autoplay for reduced motion", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const section = page.locator("#features");
+  await section.scrollIntoViewIfNeeded();
+  const diagnoseTab = page.getByRole("tab", { name: "Diagnose any pod" });
+  const citedTab = page.getByRole("tab", { name: "Cited evidence" });
+  const fastTriageTab = page.getByRole("tab", { name: "Fast triage" });
+  await expect(diagnoseTab).toHaveAttribute("aria-selected", "true");
+
+  await citedTab.click();
+  await expect(citedTab).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", {
+    name: "Trace findings back to their sources.",
+  })).toBeVisible();
+  await citedTab.press("ArrowRight");
+  await expect(fastTriageTab).toHaveAttribute("aria-selected", "true");
+  await expect(fastTriageTab).toBeFocused();
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator("#features").scrollIntoViewIfNeeded();
+  const initialTab = page.getByRole("tab", { name: "Diagnose any pod" });
+  await expect(initialTab).toHaveAttribute("aria-selected", "true");
+  await page.waitForTimeout(6500);
+  await expect(initialTab).toHaveAttribute("aria-selected", "true");
+
+  const completedSteps = page.locator(".landing-progress-card li[aria-current='step']");
+  await expect(completedSteps).toHaveCount(1);
+});
+
+test("login and signup remain usable in desktop and mobile layouts", async ({ page }) => {
+  for (const route of ["/login", "/sign-up"]) {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+    await expect(page.locator(".auth-packet")).toBeVisible();
+    await expect(page.getByRole("heading", {
+      name: route === "/login" ? "Welcome back" : "Create your Tarn account",
+    })).toBeVisible();
+    await expect(page.locator(".auth-form-panel form input").first()).toBeVisible();
+    await expect(page.getByRole("button", {
+      name: route === "/login" ? "Sign in" : "Create account",
+    })).toBeVisible();
+    const showPassword = page.getByRole("button", { name: "Show password" });
+    await showPassword.click();
+    await expect(page.locator("#password")).toHaveAttribute("type", "text");
+    await page.getByRole("button", { name: "Hide password" }).click();
+    await expect(page.locator("#password")).toHaveAttribute("type", "password");
+    if (route === "/sign-up") {
+      await expect(page.getByRole("link", { name: "Terms of Service" })).toHaveAttribute("href", "/terms");
+      await expect(page.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute("href", "/privacy");
+    }
+
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+      const layout = await page.evaluate(() => ({
+        overflow: document.documentElement.scrollWidth > window.innerWidth,
+        cardWidth: Math.round(document.querySelector(".auth-packet")!.getBoundingClientRect().width),
+      }));
+      expect(layout.overflow).toBe(false);
+      expect(layout.cardWidth).toBeLessThanOrEqual(width - 24);
+    }
+  }
+});
+
+test("workspace navigation, search, and profile menu remain available", async ({ page }) => {
+  await mockApi(page);
+  await openWorkspace(page);
+
+  for (const group of ["Operations", "Intelligence", "Workspace"]) {
+    await expect(
+      page.getByRole("navigation", { name: "Workspace navigation" })
+        .getByText(group, { exact: true }),
+    ).toBeVisible();
+  }
+  await expect(page.getByRole("link", { name: "Kubernetes diagnostics" })).toHaveAttribute("href", "/kubernetes");
+  await expect(page.getByRole("link", { name: "Integrations", exact: true })).toHaveAttribute("href", "/settings#integrations");
+
+  await expect(page.getByRole("button", { name: "Collapse sidebar" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open navigation" })).toBeHidden();
+  await page.getByRole("button", { name: "Collapse sidebar" }).click();
+  await expect(page.locator(".workspace-rail").first()).toHaveClass(/is-collapsed/);
+  await page.getByRole("button", { name: "Expand sidebar" }).click();
+
+  await page.getByRole("button", { name: "Open command palette" }).click();
+  await expect(page.getByRole("dialog", { name: "Workspace command palette" })).toBeVisible();
+  await page.keyboard.type("Metrics");
+  await expect(page.getByRole("button", { name: /Metrics/ })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await page.locator(".workspace-profile > summary").click();
+  await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByRole("button", { name: "Collapse sidebar" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(page.getByRole("navigation", { name: "Workspace navigation" })
+    .getByRole("link", { name: "AI Assistant" })).toBeVisible();
+  await page.getByRole("navigation", { name: "Workspace navigation" })
+    .getByRole("link", { name: "AI Assistant" }).click();
+  await expect(page).toHaveURL(/\/assistant$/);
+});
+
 test("theme toggle follows system, persists, and has no first-paint mismatch", async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
@@ -178,7 +380,7 @@ test("theme toggle follows system, persists, and has no first-paint mismatch", a
     };
   });
   expect(firstPaint.theme).toBe("light");
-  expect(firstPaint.background?.match(/\d+/g)?.map(Number)).toEqual([246, 247, 248]);
+  expect(firstPaint.background?.match(/\d+/g)?.map(Number)).toEqual([243, 245, 248]);
 
   await page.getByRole("button", { name: "Switch to dark theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -282,6 +484,8 @@ test("captures every dashboard route at mobile and desktop sizes in both themes"
         await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
         await openWorkspace(page, route);
         await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+        const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+        expect(documentWidth, `${route} overflows at ${width}px in ${theme} theme`).toBeLessThanOrEqual(width);
         const directory = join(output, theme, String(width));
         await mkdir(directory, { recursive: true });
         await page.screenshot({

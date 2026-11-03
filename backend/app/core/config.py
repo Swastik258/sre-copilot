@@ -161,10 +161,10 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 0
 
     # ---- AI providers ----
-    ai_provider: AIProviderName = "mock"
-    ai_model: str = "gpt-4o-mini"
+    ai_provider: AIProviderName = "groq"
+    ai_model: str = "openai/gpt-oss-20b"
     ai_timeout_seconds: float = 30.0
-    ai_max_output_tokens: int = 1500
+    ai_max_output_tokens: int = 3000
     # When True, no investigation content is ever sent to an external LLM
     # provider. External providers are rejected at call time.
     ai_privacy_mode: bool = False

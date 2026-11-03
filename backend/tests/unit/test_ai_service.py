@@ -166,30 +166,38 @@ def test_openrouter_configuration_is_reported_as_configured() -> None:
 
 def test_openrouter_without_key_is_not_configured() -> None:
     with pytest.raises(NotConfiguredError, match="OPENROUTER_API_KEY"):
-        ai_service.build_provider(Settings(ai_provider="openrouter"))
+        ai_service.build_provider(Settings(ai_provider="openrouter", openrouter_api_key=None))
 
 
 def test_openrouter_requires_namespaced_model() -> None:
     with pytest.raises(NotConfiguredError, match="namespaced"):
-        ai_service.build_provider(Settings(ai_provider="openrouter", openrouter_api_key="test-key"))
+        ai_service.build_provider(
+            Settings(ai_provider="openrouter", ai_model="gpt-4o-mini", openrouter_api_key="test-key")
+        )
 
 
 def test_groq_configuration_uses_openai_compatible_provider() -> None:
     settings = Settings(
         ai_provider="groq",
-        ai_model="llama-3.3-70b-versatile",
+        ai_model="openai/gpt-oss-20b",
         groq_api_key="test-groq-key",
     )
 
     assert settings.external_ai_configured is True
     provider = ai_service.build_provider(settings)
     assert provider.name == "groq"
-    assert provider.model == "llama-3.3-70b-versatile"
+    assert provider.model == "openai/gpt-oss-20b"
 
 
 def test_groq_without_api_key_is_not_configured() -> None:
     with pytest.raises(NotConfiguredError, match="GROQ_API_KEY"):
-        ai_service.build_provider(Settings(ai_provider="groq", ai_model="llama-3.3-70b-versatile"))
+        ai_service.build_provider(
+            Settings(
+                ai_provider="groq",
+                ai_model="openai/gpt-oss-20b",
+                groq_api_key=None,
+            )
+        )
 
 
 def test_nvidia_configuration_uses_openai_compatible_provider() -> None:
@@ -208,7 +216,11 @@ def test_nvidia_configuration_uses_openai_compatible_provider() -> None:
 def test_nvidia_without_api_key_is_not_configured() -> None:
     with pytest.raises(NotConfiguredError, match="NVIDIA_API_KEY"):
         ai_service.build_provider(
-            Settings(ai_provider="nvidia", ai_model="nvidia/nemotron-3.5-super-vl-120b-a12b")
+            Settings(
+                ai_provider="nvidia",
+                ai_model="nvidia/nemotron-3.5-super-vl-120b-a12b",
+                nvidia_api_key=None,
+            )
         )
 
 

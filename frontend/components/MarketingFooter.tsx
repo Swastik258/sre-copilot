@@ -51,9 +51,10 @@ export function MarketingFooter() {
             <Link
               href="/"
               className="site-brand flex items-center text-base font-semibold text-[var(--text)]"
+              aria-label="Tarn home"
             >
-              <Image className="wordmark-paper" src="/tarn-wordmark.svg" alt="Tarn" width={118} height={36} />
-              <Image className="wordmark-ink" src="/tarn-wordmark-ink.svg" alt="" width={118} height={36} />
+              <Image className="wordmark-paper" src="/tarn-wordmark.svg" alt="Tarn" width={118} height={35} />
+              <Image className="wordmark-ink" src="/tarn-wordmark-ink.svg" alt="" width={118} height={35} />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-6 text-[var(--text-muted)]">
               Evidence-backed diagnosis for infrastructure failures.

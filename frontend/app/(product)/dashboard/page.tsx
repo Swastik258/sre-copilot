@@ -2,8 +2,39 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  Activity,
+  ArrowUpRight,
+  CircleCheck,
+  CircleDashed,
+  CircleX,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { api, type IntegrationsResponse, type Investigation } from "@/lib/api";
 import { useAuth } from "@/lib/auth-client";
+
+type WorkspaceStatus = {
+  title: string;
+  value: string;
+  detail: string;
+  icon: LucideIcon;
+  tone: "good" | "neutral" | "warning";
+};
+
+function integrationState(state: string): { label: string; tone: WorkspaceStatus["tone"] } {
+  switch (state) {
+    case "connected":
+    case "enabled":
+      return { label: state === "enabled" ? "Enabled" : "Connected", tone: "good" };
+    case "demo":
+      return { label: "Demo", tone: "warning" };
+    case "disabled":
+      return { label: "Disabled", tone: "neutral" };
+    default:
+      return { label: "Not configured", tone: "neutral" };
+  }
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -46,6 +77,7 @@ export default function DashboardPage() {
 
   const displayName = user?.display_name?.trim() || user?.email?.split("@")[0];
   const kubernetes = integrations?.integrations.find((item) => item.kind === "kubernetes");
+  const prometheus = integrations?.integrations.find((item) => item.kind === "prometheus");
   const kubernetesValue = integrationError
     ? "Unavailable"
     : !integrations
@@ -78,10 +110,52 @@ export default function DashboardPage() {
       ? "Checking integration status"
       : `${connected ?? 0} connected · operator-configured`;
 
-  const statuses = [
-    { title: "Kubernetes", value: kubernetesValue, detail: kubernetesDetail },
-    { title: "Connected sources", value: integrationValue, detail: integrationDetail },
-    { title: "Infrastructure writes", value: "Never", detail: "Changes remain under operator control" },
+  const prometheusValue = integrationError
+    ? "Unavailable"
+    : !integrations
+      ? "Checking"
+      : prometheus?.state === "connected" || prometheus?.state === "enabled"
+        ? "Connected"
+        : prometheus?.state === "demo"
+          ? "Demo"
+          : prometheus?.state === "disabled"
+            ? "Disabled"
+            : "Not configured";
+  const prometheusDetail = integrationError
+    ? "Integration status unavailable"
+    : !integrations
+      ? "Checking integration status"
+      : prometheus?.detail || "Prometheus integration status";
+
+  const statuses: WorkspaceStatus[] = [
+    {
+      title: "Kubernetes connectivity",
+      value: kubernetesValue,
+      detail: kubernetesDetail,
+      icon: Activity,
+      tone: kubernetesValue === "Live" ? "good" : kubernetesValue === "Demo" ? "warning" : "neutral",
+    },
+    {
+      title: "Connected integrations",
+      value: integrationValue,
+      detail: integrationDetail,
+      icon: CircleCheck,
+      tone: integrationError ? "warning" : connected ? "good" : "neutral",
+    },
+    {
+      title: "Infrastructure writes",
+      value: "Never",
+      detail: "Changes remain under operator control",
+      icon: ShieldCheck,
+      tone: "good",
+    },
+    {
+      title: "Prometheus metrics",
+      value: prometheusValue,
+      detail: prometheusDetail,
+      icon: prometheusValue === "Connected" ? Activity : CircleDashed,
+      tone: prometheusValue === "Connected" ? "good" : prometheusValue === "Demo" ? "warning" : "neutral",
+    },
   ];
 
   return (
@@ -121,68 +195,122 @@ export default function DashboardPage() {
         aria-live="polite"
         className="dashboard-status dashboard-status-grid"
       >
-        {statuses.map((item) => (
+        {statuses.map((item) => {
+          const StatusIcon = item.icon;
+          return (
           <article key={item.title} className="dashboard-status-card">
             <div className="dashboard-status-card-heading">
+              <StatusIcon aria-hidden="true" />
               <h2>{item.title}</h2>
             </div>
-            <p>{item.value}</p>
+            <p className={`dashboard-status-value is-${item.tone}`}>{item.value}</p>
             <span>{item.detail}</span>
           </article>
-        ))}
+          );
+        })}
       </section>
 
-      <section className="dashboard-history dashboard-history-panel">
-        <div className="dashboard-history-heading">
-          <div>
-            <p className="dashboard-eyebrow">Workspace activity</p>
-            <h2>Recent investigations</h2>
-            <p className="dashboard-history-description">
-              Your latest saved diagnosis runs.
-            </p>
-          </div>
-          <Link href="/history" className="dashboard-history-link">
-            All investigations <span aria-hidden="true">↗</span>
-          </Link>
-        </div>
-        {loading ? (
-          <p className="dashboard-history-state">Loading your investigations…</p>
-        ) : historyError ? (
-          <p role="status" className="dashboard-history-state is-error">{historyError}</p>
-        ) : recent.length === 0 ? (
-          <div className="dashboard-empty-state">
+      <div className="dashboard-activity-grid">
+        <section className="dashboard-history dashboard-history-panel">
+          <div className="dashboard-history-heading">
             <div>
-              <h3>No saved investigations yet</h3>
-              <p>Your completed runs will appear here.</p>
+              <p className="dashboard-eyebrow">Incident activity</p>
+              <h2>Recent investigations</h2>
+              <p className="dashboard-history-description">
+                Latest saved diagnosis runs and their current review state.
+              </p>
             </div>
-            <Link href="/kubernetes" className="dashboard-history-link">
-              Start a diagnosis <span aria-hidden="true">↗</span>
+            <Link href="/history" className="dashboard-history-link">
+              All investigations <ArrowUpRight aria-hidden="true" />
             </Link>
           </div>
-        ) : (
-          <ul className="dashboard-history-list">
-            {recent.map((item) => (
-              <li key={item.id}>
-                <div className="dashboard-investigation-type" aria-hidden="true">
-                  {item.kind.slice(0, 1).toUpperCase()}
-                </div>
-                <div className="dashboard-investigation-main">
-                  <p className="dashboard-investigation-title">{item.title}</p>
-                  <p className="dashboard-investigation-meta">
-                    {item.kind} · {new Date(item.updated_at).toLocaleString()}
-                  </p>
-                </div>
-                <span className="dashboard-investigation-id">
-                  {item.id.slice(0, 12)}
-                </span>
-                <span className="dashboard-investigation-status">
-                  {item.status.replaceAll("_", " ")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+          {loading ? (
+            <div className="dashboard-loading-list" aria-label="Loading investigations">
+              {Array.from({ length: 3 }, (_, index) => <span key={index} />)}
+            </div>
+          ) : historyError ? (
+            <p role="status" className="dashboard-history-state is-error">{historyError}</p>
+          ) : recent.length === 0 ? (
+            <div className="dashboard-empty-state">
+              <div>
+                <h3>No saved investigations yet</h3>
+                <p>Your completed runs will appear here.</p>
+              </div>
+              <Link href="/kubernetes" className="dashboard-history-link">
+                Start a diagnosis <ArrowUpRight aria-hidden="true" />
+              </Link>
+            </div>
+          ) : (
+            <ul className="dashboard-history-list">
+              {recent.map((item) => (
+                <li key={item.id}>
+                  <div className="dashboard-investigation-type" aria-hidden="true">
+                    {item.kind.slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="dashboard-investigation-main">
+                    <p className="dashboard-investigation-title">{item.title}</p>
+                    <p className="dashboard-investigation-meta">
+                      {item.kind} · {new Date(item.updated_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <span className="dashboard-investigation-id">
+                    {item.id.slice(0, 12)}
+                  </span>
+                  <span className="dashboard-investigation-status">
+                    {item.status.replaceAll("_", " ")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="dashboard-integrations-panel" aria-labelledby="dashboard-integrations-title">
+          <div className="dashboard-integrations-heading">
+            <div>
+              <p className="dashboard-eyebrow">Sources</p>
+              <h2 id="dashboard-integrations-title">Integrations</h2>
+            </div>
+            <Link href="/settings#integrations" aria-label="Manage integrations">
+              <ArrowUpRight aria-hidden="true" />
+            </Link>
+          </div>
+          {integrationError ? (
+            <p role="status" className="dashboard-history-state is-error">Integration status unavailable.</p>
+          ) : !integrations ? (
+            <div className="dashboard-loading-list" aria-label="Loading integrations">
+              {Array.from({ length: 3 }, (_, index) => <span key={index} />)}
+            </div>
+          ) : integrations.integrations.length === 0 ? (
+            <p className="dashboard-history-state">No integrations are configured.</p>
+          ) : (
+            <ul className="dashboard-integrations-list">
+              {integrations.integrations.map((item) => {
+                const state = integrationState(item.state);
+                return (
+                  <li key={item.kind}>
+                    <span className="dashboard-integration-icon">
+                      {state.tone === "good"
+                        ? <CircleCheck aria-hidden="true" />
+                        : state.tone === "warning"
+                          ? <Activity aria-hidden="true" />
+                          : <CircleX aria-hidden="true" />}
+                    </span>
+                    <span className="dashboard-integration-name">
+                      <strong>{item.name}</strong>
+                      <small>{item.read_only ? "Read-only" : item.detail || "Operator configured"}</small>
+                    </span>
+                    <span className={`dashboard-integration-state is-${state.tone}`}>{state.label}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <Link href="/metrics" className="dashboard-metrics-link">
+            Open metrics <ArrowUpRight aria-hidden="true" />
+          </Link>
+        </section>
+      </div>
     </div>
   );
 }

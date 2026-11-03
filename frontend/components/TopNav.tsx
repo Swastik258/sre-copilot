@@ -8,6 +8,8 @@ import { useAuth } from "@/lib/auth-client";
 
 const LINKS = [
   { label: "Product", href: "/product" },
+  { label: "Solutions", href: "/solutions" },
+  { label: "Security", href: "/security" },
   { label: "Docs", href: "/docs" },
   { label: "Pricing", href: "/pricing" },
 ] as const;
@@ -52,10 +54,19 @@ export function TopNav() {
       <nav className="shell site-nav-inner" aria-label="Main navigation">
         <Link href="/" className="site-brand" aria-label="Tarn home">
           <Image
+            className="wordmark-paper"
+            src="/tarn-wordmark.svg"
+            alt=""
+            width={118}
+            height={35}
+            priority
+          />
+          <Image
+            className="wordmark-ink"
             src="/tarn-wordmark-ink.svg"
             alt="Tarn"
             width={118}
-            height={36}
+            height={35}
             priority
           />
         </Link>
