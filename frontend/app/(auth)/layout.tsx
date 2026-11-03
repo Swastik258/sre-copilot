@@ -1,3 +1,4 @@
+import "@/app/auth-redesign.css";
 import { AuthHeader } from "@/components/AuthHeader";
 
 export default function AuthLayout({

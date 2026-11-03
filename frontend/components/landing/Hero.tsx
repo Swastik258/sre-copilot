@@ -23,8 +23,6 @@ import { useRef } from "react";
 import { heroMountain } from "@/lib/images";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 
-const WORDS = ["Evidence,", "not", "guesses"];
-
 const heroContainer: Variants = {
   hidden: {},
   visible: {
@@ -42,7 +40,29 @@ const heroItem: Variants = {
   },
 };
 
-function ProductMockup() {
+const DIAGNOSIS_FACTS = [
+  {
+    text: "Container state is CrashLoopBackOff",
+    source: "events/api-worker:142",
+  },
+  {
+    text: "Restart count is increasing",
+    source: "pod/api-worker:status",
+  },
+  {
+    text: "Probe failure is recorded",
+    source: "events/api-worker:151",
+  },
+] as const;
+
+const WORKS_WITH = [
+  { name: "Kubernetes", icon: Layers3 },
+  { name: "GitHub Actions", icon: GitBranch },
+  { name: "Prometheus", icon: Activity },
+  { name: "Logs & events", icon: FileSearch },
+] as const;
+
+function ProductMockup({ reduceMotion }: { reduceMotion: boolean }) {
   return (
     <div
       className="hero-browser"
@@ -117,7 +137,20 @@ function ProductMockup() {
                   <span role="columnheader">Evidence</span>
                 </div>
                 <div className="hero-pod-row" role="row">
-                  <span role="cell"><i className="hero-status-warn" /> api-worker</span>
+                  <span role="cell">
+                    <i className="hero-status-warn">
+                      <svg
+                        className="hero-pod-ripples"
+                        viewBox="0 0 96 96"
+                        aria-hidden="true"
+                      >
+                        <circle cx="48" cy="48" r="13" />
+                        <circle cx="48" cy="48" r="13" />
+                        <circle cx="48" cy="48" r="13" />
+                      </svg>
+                    </i>
+                    api-worker
+                  </span>
                   <span role="cell">Restarting</span>
                   <span role="cell">Events</span>
                 </div>
@@ -141,7 +174,51 @@ function ProductMockup() {
               </div>
               <div className="hero-diagnosis-group">
                 <h3><span className="hero-fact-mark" /> Observed facts</h3>
-                <p>Source records are available for operator review.</p>
+                <ul className="hero-diagnosis-facts">
+                  {DIAGNOSIS_FACTS.map((fact, index) => (
+                    <motion.li
+                      key={fact.source}
+                      initial={
+                        reduceMotion
+                          ? { opacity: 0 }
+                          : { opacity: 0, y: 4 }
+                      }
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: reduceMotion ? 0.01 : 0.35,
+                        delay: reduceMotion ? 0 : 0.35 + index * 0.7,
+                      }}
+                    >
+                      <motion.span
+                        className="hero-diagnosis-fact-text"
+                        initial={
+                          reduceMotion
+                            ? { clipPath: "inset(0 0 0 0)" }
+                            : { clipPath: "inset(0 100% 0 0)" }
+                        }
+                        animate={{ clipPath: "inset(0 0 0 0)" }}
+                        transition={{
+                          duration: reduceMotion ? 0.01 : 0.8,
+                          delay: reduceMotion ? 0 : 0.45 + index * 0.7,
+                          ease: "linear",
+                        }}
+                      >
+                        {fact.text}
+                      </motion.span>
+                      <motion.code
+                        className="hero-diagnosis-citation"
+                        initial={reduceMotion ? { opacity: 1 } : { opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{
+                          duration: reduceMotion ? 0.01 : 0.25,
+                          delay: reduceMotion ? 0 : 0.85 + index * 0.7,
+                        }}
+                      >
+                        {fact.source}
+                      </motion.code>
+                    </motion.li>
+                  ))}
+                </ul>
               </div>
               <div className="hero-diagnosis-group">
                 <h3><span className="hero-hypothesis-mark" /> Hypotheses</h3>
@@ -155,7 +232,7 @@ function ProductMockup() {
             </section>
           </div>
           <p className="hero-sample-disclaimer">
-            Illustrative interface. Sample content is not a live diagnosis.
+            Illustrative interface
           </p>
         </div>
       </div>
@@ -164,10 +241,10 @@ function ProductMockup() {
 }
 
 export function Hero() {
-  const visualRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
   const reduceMotion = usePrefersReducedMotion();
   const { scrollYProgress } = useScroll({
-    target: visualRef,
+    target: heroRef,
     offset: ["start end", "end start"],
   });
   const imageY = useTransform(
@@ -191,7 +268,27 @@ export function Hero() {
     : heroItem;
 
   return (
-    <section className="landing-hero" aria-labelledby="landing-hero-title">
+    <section
+      ref={heroRef}
+      className="landing-hero"
+      aria-labelledby="landing-hero-title"
+    >
+      <motion.div
+        className="landing-hero-background"
+        style={{ y: imageY, scale: imageScale }}
+        aria-hidden="true"
+      >
+        <Image
+          src={heroMountain.src}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="landing-mountain-image"
+        />
+        <div className="landing-hero-image-fade" />
+      </motion.div>
+
       <div className="landing-container">
         <motion.div
           className="landing-hero-copy"
@@ -206,22 +303,24 @@ export function Hero() {
           </motion.p>
 
           <motion.h1 id="landing-hero-title" variants={entranceContainer}>
-            {WORDS.map((word) => (
-              <motion.span
-                key={word}
-                className="landing-hero-word"
-                variants={entranceItem}
-                aria-hidden="true"
-              >
-                {word}
-              </motion.span>
-            ))}
-            <span className="sr-only">Evidence, not guesses</span>
+            <motion.span className="landing-hero-line" variants={entranceItem} aria-hidden="true">
+              <span>Diagnose</span>
+              <span>any</span>
+              <span>failure.</span>
+            </motion.span>
+            <motion.span className="landing-hero-line" variants={entranceItem} aria-hidden="true">
+              <span>Cite</span>
+              <span>every</span>
+              <span>fact.</span>
+            </motion.span>
+            <span className="sr-only">
+              Diagnose any failure. Cite every fact.
+            </span>
           </motion.h1>
 
           <motion.p className="landing-hero-subtitle" variants={entranceItem}>
-            Read-only diagnosis for failing pods, pipelines, and Terraform
-            plans—with cited evidence your team can verify.
+            Read-only investigations for failing pods, pipelines and Terraform
+            plans. Every finding links back to source records.
           </motion.p>
 
           <motion.div className="landing-hero-actions" variants={entranceItem}>
@@ -229,13 +328,12 @@ export function Hero() {
               Start diagnosing <ArrowRight size={16} aria-hidden="true" />
             </Link>
             <Link href="/docs" className="landing-button landing-button-secondary">
-              View docs
+              Read the docs
             </Link>
           </motion.div>
         </motion.div>
 
         <motion.div
-          ref={visualRef}
           className="landing-hero-visual"
           initial={
             reduceMotion
@@ -249,31 +347,27 @@ export function Hero() {
             ease: [0.16, 1, 0.3, 1],
           }}
         >
-          <motion.div
-            className="landing-hero-mountain"
-            style={{ y: imageY, scale: imageScale }}
-            whileHover={reduceMotion ? undefined : { scale: 1.055 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          >
-            <Image
-              src={heroMountain.src}
-              alt={heroMountain.alt}
-              fill
-              priority
-              sizes="(max-width: 760px) 100vw, (max-width: 1200px) 94vw, 1152px"
-              className="landing-mountain-image"
-            />
-          </motion.div>
-          <div className="landing-hero-image-fade" aria-hidden="true" />
-          <ProductMockup />
+          <ProductMockup reduceMotion={reduceMotion} />
         </motion.div>
 
-        <div id="integrations" className="landing-integrations-strip">
+        <div className="landing-integrations-strip" aria-label="Works with">
           <span className="landing-integrations-label">Works with</span>
-          <span><Layers3 size={17} aria-hidden="true" /> Kubernetes</span>
-          <span><GitBranch size={17} aria-hidden="true" /> GitHub Actions</span>
-          <span><Activity size={17} aria-hidden="true" /> Prometheus</span>
-          <span><FileSearch size={17} aria-hidden="true" /> Terraform</span>
+          <div className="landing-integrations-marquee">
+            {[0, 1].map((copy) => (
+              <div
+                className="landing-integrations-track"
+                key={copy}
+                aria-hidden={copy === 1}
+              >
+                {WORKS_WITH.map(({ name, icon: Icon }) => (
+                  <span key={name}>
+                    <Icon size={16} aria-hidden="true" />
+                    {name}
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

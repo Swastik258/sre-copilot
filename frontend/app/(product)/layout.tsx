@@ -1,5 +1,6 @@
 "use client";
 
+import "@/app/workspace-redesign.css";
 import { usePathname } from "next/navigation";
 import { TopNav } from "@/components/TopNav";
 import { ThemeProvider } from "@/components/ThemeProvider";

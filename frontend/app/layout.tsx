@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter_Tight, JetBrains_Mono } from "next/font/google";
+import { Inter, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-client";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
@@ -8,6 +8,12 @@ import { SITE_URL } from "@/lib/seo";
 const interTight = Inter_Tight({
   subsets: ["latin"],
   variable: "--font-inter-tight",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -56,7 +62,7 @@ export default function RootLayout({
       data-theme="dark"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${interTight.variable} ${jetBrainsMono.variable}`}
+      className={`${interTight.variable} ${inter.variable} ${jetBrainsMono.variable}`}
     >
       <head>
         <script

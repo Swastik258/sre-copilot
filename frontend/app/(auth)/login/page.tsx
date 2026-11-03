@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <AuthPacket>
+    <AuthPacket mode="login">
       <AuthForm mode="login" />
     </AuthPacket>
   );
