@@ -155,26 +155,8 @@ def _resolve_membership(
     return WorkspaceContext(workspace=workspace, role=membership.role)
 
 
-def workspace_from_path(
-    workspace_slug: str, user: RequiredUser, db: DbSession
-) -> WorkspaceContext:
-    """Resolve the workspace named by the ``{workspace_slug}`` URL segment."""
-    workspace = db.query(Workspace).filter(Workspace.slug == workspace_slug).first()
-    return _resolve_membership(db, user, workspace)
-
-
-WorkspaceFromPath = Annotated[WorkspaceContext, Depends(workspace_from_path)]
-
-
-def workspace_from_request(
-    request: Request, user: RequiredUser, db: DbSession
-) -> WorkspaceContext:
-    """Resolve the workspace for legacy unprefixed routes.
-
-    Order: the ``X-Workspace-Id`` header, else the user's only workspace,
-    else 400 ``workspace_not_selected``. A workspace id sent in a request
-    body or query string is never trusted.
-    """
+def _resolve_from_request(db: Session, user: User, request: Request):
+    """Header → sole workspace → 400. A body/query workspace id is never trusted."""
     header_value = request.headers.get("x-workspace-id")
     if header_value:
         workspace = db.query(Workspace).filter(Workspace.id == header_value).first()
@@ -196,13 +178,30 @@ def workspace_from_request(
     )
 
 
-WorkspaceFromRequest = Annotated[WorkspaceContext, Depends(workspace_from_request)]
+def _resolve_any(request: Request, user: RequiredUser, db: DbSession):
+    """Resolve the request's single workspace.
+
+    Scoped routes carry ``{workspace_slug}`` in the URL and resolve by slug;
+    legacy unprefixed routes have no such path param and resolve from the
+    ``X-Workspace-Id`` header or the user's only workspace. FastAPI caches
+    the result per request, so permission checkers and route handlers share
+    one resolution.
+    """
+    slug = request.path_params.get("workspace_slug")
+    if slug is not None:
+        workspace = db.query(Workspace).filter(Workspace.slug == slug).first()
+        return _resolve_membership(db, user, workspace)
+    return _resolve_from_request(db, user, request)
+
+
+WorkspaceFromPath = Annotated[WorkspaceContext, Depends(_resolve_any)]
+WorkspaceFromRequest = Annotated[WorkspaceContext, Depends(_resolve_any)]
 
 
 def require_workspace_permission(permission: str):
     """Build a dependency that gates a route behind a workspace permission."""
 
-    def checker(context: WorkspaceContext) -> WorkspaceContext:
+    def checker(context: Annotated[WorkspaceContext, Depends(_resolve_any)]):
         if not has_permission(context.role, permission):
             raise ForbiddenError(
                 "Your workspace role does not allow this action.",

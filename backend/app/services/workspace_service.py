@@ -26,6 +26,11 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
+def _as_aware(value: datetime) -> datetime:
+    """SQLite returns naive datetimes even for timezone-aware columns."""
+    return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
+
+
 def _uuid() -> str:
     return str(uuid.uuid4())
 
@@ -208,7 +213,8 @@ def add_member_by_email(
     return row, user
 
 
-def remove_member(db: Session, *, workspace_id: str, user_id: str) -> bool:    row = membership(db, workspace_id=workspace_id, user_id=user_id)
+def remove_member(db: Session, *, workspace_id: str, user_id: str) -> bool:
+    row = membership(db, workspace_id=workspace_id, user_id=user_id)
     if row is None:
         return False
     _guard_last_privileged(
@@ -340,7 +346,7 @@ def accept_invite(db: Session, *, token: str, user: User) -> Workspace:
     if (
         invite is None
         or invite.accepted_at is not None
-        or invite.expires_at < _now()
+        or _as_aware(invite.expires_at) < _now()
     ):
         raise NotFoundError("Invite not found or expired.")
     if (user.email or "").strip().lower() != invite.email:

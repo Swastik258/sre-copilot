@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import select
 
 from app.core.config import get_settings
-from app.db.models import AuditEvent, User
+from app.db.models import AuditEvent, User, Workspace, WorkspaceMembership
 
 
 def _signup(client, email: str) -> dict:
@@ -52,9 +52,16 @@ def test_audit_events_are_listed_and_exported(client) -> None:
 def test_audit_retention_deletes_only_old_events(client, db_session) -> None:
     user = _signup(client, "audit-retention@example.com")
     _promote(db_session, "audit-retention@example.com")
+    own_workspace_id = db_session.scalar(
+        select(WorkspaceMembership.workspace_id).where(
+            WorkspaceMembership.user_id == user["id"]
+        )
+    )
+    assert own_workspace_id is not None
     old = AuditEvent(
         user_id=user["id"],
         tenant_id=user["tenant_id"],
+        workspace_id=own_workspace_id,
         action="test.old",
         actor="test",
         decision="allow",
@@ -80,9 +87,23 @@ def test_audit_read_export_and_retention_are_workspace_scoped(client, db_session
         user = _signup(client, "audit-scope-owner@example.com")
         other_tenant = "audit-scope-other-workspace"
         old = datetime.now(UTC) - timedelta(days=10)
+        # Audit rows are workspace-scoped now: seed one event in the caller's
+        # workspace and one in a different workspace.
+        own_workspace_id = db_session.scalar(
+            select(WorkspaceMembership.workspace_id).where(
+                WorkspaceMembership.user_id == user["id"]
+            )
+        )
+        assert own_workspace_id is not None
+        other_workspace = Workspace(
+            slug="audit-scope-other-ws", name="Other workspace", settings={}
+        )
+        db_session.add(other_workspace)
+        db_session.flush()
         own_event = AuditEvent(
             user_id=None,
             tenant_id=user["tenant_id"],
+            workspace_id=own_workspace_id,
             action="test.workspace",
             actor="system",
             decision="allow",
@@ -91,7 +112,7 @@ def test_audit_read_export_and_retention_are_workspace_scoped(client, db_session
         other_event = AuditEvent(
             user_id=None,
             tenant_id=other_tenant,
-            action="test.other-workspace",
+            workspace_id=other_workspace.id,            action="test.other-workspace",
             actor="system",
             decision="allow",
             created_at=old,

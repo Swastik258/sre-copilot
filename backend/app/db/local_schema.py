@@ -14,7 +14,6 @@ granted explicitly by a trusted operator.
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 import uuid
@@ -321,10 +320,14 @@ def _batch_alter_workspace_not_null(conn, table: str) -> None:
     """
     from app.db import models  # noqa: PLC0415 (local import avoids a cycle)
 
-    model_table = models.Base.metadata.tables[table]
+    # Clone the whole model metadata so every foreign-key target resolves in
+    # the fresh MetaData used to compile the replacement table's DDL.
+    cloned = sa.MetaData()
+    for source_table in models.Base.metadata.sorted_tables:
+        source_table.to_metadata(cloned)
+    spec = cloned.tables[table]
     indexes = sa.inspect(conn).get_indexes(table)
 
-    spec = model_table.tometadata(sa.MetaData())
     spec.name = f"_batch_{table}"
     # Indexes are recreated from reflection after the swap so their names do
     # not collide with the ones still attached to the old table.

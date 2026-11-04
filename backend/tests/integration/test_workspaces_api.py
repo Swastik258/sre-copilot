@@ -86,7 +86,16 @@ def test_non_member_and_missing_workspace_return_identical_404s():
 
     assert member_response.status_code == 404
     assert missing_response.status_code == 404
-    assert member_response.content == missing_response.content
+    # The error envelope carries a per-request correlation id on every error,
+    # so byte-identity is asserted on the content fields; both responses must
+    # still carry a request_id.
+    import json as _json
+
+    member_body = _json.loads(member_response.content)
+    missing_body = _json.loads(missing_response.content)
+    assert member_body["error"].pop("request_id")
+    assert missing_body["error"].pop("request_id")
+    assert member_body == missing_body
     assert (
         member_response.headers.get("content-type")
         == missing_response.headers.get("content-type")
@@ -139,8 +148,8 @@ def test_invite_requires_matching_email_and_known_token():
 
 
 def test_member_management_and_last_owner_protection():
-    with _new_client() as owner_client:
-        _signup(owner_client, "last-owner@example.com")
+    with _new_client() as owner_client, _new_client() as second:
+        _signup(owner_client, "ws-last-owner@example.com")
         slug = _slug(owner_client)
         owner_id = owner_client.get("/api/v1/auth/me").json()["id"]
 
@@ -148,25 +157,46 @@ def test_member_management_and_last_owner_protection():
         response = owner_client.delete(f"/api/v1/workspaces/{slug}/members/{owner_id}")
         assert response.status_code == 409
 
-        # Add an admin, then the owner may leave safely.
+        # Add an admin. Even so, the only owner cannot leave: matching the
+        # organization service rule, another owner must exist first. The
+        # direct add requires the account to exist, so create it first.
+        second.post(
+            "/api/v1/auth/signup",
+            json={"email": "ws-second-admin@example.com", "password": PASSWORD},
+        )
         added = owner_client.post(
             f"/api/v1/workspaces/{slug}/members",
-            json={"email": "second-admin@example.com", "role": "admin"},
+            json={"email": "ws-second-admin@example.com", "role": "admin"},
         )
         assert added.status_code == 201, added.text
+
+        still_blocked = owner_client.delete(
+            f"/api/v1/workspaces/{slug}/members/{owner_id}"
+        )
+        assert still_blocked.status_code == 409
+
+        # Promote the admin to owner; then the original owner may leave.
+        second_id = second.get("/api/v1/auth/me").json()["id"]
+        promoted = owner_client.patch(
+            f"/api/v1/workspaces/{slug}/members/{second_id}",
+            json={"role": "owner"},
+        )
+        assert promoted.status_code == 200, promoted.text
 
         removed = owner_client.delete(
             f"/api/v1/workspaces/{slug}/members/{owner_id}"
         )
         assert removed.status_code == 204
 
-        # Members listing is visible to the remaining admin.
-        members = owner_client.get(f"/api/v1/workspaces/{slug}/members")
+        # The removed owner is now a non-member: the identical 404 any
+        # outsider gets. The remaining owner sees the member list.
+        assert owner_client.get(f"/api/v1/workspaces/{slug}").status_code == 404
+        members = second.get(f"/api/v1/workspaces/{slug}/members")
         assert members.status_code == 200
-        assert {m["role"] for m in members.json()["members"]} == {"admin"}
+        assert {m["role"] for m in members.json()["members"]} == {"owner"}
 
         # Unknown member delete is a negative path.
-        missing = owner_client.delete(
+        missing = second.delete(
             f"/api/v1/workspaces/{slug}/members/00000000-0000-0000-0000-000000000000"
         )
         assert missing.status_code == 404
@@ -174,16 +204,16 @@ def test_member_management_and_last_owner_protection():
 
 def test_viewer_role_is_read_only():
     with _new_client() as owner_client:
-        _signup(owner_client, "viewer-owner@example.com")
+        _signup(owner_client, "ws-viewer-owner@example.com")
         slug = _slug(owner_client)
         invite = owner_client.post(
             f"/api/v1/workspaces/{slug}/invites",
-            json={"email": "viewer@example.com", "role": "viewer"},
+            json={"email": "ws-viewer@example.com", "role": "viewer"},
         )
         token = invite.json()["token"]
 
     with _new_client() as viewer:
-        _signup(viewer, "viewer@example.com")
+        _signup(viewer, "ws-viewer@example.com")
         assert viewer.post(f"/api/v1/invites/{token}/accept").status_code == 200
 
         # Read is allowed for viewers.
@@ -207,13 +237,13 @@ def test_viewer_role_is_read_only():
 
 def test_delete_workspace_requires_owner_and_confirmation():
     with _new_client() as owner_client, _new_client() as admin_client:
-        _signup(owner_client, "delete-owner@example.com")
+        _signup(owner_client, "ws-delete-owner@example.com")
         slug = _slug(owner_client)
         invite = owner_client.post(
             f"/api/v1/workspaces/{slug}/invites",
-            json={"email": "delete-admin@example.com", "role": "admin"},
+            json={"email": "ws-delete-admin@example.com", "role": "admin"},
         )
-        admin_client.post("/api/v1/auth/signup", json={"email": "delete-admin@example.com", "password": PASSWORD})
+        admin_client.post("/api/v1/auth/signup", json={"email": "ws-delete-admin@example.com", "password": PASSWORD})
         admin_client.post(f"/api/v1/invites/{invite.json()['token']}/accept")
 
         # Admins cannot delete a workspace.

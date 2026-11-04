@@ -14,12 +14,15 @@ def list_for_workspace(
     db: Session,
     *,
     workspace_id: str,
+    user_id: str | None = None,
     status: str | None = None,
     kind: str | None = None,
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[Investigation], int]:
     filters = [Investigation.workspace_id == workspace_id]
+    if user_id is not None:
+        filters.append(Investigation.user_id == user_id)
     if status is not None:
         filters.append(Investigation.status == status)
     if kind is not None:

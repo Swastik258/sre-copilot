@@ -118,16 +118,16 @@ def test_workspace_backfill_on_populated_legacy_database(tmp_path):
             "('u1', 'a@example.com', '2026-01-01T00:00:00')"
         )
         conn.exec_driver_sql(
-            "INSERT INTO conversations (id, user_id, title) VALUES "
-            "('c1', 'u1', 'Incident')"
+            "INSERT INTO conversations (id, user_id, title, created_at, updated_at) "
+            "VALUES ('c1', 'u1', 'Incident', '2026-01-01T00:00:00', '2026-01-01T00:00:00')"
         )
         conn.exec_driver_sql(
-            "INSERT INTO messages (id, conversation_id, role, content) VALUES "
-            "('m1', 'c1', 'user', 'pod crashed')"
+            "INSERT INTO messages (id, conversation_id, role, content, created_at) "
+            "VALUES ('m1', 'c1', 'user', 'pod crashed', '2026-01-01T00:00:00')"
         )
         conn.exec_driver_sql(
-            "INSERT INTO integrations (id, kind, name, enabled) VALUES "
-            "('i1', 'kubernetes', 'prod', 0)"
+            "INSERT INTO integrations (id, kind, name, enabled, created_at, updated_at) "
+            "VALUES ('i1', 'kubernetes', 'prod', 0, '2026-01-01T00:00:00', '2026-01-01T00:00:00')"
         )
 
     upgrade_local_sqlite_schema(engine)

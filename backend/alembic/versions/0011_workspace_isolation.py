@@ -35,14 +35,14 @@ def upgrade() -> None:
         sa.Column(
             "workspace_id",
             sa.String(length=36),
-            nullable=False,
             sa.ForeignKey("workspaces.id", ondelete="CASCADE"),
+            nullable=False,
         ),
         sa.Column(
             "user_id",
             sa.String(length=36),
-            nullable=False,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
+            nullable=False,
         ),
         sa.Column("role", sa.String(length=16), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -60,8 +60,8 @@ def upgrade() -> None:
         sa.Column(
             "workspace_id",
             sa.String(length=36),
-            nullable=False,
             sa.ForeignKey("workspaces.id", ondelete="CASCADE"),
+            nullable=False,
         ),
         sa.Column("email", sa.String(length=320), nullable=False),
         sa.Column("role", sa.String(length=16), nullable=False),
@@ -69,8 +69,8 @@ def upgrade() -> None:
         sa.Column(
             "invited_by",
             sa.String(length=36),
-            nullable=False,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
+            nullable=False,
         ),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("accepted_at", sa.DateTime(timezone=True), nullable=True),
@@ -82,7 +82,6 @@ def upgrade() -> None:
         batch_op.add_column(sa.Column("workspace_id", sa.String(length=36), nullable=True))
         batch_op.create_foreign_key(
             "fk_conversations_workspace",
-            "conversations",
             "workspaces",
             ["workspace_id"],
             ["id"],
@@ -94,7 +93,6 @@ def upgrade() -> None:
         batch_op.add_column(sa.Column("workspace_id", sa.String(length=36), nullable=True))
         batch_op.create_foreign_key(
             "fk_messages_workspace",
-            "messages",
             "workspaces",
             ["workspace_id"],
             ["id"],
@@ -106,7 +104,6 @@ def upgrade() -> None:
         batch_op.add_column(sa.Column("workspace_id", sa.String(length=36), nullable=True))
         batch_op.create_foreign_key(
             "fk_integrations_workspace",
-            "integrations",
             "workspaces",
             ["workspace_id"],
             ["id"],
@@ -118,7 +115,6 @@ def upgrade() -> None:
         batch_op.add_column(sa.Column("workspace_id", sa.String(length=36), nullable=True))
         batch_op.create_foreign_key(
             "fk_investigations_workspace",
-            "investigations",
             "workspaces",
             ["workspace_id"],
             ["id"],
@@ -130,7 +126,6 @@ def upgrade() -> None:
         batch_op.add_column(sa.Column("workspace_id", sa.String(length=36), nullable=True))
         batch_op.create_foreign_key(
             "fk_evidence_workspace",
-            "evidence",
             "workspaces",
             ["workspace_id"],
             ["id"],
@@ -142,7 +137,6 @@ def upgrade() -> None:
         batch_op.add_column(sa.Column("workspace_id", sa.String(length=36), nullable=True))
         batch_op.create_foreign_key(
             "fk_audit_events_workspace",
-            "audit_events",
             "workspaces",
             ["workspace_id"],
             ["id"],

@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from app.db.models import Evidence as EvidenceModel
+from app.db.models import Investigation
 
 SIGNUP = "/api/v1/auth/signup"
 INVESTIGATIONS = "/api/v1/investigations"
@@ -33,6 +34,7 @@ def test_investigation_lifecycle_and_message_persistence(client, db_session) -> 
     investigation_id = created["id"]
 
     evidence = EvidenceModel(
+        workspace_id=db_session.get(Investigation, investigation_id).workspace_id,
         investigation_id=investigation_id,
         source_type="kubernetes",
         source_resource="default/checkout",

@@ -27,12 +27,27 @@ Running status for the workspace isolation milestone. Updated per phase.
 
 ## Unverified (numbered, running)
 
-1. No Python runtime in this container — nothing has been executed; all gates (`ruff`, `pytest`, `alembic upgrade`, `npm`) must run in the user's environment.
-2. `Table.tometadata()` + `spec.name = ...` rename + `spec.indexes.clear()` for the SQLite batch alter — assumed to compile DDL under the temp name; not executed.
-3. `PRAGMA foreign_keys` assumed OFF during local upgrades (SQLAlchemy default) so dropping a referenced table during batch alter is safe; `app/db/session.py` not yet inspected for a pragma event.
-4. `json.dumps({})` bound into a Postgres `JSON` column via raw SQL — assumed to coerce; untested.
-5. Exact list expectations in `tests/unit/test_local_schema.py` updated by hand to include workspace entries; not run.
-6. `result.rowcount` on `exec_driver_sql` UPDATE assumed reliable on SQLite and Postgres.
+Resolution status after the verify-and-fix pass (all steps executed in-container; real `dev.db` drill still runs on the operator machine):
+
+1. ~~Nothing executed~~ **Resolved** — import, ruff, migrations (empty + populated SQLite), unit 246, milestone selection 112, full suite 373/373, npm lint + build all pass.
+2. ~~`tometadata` batch alter~~ **Resolved** — implemented as full-metadata clone via `Table.to_metadata()`; batch recreates succeed on SQLite.
+3. ~~`PRAGMA foreign_keys` during batch alter~~ **Resolved empirically** — batch recreates succeeded with inbound FKs present.
+4. `json.dumps({})` bound into a Postgres `JSON` column via raw SQL — **still open** (SQLite path verified; verify on Postgres during deploy).
+5. ~~`test_local_schema` expected lists~~ **Resolved** — tests updated and passing.
+6. ~~`rowcount` on `exec_driver_sql`~~ **Resolved** — quarantine counts logged correctly.
+7. ~~Next 16 docs unread~~ **Resolved** — `node_modules` installed; `npm run lint` and `npm run build` pass; all new routes compile.
+8. Phase 4/5 additions (extra permissions, memberless `system` workspace, `record_event` auto-resolution) — validated by the suite.
+9. Memberless `quarantine`/`system` workspaces — validated (quarantine memberless; system unreachable).
+10. `integrations` table unused by routers — stands; slug-migration unnecessary.
+
+### Fix-pass findings (this pass)
+
+- `0011` had Python syntax errors (`ForeignKey` after kwargs) and the batch `create_foreign_key` signature was wrong — would have crashed every upgrade; fixed.
+- FastAPI cannot resolve a plain `WorkspaceContext` parameter: replaced per-route context dependencies with one request-aware, cached `_resolve_any` resolver.
+- `accept_invite` compared naive SQLite datetimes to aware `now()` — fixed with `_as_aware`.
+- Investigations repository lacked the `user_id` filter (member self-scoping 500) — fixed.
+- `audit.retention` job still used the old `apply_retention` signature and tenant payloads — handler + scheduler now workspace-scoped; legacy payloads are skipped with a logged warning (never cross-workspace deletes).
+- Pre-existing, unrelated to the milestone: `test_health`/`test_config`/AI-dependent tests were mutually inconsistent at the base commit (config default flipped to `groq` in `70975aa` without updating tests). Resolved by pinning `AI_PROVIDER=mock` for the test session, isolating the defaults test from ambient env, and asserting health wiring against the configured provider.
 7. `frontend/node_modules` is not installed, so the bundled Next 16.4 docs (`node_modules/next/dist/docs/`) could not be read before writing frontend code. All new pages are conservative client components using `useParams()`; nothing was verified against Next 16 conventions.
 8. Phase 4/5 additions beyond the original matrix: permissions `conversation.read/create`, `audit.read/export/read_all`, `kubernetes.read`, `member.read`, `invite.manage`, `investigation.read_all`; memberless `system` workspace for user-less audit events; `record_event` auto-resolves `workspace_id` (explicit in scoped callers) so all 29 legacy call sites keep working.
 9. Legacy unprefixed `/investigations`, `/audit-events`, `/kubernetes` routes now require a session (workspace resolution) — `tests/integration/test_kubernetes_api.py` gained an autouse signup fixture.

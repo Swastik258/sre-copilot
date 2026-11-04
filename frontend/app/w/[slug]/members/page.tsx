@@ -33,7 +33,6 @@ export default function WorkspaceMembersPage() {
 
   useEffect(() => {
     void reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspace.slug]);
 
   async function addMember(event: React.FormEvent) {

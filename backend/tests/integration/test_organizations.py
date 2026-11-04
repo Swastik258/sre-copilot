@@ -53,26 +53,35 @@ def test_owner_can_create_workspace_and_add_member(client) -> None:
 
 
 def test_viewer_cannot_create_investigations(client) -> None:
-    owner = _signup(client, "viewer-owner@example.com")
-    org_id = owner["tenant_id"]
-    _signup(client, "viewer-member@example.com")
-    _login(client, "viewer-owner@example.com")
-    client.post(
-        f"/api/v1/organizations/{org_id}/members",
-        json={"email": "viewer-member@example.com", "role": "viewer"},
-    )
+    # Viewership is enforced at the WORKSPACE boundary (the tenant boundary
+    # for every scoped route), so this grants the role there.
+    from fastapi.testclient import TestClient
 
-    _login(client, "viewer-member@example.com")
-    switched = client.post(f"/api/v1/organizations/{org_id}/switch")
-    assert switched.status_code == 200, switched.text
-    assert switched.json()["role"] == "viewer"
+    from app.main import app
 
-    denied = client.post("/api/v1/investigations", json={"title": "Should fail", "kind": "logs"})
-    assert denied.status_code == 403
-    assert denied.json()["error"]["code"] == "forbidden"
+    _signup(client, "viewer-owner@example.com")
+    slug = client.get("/api/v1/workspaces").json()["workspaces"][0]["slug"]
 
-    # Viewers still have read access inside their workspace.
-    assert client.get("/api/v1/investigations").status_code == 200
+    with TestClient(app) as member:
+        _signup(member, "viewer-member@example.com")
+        added = client.post(
+            f"/api/v1/workspaces/{slug}/members",
+            json={"email": "viewer-member@example.com", "role": "viewer"},
+        )
+        assert added.status_code == 201, added.text
+
+        denied = member.post(
+            f"/api/v1/workspaces/{slug}/investigations",
+            json={"title": "Should fail", "kind": "logs"},
+        )
+        assert denied.status_code == 403
+        assert denied.json()["error"]["code"] == "forbidden"
+
+        # Viewers still have read access inside their workspace.
+        assert (
+            member.get(f"/api/v1/workspaces/{slug}/investigations").status_code
+            == 200
+        )
 
 
 def test_last_owner_cannot_be_demoted_or_removed(client) -> None:

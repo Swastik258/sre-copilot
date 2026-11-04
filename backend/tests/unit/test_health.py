@@ -1,3 +1,6 @@
+from app.core.config import get_settings
+
+
 def test_root(client):
     r = client.get("/")
     assert r.status_code == 200
@@ -17,7 +20,9 @@ def test_health_returns_ok(client):
     # New additive fields.
     assert body["version"] == "0.2.0"
     assert body["demo_mode"] is True
-    assert body["ai_provider"] == "mock"
+    # Health echoes the configured provider; the test session pins a mock
+    # provider, production defaults to groq (app/core/config.py).
+    assert body["ai_provider"] == get_settings().ai_provider
 
 
 def test_liveness_is_independent_of_db(client):

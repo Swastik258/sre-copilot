@@ -77,6 +77,10 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
         idempotency_columns = {
             row[1] for row in con.execute("PRAGMA table_info(idempotency_records)")
         }
+        scoped_columns = {
+            table: {row[1]: row for row in con.execute(f"PRAGMA table_info({table})")}
+            for table in _SCOPED_TABLES
+        }
     finally:
         con.close()
 
@@ -88,7 +92,7 @@ def test_alembic_upgrade_creates_all_tables(tmp_path):
     assert {"encrypted_payload", "status", "available_at"} <= job_columns
     assert {"scope_hash", "idempotency_key", "response_body"} <= idempotency_columns
     for table in _SCOPED_TABLES:
-        columns = {row[1]: row for row in con.execute(f"PRAGMA table_info({table})")}
+        columns = scoped_columns[table]
         assert "workspace_id" in columns, table
         assert columns["workspace_id"][3] == 1, f"{table}.workspace_id must be NOT NULL"
 

@@ -9,7 +9,13 @@ from cryptography.fernet import Fernet
 from sqlalchemy import delete
 
 from app.core.config import get_settings
-from app.db.models import AuditEvent, BackgroundJob, IdempotencyRecord, Organization
+from app.db.models import (
+    AuditEvent,
+    BackgroundJob,
+    IdempotencyRecord,
+    Organization,
+    Workspace,
+)
 from app.security.encryption import secret_box
 from app.services import job_handlers
 from app.services.jobs import (
@@ -172,12 +178,17 @@ def test_email_handlers_validate_payloads_and_deliver(
 
 
 def test_retention_and_idempotency_cleanup_handlers(db_session) -> None:
+    # Retention is workspace-scoped: seed a workspace and its events.
+    workspace = Workspace(slug="handler-ws", name="Handler", settings={})
+    db_session.add(workspace)
+    db_session.commit()
     tenant = "handler-tenant"
     old = AuditEvent(
         action="test.handler.old",
         actor="test",
         decision="allow",
         tenant_id=tenant,
+        workspace_id=workspace.id,
         created_at=datetime.now(UTC) - timedelta(days=30),
     )
     new = AuditEvent(
@@ -185,6 +196,7 @@ def test_retention_and_idempotency_cleanup_handlers(db_session) -> None:
         actor="test",
         decision="allow",
         tenant_id=tenant,
+        workspace_id=workspace.id,
         created_at=datetime.now(UTC),
     )
     expired = IdempotencyRecord(
@@ -204,7 +216,7 @@ def test_retention_and_idempotency_cleanup_handlers(db_session) -> None:
     old_id, new_id = old.id, new.id
     expired_id, live_id = expired.id, live.id
 
-    job_handlers._retention(db_session, {"tenant_id": tenant, "days": 7})
+    job_handlers._retention(db_session, {"workspace_id": workspace.id, "days": 7})
     job_handlers._idempotency_cleanup(db_session, {})
     db_session.expire_all()
     assert db_session.get(AuditEvent, old_id) is None

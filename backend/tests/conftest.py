@@ -4,6 +4,9 @@ import os
 # engine and settings are constructed at import time.
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test_sre_copilot.db")
 os.environ.setdefault("ENVIRONMENT", "test")
+# Deterministic AI provider for the test session: AI-dependent flows
+# (investigation messages, ai endpoints) assert mock-provider behaviour.
+os.environ.setdefault("AI_PROVIDER", "mock")
 
 import pytest
 from fastapi.testclient import TestClient

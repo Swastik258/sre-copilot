@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from app.core.errors import ConflictError, ForbiddenError
-from app.db.models import Investigation, User
+from app.db.models import Investigation, User, Workspace, WorkspaceMembership
 from app.schemas.admin import AdminUserUpdate
 from app.services import admin as admin_service
 
@@ -67,12 +67,24 @@ def test_cross_tenant_user_moves_are_rejected(db_session) -> None:
         role="member",
         tenant_id="tenant-old",
     )
-    db_session.add_all([admin_user, member])
+    # Rows are workspace-scoped: give the member's tenant a workspace to own
+    # the investigation.
+    workspace = Workspace(
+        slug="tenant-old", name="Tenant old", settings={}
+    )
+    db_session.add_all([admin_user, member, workspace])
+    db_session.flush()
+    db_session.add(
+        WorkspaceMembership(
+            workspace_id=workspace.id, user_id=member.id, role="owner"
+        )
+    )
     db_session.commit()
 
     investigation = Investigation(
         user_id=member.id,
         tenant_id="tenant-old",
+        workspace_id=workspace.id,
         title="Move me",
         kind="kubernetes",
         status="open",

@@ -5,8 +5,11 @@ from app.core.config import Settings
 from app.services.integrations import integration_statuses
 
 
-def test_defaults_are_demo_and_disabled():
-    s = Settings()
+def test_defaults_are_demo_and_disabled(monkeypatch):
+    # Isolate ambient configuration so this asserts the *declared* defaults
+    # (the committed default is "groq"), not the test session's overrides.
+    monkeypatch.delenv("AI_PROVIDER", raising=False)
+    s = Settings(_env_file=None)
     assert s.ai_provider == "groq"
     assert s.ai_model == "openai/gpt-oss-20b"
     assert s.ai_max_output_tokens == 3000
@@ -53,7 +56,9 @@ def test_external_ai_requires_key():
 
 
 def test_integration_status_reflects_configuration():
-    report = integration_statuses(Settings(groq_api_key=None))
+    # Pin the provider so the assertion holds regardless of the ambient
+    # AI_PROVIDER the test session configures.
+    report = integration_statuses(Settings(ai_provider="groq", groq_api_key=None))
     by_kind = {i.kind: i for i in report.integrations}
     assert report.demo_mode is True
     assert by_kind["kubernetes"].state.value == "disabled"

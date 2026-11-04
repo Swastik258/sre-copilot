@@ -7,6 +7,8 @@ export, or an error message. Proof is tests, not convention.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 import sqlalchemy as sa
 from fastapi.testclient import TestClient
@@ -45,6 +47,17 @@ def _slug(client: TestClient) -> str:
 def _workspace_id(client: TestClient) -> str:
     workspaces = client.get("/api/v1/workspaces").json()["workspaces"]
     return workspaces[0]["id"]
+
+
+def _error_content(response) -> bytes:
+    """Error body minus the per-request correlation id.
+
+    Every app error carries a unique request_id, so byte-identity is asserted
+    on the content fields; the correlation id itself must still be present.
+    """
+    body = response.json()
+    assert body["error"].pop("request_id")
+    return json.dumps(body, sort_keys=True).encode()
 
 
 @pytest.fixture(scope="module")
@@ -146,7 +159,7 @@ def test_nonexistent_and_foreign_workspace_404s_are_identical(
     missing = a_client.get("/api/v1/workspaces/does-not-exist/investigations")
 
     assert foreign.status_code == missing.status_code == 404
-    assert foreign.content == missing.content
+    assert _error_content(foreign) == _error_content(missing)
     assert foreign.headers.get("content-type") == missing.headers.get(
         "content-type"
     )
@@ -165,7 +178,7 @@ def test_legacy_header_cannot_select_foreign_workspace(a_client, b_client):
 
     assert foreign.status_code == 404
     assert missing.status_code == 404
-    assert foreign.content == missing.content
+    assert _error_content(foreign) == _error_content(missing)
 
 
 def test_workspace_id_in_body_or_query_is_ignored(

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
 from typing import Any
 
@@ -9,11 +10,13 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.db.models import IdempotencyRecord, Organization
+from app.db.models import IdempotencyRecord, Workspace
 from app.services import audit as audit_service
 from app.services import settings_store
 from app.services.email import send_password_reset_email, send_verification_email
 from app.services.jobs import enqueue_job, register_handler
+
+log = logging.getLogger("app")
 
 
 def _verification(db: Session, payload: dict[str, Any]) -> None:
@@ -33,13 +36,21 @@ def _reset(db: Session, payload: dict[str, Any]) -> None:
 
 
 def _retention(db: Session, payload: dict[str, Any]) -> None:
-    tenant_id = payload.get("tenant_id")
-    if not isinstance(tenant_id, str) or not tenant_id:
+    # Workspace-scoped retention. Legacy payloads carried tenant_id; without a
+    # workspace there is no boundary to prune within, so skip and log.
+    workspace_id = payload.get("workspace_id")
+    if not isinstance(workspace_id, str) or not workspace_id:
+        if payload.get("tenant_id"):
+            log.warning(
+                "audit.retention job skipped: legacy tenant payload has no "
+                "workspace_id; enqueue with schedule_maintenance_jobs."
+            )
+            return
         raise ValueError("Invalid retention payload.")
     days = payload.get("days")
     if not isinstance(days, int) or isinstance(days, bool):
-        days = settings_store.get_audit_retention_days(db, tenant_id)
-    audit_service.apply_retention(db, days, tenant_id=tenant_id)
+        days = settings_store.get_audit_retention_days(db, workspace_id)
+    audit_service.apply_retention(db, workspace_id, days)
 
 
 def _idempotency_cleanup(db: Session, _: dict[str, Any]) -> None:
@@ -78,14 +89,14 @@ def schedule_maintenance_jobs(db: Session) -> int:
 
     day = datetime.now(UTC).date().isoformat()
     created = 0
-    for organization in db.scalars(select(Organization)).all():
-        organization_id = organization.id
-        days = settings_store.get_audit_retention_days(db, organization_id)
+    for workspace in db.scalars(select(Workspace)).all():
+        workspace_id = workspace.id
+        days = settings_store.get_audit_retention_days(db, workspace_id)
         enqueue_job(
             db,
             kind="audit.retention",
-            payload={"tenant_id": organization_id, "days": days},
-            dedupe_key=f"audit-retention:{organization_id}:{day}",
+            payload={"workspace_id": workspace_id, "days": days},
+            dedupe_key=f"audit-retention:{workspace_id}:{day}",
         )
         created += 1
     enqueue_job(

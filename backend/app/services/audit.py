@@ -7,10 +7,9 @@ before persistence.
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
-
-import logging
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
