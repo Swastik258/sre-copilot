@@ -1,7 +1,21 @@
+import itertools
+
 import pytest
 
 import app.api.v1.kubernetes as k8s_api
 from app.core.config import Settings
+
+_counter = itertools.count()
+
+
+@pytest.fixture(autouse=True)
+def _authenticated(client):
+    """Legacy kubernetes routes resolve a workspace, so sign in first."""
+    email = f"k8s-user-{next(_counter)}@example.com"
+    response = client.post(
+        "/api/v1/auth/signup", json={"email": email, "password": "correct-horse"}
+    )
+    assert response.status_code == 201, response.text
 
 
 def _enable_demo(monkeypatch) -> None:

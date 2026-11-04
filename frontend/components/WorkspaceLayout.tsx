@@ -31,6 +31,7 @@ import { FEATURES, DEFAULT_PLAN, featureForPath, hasFeatureAccess, type FeatureA
 import type { FeatureId } from "@/lib/feature-access";
 import { useAuth } from "@/lib/auth-client";
 import { ThemeToggle } from "@/components/ThemeControls";
+import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 
 const EXTRA_ROUTES = [
   { label: "AI Assistant", href: "/assistant", status: "live", icon: Bot },
@@ -312,6 +313,7 @@ export function WorkspaceLayout({ children }: { children: React.ReactNode }) {
               </nav>
             </div>
             <div className="workspace-header-actions">
+              <WorkspaceSwitcher />
               <button type="button" className="workspace-command-button" onClick={() => setCommandOpen(true)} aria-label="Open command palette">
                 <Search aria-hidden="true" />
                 <span>Search</span><kbd>Ctrl K</kbd>

@@ -17,6 +17,9 @@ from app.db.models import (
     Investigation,
     Message,
     User,
+    Workspace,
+    WorkspaceInvite,
+    WorkspaceMembership,
 )
 from app.db.session import SessionLocal, engine, get_db
 
@@ -33,4 +36,7 @@ __all__ = [
     "Investigation",
     "AuditEvent",
     "Evidence",
+    "Workspace",
+    "WorkspaceMembership",
+    "WorkspaceInvite",
 ]

@@ -113,3 +113,5 @@ class AuthResponse(BaseModel):
 
     user: UserOut
     verification_required: bool = False
+    # Slug of the personal workspace created at signup (None for logins).
+    workspace_slug: str | None = None

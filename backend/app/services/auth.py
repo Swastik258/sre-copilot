@@ -39,6 +39,7 @@ from app.db.models import (
 from app.security.password_policy import validate_password_strength
 from app.security.passwords import hash_password, needs_rehash, verify_password
 from app.security.tokens import generate_token, hash_token
+from app.services import workspace_service
 from app.services.audit import record_event
 
 ROLE_OWNER = "owner"
@@ -185,6 +186,9 @@ def create_user(
                 role=user.role,
             )
         )
+        # Personal workspace for the new isolation boundary. The legacy
+        # organization rows stay until billing migrates to workspaces.
+        workspace_service.create_personal_workspace(db, user=user, commit=False)
         db.commit()
     except IntegrityError:
         # Unique indexes on users.email, organizations.slug, and memberships
@@ -256,6 +260,7 @@ def create_external_user(
                 role=ROLE_OWNER,
             )
         )
+        workspace_service.create_personal_workspace(db, user=user, commit=False)
         db.commit()
     except IntegrityError:
         db.rollback()

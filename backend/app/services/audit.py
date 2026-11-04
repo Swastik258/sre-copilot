@@ -10,14 +10,52 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import delete, func, select
+import logging
+
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.redaction import redact_obj
 from app.core.request_context import get_request_id
-from app.db.models import AuditEvent
+from app.db.models import AuditEvent, Workspace, WorkspaceMembership
+from app.repositories import audit_events as audit_repository
 from app.schemas.audit import AuditEventListResponse, AuditEventOut, AuditRetentionResponse
+
+log = logging.getLogger("app")
+
+
+def _system_workspace_id(db: Session) -> str:
+    """Id of the memberless ``system`` workspace for account-level events.
+
+    Nobody is a member, so its rows are unreachable through the workspace
+    API; it exists only so the NOT NULL audit column can be satisfied for
+    events that have neither a user nor a workspace.
+    """
+    existing = db.scalar(select(Workspace).where(Workspace.slug == "system"))
+    if existing is not None:
+        return existing.id
+    workspace = Workspace(slug="system", name="System", settings={})
+    db.add(workspace)
+    db.commit()
+    log.warning("audit: created the memberless 'system' workspace")
+    return workspace.id
+
+
+def _resolve_audit_workspace(
+    db: Session, user_id: str | None, workspace_id: str | None
+) -> str:
+    if workspace_id:
+        return workspace_id
+    if user_id:
+        membership = db.scalar(
+            select(WorkspaceMembership)
+            .where(WorkspaceMembership.user_id == user_id)
+            .order_by(WorkspaceMembership.created_at)
+        )
+        if membership is not None:
+            return membership.workspace_id
+    return _system_workspace_id(db)
 
 
 def record_event(
@@ -27,29 +65,34 @@ def record_event(
     actor: str,
     decision: str,
     user_id: str | None = None,
+    workspace_id: str | None = None,
     tenant_id: str = "default",
     resource: dict[str, Any] | None = None,
     reason: str | None = None,
     outcome: dict[str, Any] | None = None,
     request_id: str | None = None,
 ) -> AuditEvent:
+    """Record a redacted audit event in the acting workspace.
+
+    Callers with a workspace context pass ``workspace_id`` explicitly so the
+    event cannot be miscoped. Account-level events fall back to the actor's
+    primary workspace; events with no user at all land in the memberless
+    ``system`` workspace.
+    """
     settings = get_settings()
     enabled = settings.redaction_enabled
-    event = AuditEvent(
+    return audit_repository.record(
+        db,
+        workspace_id=_resolve_audit_workspace(db, user_id, workspace_id),
         user_id=user_id,
-        tenant_id=tenant_id,
         action=action,
         actor=actor,
-        resource=redact_obj(resource, enabled=enabled),
         decision=decision,
+        resource=redact_obj(resource, enabled=enabled),
         reason=reason,
         outcome=redact_obj(outcome, enabled=enabled),
         request_id=request_id or get_request_id(),
     )
-    db.add(event)
-    db.commit()
-    db.refresh(event)
-    return event
 
 
 def _out(event: AuditEvent) -> AuditEventOut:
@@ -70,8 +113,8 @@ def _out(event: AuditEvent) -> AuditEventOut:
 def list_events(
     db: Session,
     *,
+    workspace_id: str,
     user_id: str | None = None,
-    tenant_id: str | None = None,
     action: str | None = None,
     actor: str | None = None,
     decision: str | None = None,
@@ -80,31 +123,17 @@ def list_events(
     limit: int = 50,
     offset: int = 0,
 ) -> AuditEventListResponse:
-    filters = []
-    if user_id:
-        filters.append(AuditEvent.user_id == user_id)
-    if tenant_id:
-        filters.append(AuditEvent.tenant_id == tenant_id)
-    if action:
-        filters.append(AuditEvent.action.contains(action))
-    if actor:
-        filters.append(AuditEvent.actor == actor)
-    if decision:
-        filters.append(AuditEvent.decision == decision)
-    if before:
-        filters.append(AuditEvent.created_at < before)
-    if after:
-        filters.append(AuditEvent.created_at >= after)
-
-    total = db.scalar(select(func.count()).select_from(AuditEvent).where(*filters)) or 0
-    rows = list(
-        db.scalars(
-            select(AuditEvent)
-            .where(*filters)
-            .order_by(AuditEvent.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-        )
+    rows, total = audit_repository.list_for_workspace(
+        db,
+        workspace_id=workspace_id,
+        user_id=user_id,
+        action=action,
+        actor=actor,
+        decision=decision,
+        before=before,
+        after=after,
+        limit=limit,
+        offset=offset,
     )
     return AuditEventListResponse(events=[_out(row) for row in rows], total=total)
 
@@ -112,40 +141,21 @@ def list_events(
 def export_rows(
     db: Session,
     *,
-    limit: int = 5000,
+    workspace_id: str,
     user_id: str | None = None,
-    tenant_id: str | None = None,
+    limit: int = 5000,
 ) -> list[AuditEventOut]:
-    filters = []
-    if user_id:
-        filters.append(AuditEvent.user_id == user_id)
-    if tenant_id:
-        filters.append(AuditEvent.tenant_id == tenant_id)
-    rows = list(
-        db.scalars(
-            select(AuditEvent).where(*filters).order_by(AuditEvent.created_at.desc()).limit(limit)
-        )
+    rows = audit_repository.rows_for_export(
+        db, workspace_id=workspace_id, user_id=user_id, limit=limit
     )
     return [_out(row) for row in rows]
 
 
 def apply_retention(
-    db: Session,
-    days: int,
-    *,
-    user_id: str | None = None,
-    tenant_id: str | None = None,
+    db: Session, workspace_id: str, days: int
 ) -> AuditRetentionResponse:
     cutoff = datetime.now(UTC) - timedelta(days=max(1, days))
-    filters = [AuditEvent.created_at < cutoff]
-    if user_id:
-        filters.append(AuditEvent.user_id == user_id)
-    if tenant_id:
-        filters.append(AuditEvent.tenant_id == tenant_id)
-    result = db.execute(
-        delete(AuditEvent).where(*filters).execution_options(synchronize_session=False)
+    deleted = audit_repository.delete_older_than(
+        db, workspace_id=workspace_id, cutoff=cutoff
     )
-    db.commit()
-    return AuditRetentionResponse(
-        deleted=int(getattr(result, "rowcount", 0) or 0), older_than_days=days
-    )
+    return AuditRetentionResponse(deleted=deleted, older_than_days=days)

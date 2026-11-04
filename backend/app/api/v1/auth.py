@@ -31,6 +31,7 @@ from app.schemas.auth import (
 )
 from app.services import auth as auth_service
 from app.services import oauth as oauth_service
+from app.services import workspace_service
 from app.services.audit import record_event
 from app.services.email import send_password_reset_email, send_verification_email
 
@@ -121,9 +122,11 @@ def signup(
         tenant_id=user.tenant_id,
         outcome={"verification_required": verification_required},
     )
+    memberships = workspace_service.list_for_user(db, user_id=user.id)
     return AuthResponse(
         user=UserOut.model_validate(user),
         verification_required=verification_required,
+        workspace_slug=memberships[0][0].slug if memberships else None,
     )
 
 

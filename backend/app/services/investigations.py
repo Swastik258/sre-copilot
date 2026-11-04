@@ -10,12 +10,12 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
-from app.db.models import Evidence as EvidenceModel
 from app.db.models import Investigation, User
+from app.repositories import evidence as evidence_repository
+from app.repositories import investigations as investigations_repository
 from app.schemas.ai import AIRequest, StructuredDiagnosis
 from app.schemas.evidence import Evidence, EvidenceSource, Severity
 from app.schemas.investigation import (
@@ -51,13 +51,11 @@ def _messages(investigation: Investigation) -> list[dict]:
     return messages if isinstance(messages, list) else []
 
 
-def _evidence_ids(db: Session, investigation_id: str) -> list[str]:
-    return list(
-        db.scalars(
-            select(EvidenceModel.id)
-            .where(EvidenceModel.investigation_id == investigation_id)
-            .order_by(EvidenceModel.collected_at)
-        )
+def _evidence_ids(
+    db: Session, *, workspace_id: str, investigation_id: str
+) -> list[str]:
+    return evidence_repository.ids_for_investigation(
+        db, workspace_id=workspace_id, investigation_id=investigation_id
     )
 
 
@@ -74,11 +72,15 @@ def _to_summary(db: Session, investigation: Investigation) -> InvestigationSumma
     )
 
 
-def _to_detail(db: Session, investigation: Investigation) -> InvestigationDetail:
+def _to_detail(
+    db: Session, *, workspace_id: str, investigation: Investigation
+) -> InvestigationDetail:
     base = _to_summary(db, investigation)
     return InvestigationDetail(
         **base.model_dump(),
-        evidence_ids=_evidence_ids(db, investigation.id),
+        evidence_ids=_evidence_ids(
+            db, workspace_id=workspace_id, investigation_id=investigation.id
+        ),
         message_count=len(_messages(investigation)),
     )
 
@@ -94,27 +96,11 @@ def _message_out(message: dict) -> MessageOut:
     )
 
 
-def _tenant_filters(user: User) -> list:
-    """Owners/admins can inspect every investigation in their workspace.
-
-    Members and viewers see only their own records, always bounded by the
-    active tenant. Cross-tenant access is never granted by role.
-    """
-
-    if user.role in {"owner", "admin"}:
-        return [Investigation.tenant_id == user.tenant_id]
-    return [
-        Investigation.user_id == user.id,
-        Investigation.tenant_id == user.tenant_id,
-    ]
-
-
-def get_investigation(db: Session, user: User, investigation_id: str) -> Investigation:
-    investigation = db.scalar(
-        select(Investigation).where(
-            Investigation.id == investigation_id,
-            *_tenant_filters(user),
-        )
+def get_investigation(
+    db: Session, *, workspace_id: str, investigation_id: str
+) -> Investigation:
+    investigation = investigations_repository.get_for_workspace(
+        db, workspace_id=workspace_id, investigation_id=investigation_id
     )
     if investigation is None:
         raise NotFoundError("Investigation not found")
@@ -122,31 +108,31 @@ def get_investigation(db: Session, user: User, investigation_id: str) -> Investi
 
 
 def create_investigation(
-    db: Session, user: User, payload: InvestigationCreate
+    db: Session,
+    *,
+    workspace_id: str,
+    user: User,
+    payload: InvestigationCreate,
 ) -> InvestigationDetail:
-    investigation = Investigation(
+    investigation = investigations_repository.create(
+        db,
+        workspace_id=workspace_id,
         user_id=user.id,
-        tenant_id=user.tenant_id,
         title=payload.title.strip(),
         kind=payload.kind.value,
-        status=InvestigationStatus.open.value,
         result={
             "messages": [],
             "environment": payload.environment,
             "target": payload.target,
         },
-        evidence=[],
     )
-    db.add(investigation)
-    db.commit()
-    db.refresh(investigation)
     record_event(
         db,
         action="investigation.create",
         actor="user",
         decision="allow",
         user_id=user.id,
-        tenant_id=user.tenant_id,
+        workspace_id=workspace_id,
         resource={"investigation_id": investigation.id, "kind": investigation.kind},
     )
     record_usage(
@@ -157,56 +143,54 @@ def create_investigation(
         idempotency_key=f"investigation:{investigation.id}",
         properties={"kind": investigation.kind},
     )
-    return _to_detail(db, investigation)
+    return _to_detail(db, workspace_id=workspace_id, investigation=investigation)
 
 
 def list_investigations(
     db: Session,
-    user: User,
     *,
+    workspace_id: str,
+    user: User,
+    can_read_all: bool,
     status: InvestigationStatus | None = None,
     kind: InvestigationKind | None = None,
     limit: int = 50,
     offset: int = 0,
 ) -> InvestigationListResponse:
-    filters = [*_tenant_filters(user)]
-    if status is not None:
-        filters.append(Investigation.status == status.value)
-    if kind is not None:
-        filters.append(Investigation.kind == kind.value)
-
-    total = db.scalar(select(func.count()).select_from(Investigation).where(*filters)) or 0
-    rows = list(
-        db.scalars(
-            select(Investigation)
-            .where(*filters)
-            .order_by(Investigation.updated_at.desc())
-            .offset(offset)
-            .limit(limit)
-        )
+    rows, total = investigations_repository.list_for_workspace(
+        db,
+        workspace_id=workspace_id,
+        user_id=None if can_read_all else user.id,
+        status=status.value if status is not None else None,
+        kind=kind.value if kind is not None else None,
+        limit=limit,
+        offset=offset,
     )
     return InvestigationListResponse(
-        investigations=[_to_detail(db, investigation) for investigation in rows],
+        investigations=[
+            _to_detail(db, workspace_id=workspace_id, investigation=row) for row in rows
+        ],
         total=total,
     )
 
 
-def get_messages(db: Session, user: User, investigation_id: str) -> InvestigationMessagesResponse:
-    investigation = get_investigation(db, user, investigation_id)
+def get_messages(
+    db: Session, *, workspace_id: str, investigation_id: str
+) -> InvestigationMessagesResponse:
+    investigation = get_investigation(
+        db, workspace_id=workspace_id, investigation_id=investigation_id
+    )
     return InvestigationMessagesResponse(
         investigation_id=investigation.id,
         messages=[_message_out(message) for message in _messages(investigation)],
     )
 
 
-def _db_evidence(db: Session, investigation_id: str) -> list[Evidence]:
-    rows = list(
-        db.scalars(
-            select(EvidenceModel)
-            .where(EvidenceModel.investigation_id == investigation_id)
-            .order_by(EvidenceModel.collected_at)
-            .limit(50)
-        )
+def _db_evidence(
+    db: Session, *, workspace_id: str, investigation_id: str
+) -> list[Evidence]:
+    rows = evidence_repository.list_for_investigation(
+        db, workspace_id=workspace_id, investigation_id=investigation_id, limit=50
     )
     return [
         Evidence(
@@ -268,9 +252,15 @@ def _as_diagnosis(ai: StructuredDiagnosis) -> Diagnosis:
     )
 
 
-def add_message(db: Session, user: User, investigation_id: str, content: str) -> MessageExchange:
-    investigation = get_investigation(db, user, investigation_id)
-    evidence = _db_evidence(db, investigation.id)
+def add_message(
+    db: Session, *, workspace_id: str, user: User, investigation_id: str, content: str
+) -> MessageExchange:
+    investigation = get_investigation(
+        db, workspace_id=workspace_id, investigation_id=investigation_id
+    )
+    evidence = _db_evidence(
+        db, workspace_id=workspace_id, investigation_id=investigation.id
+    )
     surface = (
         investigation.kind
         if investigation.kind
@@ -326,7 +316,7 @@ def add_message(db: Session, user: User, investigation_id: str, content: str) ->
         actor="user",
         decision="allow",
         user_id=user.id,
-        tenant_id=user.tenant_id,
+        workspace_id=workspace_id,
         resource={"investigation_id": investigation.id},
         outcome={"assistant_model": ai.model_provider, "evidence_count": len(evidence)},
     )
@@ -337,10 +327,16 @@ def add_message(db: Session, user: User, investigation_id: str, content: str) ->
     )
 
 
-def close_investigation(db: Session, user: User, investigation_id: str) -> InvestigationDetail:
-    investigation = get_investigation(db, user, investigation_id)
-    investigation.status = InvestigationStatus.closed.value
-    db.add(investigation)
-    db.commit()
-    db.refresh(investigation)
-    return _to_detail(db, investigation)
+def close_investigation(
+    db: Session, *, workspace_id: str, investigation_id: str
+) -> InvestigationDetail:
+    investigations_repository.update_status(
+        db,
+        workspace_id=workspace_id,
+        investigation_id=investigation_id,
+        status=InvestigationStatus.closed.value,
+    )
+    investigation = get_investigation(
+        db, workspace_id=workspace_id, investigation_id=investigation_id
+    )
+    return _to_detail(db, workspace_id=workspace_id, investigation=investigation)

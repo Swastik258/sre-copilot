@@ -20,6 +20,7 @@ from app.api.v1 import (
     runbooks,
     settings,
     terraform,
+    workspaces,
 )
 
 api_router = APIRouter()
@@ -29,6 +30,7 @@ api_router.include_router(health.router, tags=["health"])
 api_router.include_router(auth.router)
 api_router.include_router(account.router)
 api_router.include_router(organizations.router)
+api_router.include_router(workspaces.router, tags=["workspaces"])
 api_router.include_router(billing.router)
 
 # Read-only data routes. ``enforce_auth`` is a no-op unless AUTH_REQUIRED=true,
@@ -37,12 +39,15 @@ api_router.include_router(
     integrations.router, tags=["integrations"], dependencies=[Depends(enforce_auth)]
 )
 api_router.include_router(kubernetes.router, dependencies=[Depends(enforce_auth)])
+api_router.include_router(kubernetes.scoped_router, dependencies=[Depends(enforce_auth)])
 api_router.include_router(github.router, dependencies=[Depends(enforce_auth)])
 api_router.include_router(terraform.router, dependencies=[Depends(enforce_auth)])
 api_router.include_router(ai.router, dependencies=[Depends(enforce_auth)])
 api_router.include_router(logs.router, dependencies=[Depends(enforce_auth)])
 api_router.include_router(investigations.router)
+api_router.include_router(investigations.scoped_router)
 api_router.include_router(audit.router)
+api_router.include_router(audit.scoped_router)
 api_router.include_router(settings.router)
 api_router.include_router(metrics.router, dependencies=[Depends(enforce_auth)])
 api_router.include_router(runbooks.router, dependencies=[Depends(enforce_auth)])

@@ -116,6 +116,11 @@ bounded, and what remains. The milestone view lives in
 
 ## Operational notes
 
+- Multi-tenant workspaces are built behind the workspace APIs
+  (`/api/v1/workspaces/{slug}/...`); see [`docs/WORKSPACES.md`](docs/WORKSPACES.md),
+  [`docs/DECISIONS.md`](docs/DECISIONS.md), and
+  [`docs/MIGRATION_ROLLBACK.md`](docs/MIGRATION_ROLLBACK.md). Run
+  [`docs/BUILD_NOTES.md`](docs/BUILD_NOTES.md)'s test plan before shipping.
 - Infrastructure paths are read-only; generated infrastructure code is
   proposal-only and is never applied by Tarn.
 - `AUTH_REQUIRED` may be off for the local demo, but production always requires

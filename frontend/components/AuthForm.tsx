@@ -109,7 +109,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
         return;
       }
       setUser(result.user);
-      router.replace("/dashboard");
+      if (isSignup && result.workspace_slug) {
+        // Signup lands in the new personal workspace; the URL is the source
+        // of truth for the active workspace.
+        router.replace(`/w/${result.workspace_slug}/dashboard`);
+      } else {
+        router.replace("/dashboard");
+      }
       router.refresh();
     } catch (err) {
       setError(

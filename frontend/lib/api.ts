@@ -35,7 +35,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const method = (init?.method ?? "GET").toUpperCase();
   const unsafe = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
   const csrfToken =
@@ -187,6 +187,8 @@ export type AuthUser = {
 export type AuthResponse = {
   user: AuthUser;
   verification_required?: boolean;
+  /** Slug of the personal workspace created at signup (null on login). */
+  workspace_slug?: string | null;
 };
 
 export type AdminUserListResponse = {

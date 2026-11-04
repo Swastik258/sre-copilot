@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Depends, Query, Request
 from sqlalchemy.orm import Session
 
+from app.auth.permissions import has_permission
 from app.core.config import get_settings
-from app.core.errors import ForbiddenError, UnauthorizedError
-from app.db.models import User
+from app.core.errors import AppError, ForbiddenError, NotFoundError, UnauthorizedError
+from app.db.models import User, Workspace, WorkspaceMembership
 from app.db.session import get_db
 from app.schemas.common import PageParams
 from app.services import auth as auth_service
@@ -112,3 +114,100 @@ def enforce_auth(user: CurrentUser) -> None:
     settings = get_settings()
     if (settings.auth_required or settings.environment == "production") and user is None:
         raise UnauthorizedError("Authentication required.")
+
+
+@dataclass(frozen=True)
+class WorkspaceContext:
+    """The one workspace a request acts on, plus the caller's role in it."""
+
+    workspace: Workspace
+    role: str
+
+    @property
+    def workspace_id(self) -> str:
+        return self.workspace.id
+
+
+def _workspace_not_found() -> NotFoundError:
+    # Nonexistent workspaces and non-member access raise this identical
+    # error so the two cases are indistinguishable from the outside.
+    return NotFoundError(
+        "Workspace not found.",
+        details={"code": "workspace_not_found"},
+    )
+
+
+def _resolve_membership(
+    db: Session, user: User, workspace: Workspace | None
+) -> WorkspaceContext:
+    if workspace is None:
+        raise _workspace_not_found()
+    membership = (
+        db.query(WorkspaceMembership)
+        .filter(
+            WorkspaceMembership.workspace_id == workspace.id,
+            WorkspaceMembership.user_id == user.id,
+        )
+        .first()
+    )
+    if membership is None:
+        raise _workspace_not_found()
+    return WorkspaceContext(workspace=workspace, role=membership.role)
+
+
+def workspace_from_path(
+    workspace_slug: str, user: RequiredUser, db: DbSession
+) -> WorkspaceContext:
+    """Resolve the workspace named by the ``{workspace_slug}`` URL segment."""
+    workspace = db.query(Workspace).filter(Workspace.slug == workspace_slug).first()
+    return _resolve_membership(db, user, workspace)
+
+
+WorkspaceFromPath = Annotated[WorkspaceContext, Depends(workspace_from_path)]
+
+
+def workspace_from_request(
+    request: Request, user: RequiredUser, db: DbSession
+) -> WorkspaceContext:
+    """Resolve the workspace for legacy unprefixed routes.
+
+    Order: the ``X-Workspace-Id`` header, else the user's only workspace,
+    else 400 ``workspace_not_selected``. A workspace id sent in a request
+    body or query string is never trusted.
+    """
+    header_value = request.headers.get("x-workspace-id")
+    if header_value:
+        workspace = db.query(Workspace).filter(Workspace.id == header_value).first()
+        return _resolve_membership(db, user, workspace)
+
+    memberships = (
+        db.query(WorkspaceMembership)
+        .filter(WorkspaceMembership.user_id == user.id)
+        .all()
+    )
+    if len(memberships) == 1:
+        workspace = db.get(Workspace, memberships[0].workspace_id)
+        return _resolve_membership(db, user, workspace)
+
+    raise AppError(
+        "Select a workspace before using this endpoint.",
+        status_code=400,
+        details={"code": "workspace_not_selected"},
+    )
+
+
+WorkspaceFromRequest = Annotated[WorkspaceContext, Depends(workspace_from_request)]
+
+
+def require_workspace_permission(permission: str):
+    """Build a dependency that gates a route behind a workspace permission."""
+
+    def checker(context: WorkspaceContext) -> WorkspaceContext:
+        if not has_permission(context.role, permission):
+            raise ForbiddenError(
+                "Your workspace role does not allow this action.",
+                details={"required_permission": permission, "role": context.role},
+            )
+        return context
+
+    return checker
