@@ -162,8 +162,16 @@ class RealKubernetesClient:
 
     demo = False
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        *,
+        kubeconfig_text: str | None = None,
+        display_name: str | None = None,
+    ) -> None:
         self._settings = settings
+        self._kubeconfig_text = kubeconfig_text
+        self._display_name = display_name
         self._core: Any = None
         self._apps: Any = None
         self._context = settings.kubernetes_context
@@ -182,7 +190,18 @@ class RealKubernetesClient:
             ) from exc
 
         try:
-            if self._settings.kubernetes_in_cluster:
+            if self._kubeconfig_text is not None:
+                # Per-workspace credential: the kubeconfig arrives as stored,
+                # decrypted text rather than a filesystem path.
+                import yaml
+
+                parsed = yaml.safe_load(self._kubeconfig_text)
+                if not isinstance(parsed, dict):
+                    raise ValueError("kubeconfig must be a YAML mapping.")
+                kube_config.load_kube_config_from_dict(
+                    config_dict=parsed, context=self._context or None
+                )
+            elif self._settings.kubernetes_in_cluster:
                 kube_config.load_incluster_config()
             else:
                 kube_config.load_kube_config(
@@ -262,7 +281,14 @@ class RealKubernetesClient:
     # -- read operations --------------------------------------------------
     def cluster(self) -> ClusterInfo:
         self._ensure_clients()
-        name = self._context or self._settings.kubernetes_kubeconfig or "in-cluster"
+        if self._display_name:
+            name: Any = self._display_name
+        else:
+            name = (
+                self._context
+                or self._settings.kubernetes_kubeconfig
+                or "in-cluster"
+            )
         return ClusterInfo(
             name=str(name),
             source="in-cluster" if self._settings.kubernetes_in_cluster else "kubeconfig",

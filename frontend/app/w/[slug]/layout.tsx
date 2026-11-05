@@ -94,6 +94,12 @@ export default function WorkspaceScopeLayout({
                 Dashboard
               </Link>
               <Link
+                href={`/w/${workspace.slug}/kubernetes`}
+                className="hover:text-[var(--accent)]"
+              >
+                Kubernetes
+              </Link>
+              <Link
                 href={`/w/${workspace.slug}/members`}
                 className="hover:text-[var(--accent)]"
               >

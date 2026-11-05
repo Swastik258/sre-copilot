@@ -60,6 +60,27 @@ export type InviteAcceptResponse = {
   workspace: Workspace;
 };
 
+export type WorkspaceCluster = {
+  id: string;
+  name: string;
+  context?: string | null;
+  server?: string | null;
+  enabled: boolean;
+  created_at: string;
+};
+
+export type WorkspaceClusterListResponse = {
+  clusters: WorkspaceCluster[];
+  total: number;
+};
+
+export type ClusterVerifyResult = {
+  ok: boolean;
+  cluster: string;
+  namespaces?: number | null;
+  error?: string | null;
+};
+
 export const workspaceApi = {
   list: () => request<WorkspaceListResponse>("/api/v1/workspaces"),
 
@@ -127,6 +148,34 @@ export const workspaceApi = {
   acceptInvite: (token: string) =>
     request<InviteAcceptResponse>(
       `/api/v1/invites/${encodeURIComponent(token)}/accept`,
+      { method: "POST" },
+    ),
+
+  // ---- Per-workspace Kubernetes clusters ("bring your own cluster") ----
+
+  registeredClusters: (slug: string) =>
+    request<WorkspaceClusterListResponse>(
+      `/api/v1/workspaces/${encodeURIComponent(slug)}/kubernetes/integrations`,
+    ),
+
+  registerCluster: (
+    slug: string,
+    payload: { name: string; kubeconfig: string; context?: string },
+  ) =>
+    request<WorkspaceCluster>(
+      `/api/v1/workspaces/${encodeURIComponent(slug)}/kubernetes/integrations`,
+      { method: "POST", body: JSON.stringify(payload) },
+    ),
+
+  deleteCluster: (slug: string, integrationId: string) =>
+    request<null>(
+      `/api/v1/workspaces/${encodeURIComponent(slug)}/kubernetes/integrations/${encodeURIComponent(integrationId)}`,
+      { method: "DELETE" },
+    ),
+
+  verifyCluster: (slug: string, integrationId: string) =>
+    request<ClusterVerifyResult>(
+      `/api/v1/workspaces/${encodeURIComponent(slug)}/kubernetes/integrations/${encodeURIComponent(integrationId)}/verify`,
       { method: "POST" },
     ),
 };

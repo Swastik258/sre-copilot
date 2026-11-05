@@ -7,6 +7,11 @@ os.environ.setdefault("ENVIRONMENT", "test")
 # Deterministic AI provider for the test session: AI-dependent flows
 # (investigation messages, ai endpoints) assert mock-provider behaviour.
 os.environ.setdefault("AI_PROVIDER", "mock")
+# Workspace-owned credentials (kubeconfigs) are encrypted at rest; tests need
+# a stable key. Individual tests may still override settings per-case.
+from cryptography.fernet import Fernet  # noqa: E402
+
+os.environ.setdefault("CREDENTIAL_ENCRYPTION_KEY", Fernet.generate_key().decode())
 
 import pytest
 from fastapi.testclient import TestClient

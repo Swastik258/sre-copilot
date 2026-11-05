@@ -81,6 +81,28 @@ queried without a `workspace_id` filter.
 - `tests/integration/test_migrations.py` and
   `tests/unit/test_local_schema.py` — empty and populated databases.
 
+## Per-workspace Kubernetes clusters ("bring your own cluster")
+
+Every workspace can connect its **own** clusters instead of relying on the
+deployment's shared, operator-configured ones:
+
+- `POST /api/v1/workspaces/{slug}/kubernetes/integrations` — paste a
+  kubeconfig (permission `integration.connect`). The kubeconfig is validated,
+  **encrypted at rest** (`CREDENTIAL_ENCRYPTION_KEY`), and never returned by
+  any API.
+- `GET …/kubernetes/integrations` — metadata only (name, context, API server).
+- `POST …/kubernetes/integrations/{id}/verify` — live read-only reachability
+  probe; returns a structured `{ok, namespaces | error}` result.
+- `DELETE …/kubernetes/integrations/{id}` — disconnect (`integration.disconnect`).
+
+Once a workspace has a connected cluster, all scoped Kubernetes routes
+(clusters, namespaces, workloads, pods, logs, diagnose) resolve the client
+from **that** credential. A workspace with no connected cluster falls back to
+the shared env-configured clusters (`KUBERNETES_KUBECONFIG` /
+`KUBERNETES_CLUSTERS`), preserving the single-operator model. Clusters of one
+workspace are invisible to another (same 404 rules as all workspace data).
+UI: `/w/<slug>/kubernetes`.
+
 ## Frontend
 
 Product routes live under `/w/[slug]/...` (dashboard, members, settings).

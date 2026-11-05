@@ -33,3 +33,8 @@
   switcher and post-signup redirect only navigate — they never authorize.
   Legacy unprefixed product pages still work against the deprecated API
   routes.
+- **Per-workspace Kubernetes credentials are implemented.** Workspaces store
+  their own kubeconfigs (encrypted at rest) in the `integrations` table;
+  scoped k8s routes prefer the workspace credential and fall back to the
+  shared env clusters when none is registered. The self-hosted
+  one-deployment-per-customer model remains supported unchanged.
